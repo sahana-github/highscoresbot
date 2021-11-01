@@ -6,7 +6,7 @@ from discord.ext import commands
 import sqlite3
 from discord_components import DiscordComponents, Button, ButtonStyle
 from commands.utils import tablify, isswarmpokemon, isswarmlocation, isgoldrushlocation, getgoldrushlocations, \
-    ishoneylocation, gethoneylocations
+    ishoneylocation, gethoneylocations, istournamentprize
 from discord.ext.commands.context import Context
 
 
@@ -200,6 +200,8 @@ class Pmconfig(commands.Cog):
                                                    msg1="enter the name of the prize:",
                                                    msg2="enter the name of the tournament:",
                                                    buttonresponse=buttonresponse,
+                                                   inputvalidation1=istournamentprize,
+                                                   inputvalidationmsg1="that is not an existing tournament prize!",
                                                    inputvalidation2=tournamenttypes,
                                                    inputvalidationmsg2="that is not an existing tournament!")
 

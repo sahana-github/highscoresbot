@@ -104,6 +104,12 @@ def gethoneylocations() -> list:
         cur.execute("SELECT * FROM honeylocations")
         return [row[0] for row in cur.fetchall()]
 
+def istournamentprize(prize: str) -> list:
+    with sqlite3.connect("data.db") as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT prize FROM tournamentprizes WHERE prize=?", (prize,))
+        return bool(cur.fetchall())
+
 def haspermissions(roles: list, guild: int) -> bool:
     """
     checks if a role has permissions to adjust eventconfigurations for the provided guild.
