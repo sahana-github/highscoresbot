@@ -1,0 +1,5 @@
+eventconfigurations.db
+
+.idea/
+
+events/__pycache__/
