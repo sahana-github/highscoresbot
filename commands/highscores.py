@@ -396,7 +396,8 @@ class Highscores(commands.Cog):
 
         try:
             highscoresdict[highscoretype]
-            clanname = await self.getdefaultclanname(ctx, comment=False)
+            if clanname is None:
+                clanname = await self.getdefaultclanname(ctx, comment=False)
             if highscoretype == "btwinstreak" or highscoretype == "btwins":
                 clanname = None
         except KeyError:
