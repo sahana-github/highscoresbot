@@ -25,8 +25,11 @@ class ClanEvent(Event):
         conn = sqlite3.connect(self.pathManager.getpath("eventconfigurations.db"))
         cur = conn.cursor()
         cur.execute("SELECT guildid FROM clanconfig WHERE clan=? OR clan='all'", (clan,))
-        guilds = list(set([row[0] for row in cur.fetchall()]))
-        
+        guilds = [row[0] for row in cur.fetchall()]
+
+        cur.execute("SELECT guildid FROM memberconfig WHERE playername=?", (self.player,))
+        guilds += [row[0] for row in cur.fetchall()]
+        guilds = list(set(guilds))
 
         total = []
         all_channels = []
