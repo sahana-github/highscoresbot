@@ -100,6 +100,7 @@ class Highscores(commands.Cog):
         for i in messages:
             await ctx.send(i)
 
+    @commands.command(name="pokeboxes")
     async def pokeboxes(self, ctx, clanname=None):
         """
         gets the highscore of most opened pokemon boxes
