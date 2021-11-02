@@ -1,6 +1,13 @@
+import asyncio
 import re
+
+import discord
+import discord_components
 from discord.ext import commands
 import sqlite3
+
+from discord_components import ButtonStyle, Button, Select, SelectOption, Interaction
+
 from commands.utils import haspermissions, tablify
 from discord.utils import escape_mentions
 from typing import Union
@@ -348,6 +355,130 @@ class Eventconfigurations(commands.Cog):
         messages = tablify(["eventname", "channel", "pingrole", "alivetime"], result)
         for message in messages:
             await ctx.send(message)
+
+    # config for adding individual playernames, this way clanevents act as if the player is in a clan the discord server
+    # is registered for.
+    @commands.guild_only()
+    @commands.command(name="playerconfig")
+    async def playerconfig(self, ctx: Context):
+        """
+        add players, remove players and show players that act as if a player is in a clan.
+        :param ctx: discord context
+        """
+        buttons = [Button(style=ButtonStyle.blue, label="add player"),
+                   Button(style=ButtonStyle.red, label="remove player"),
+                   Button(style=ButtonStyle.green, label="show playerconfigurations")]
+
+        msg = await ctx.send("what do you want to do?", components=[buttons], )
+        def check(res):
+            return res.channel == ctx.channel and res.author == ctx.author and res.component.id in \
+                   [button.id for button in buttons]
+        res: discord_components.interaction.Interaction = await self.client.wait_for("button_click", check=check)
+
+        if res.component.label == "show playerconfigurations":
+            await res.send("players configured for this server:")
+            await self.__show_members(ctx)
+            await msg.delete()
+        elif res.component.label == "add player":
+            await msg.delete()
+            await self.__add_member(ctx)
+        elif res.component.label == "remove player":
+            await msg.delete()
+            await self.__remove_member(ctx)
+
+    async def __add_member(self, ctx: Context):
+        if not haspermissions([role.id for role in ctx.message.author.roles], ctx.guild.id) and not\
+                ctx.message.author.guild_permissions.administrator:
+            await ctx.send("insufficient permissions to use this command!")
+            return
+        await ctx.send("type the name of the player:")
+        try:
+            msg: discord.message.Message = await self.client.wait_for('message',
+                                                                      check=lambda newmsg: ctx.author.id == newmsg.author.id
+                                                                      and ctx.channel.id == newmsg.channel.id,
+                                             timeout=30)
+        except asyncio.exceptions.TimeoutError:
+            await ctx.send("timed out. please try again.")
+            return
+        membername = msg.content
+        with sqlite3.connect(self.databasepath) as conn:
+            cur = conn.cursor()
+            try:
+                cur.execute("INSERT INTO memberconfig(guildid, playername) VALUES(?,?)", (ctx.guild.id, membername))
+            except sqlite3.IntegrityError:
+                await ctx.send("player has already been registered for this guild!")
+                return
+            conn.commit()
+            await ctx.send(f"`{membername}` added to configuration for this server!")
+
+    async def __remove_member(self, ctx: Context):
+        if not haspermissions([role.id for role in ctx.message.author.roles], ctx.guild.id) and not\
+                ctx.message.author.guild_permissions.administrator:
+            await ctx.send("insufficient permissions to use this command!")
+            return
+        with sqlite3.connect(self.databasepath) as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT playername FROM memberconfig WHERE guildid=?", (ctx.guild.id,))
+            members = [row[0] for row in cur.fetchall()]
+        if 25 >= len(members) > 0:
+            originalmsg = await ctx.send("testing selects", components=[
+                Select(placeholder="Select the players you want to remove.",
+                       options=[SelectOption(label=player,
+                                             value=player)
+                                for player in members], )
+            ])
+
+            while True:
+                try:
+                    event: Interaction = await self.client.wait_for("select_option",
+                                                       check=lambda selection: ctx.channel == selection.channel
+                                                       and ctx.author == selection.author, timeout=30)
+                except asyncio.TimeoutError:
+                    await originalmsg.delete()
+                    return
+                for player in event.values:
+                    cur.execute("DELETE FROM memberconfig WHERE guildid=? and playername=?", (ctx.guild.id, player))
+                    members.remove(player)
+                conn.commit()
+                if len(members) == 0:
+                    await event.send("No players left!")
+                    await originalmsg.delete()
+                    return
+                await event.edit_origin("Select players to remove:", components=[
+                Select(placeholder="Select the players you want to remove from configuration for this server.",
+                       options=[SelectOption(label=player,
+                                             value=player)
+                                for player in members], )
+            ])
+        elif len(members) > 25:
+            await ctx.send("please enter the name of the player you want to remove from the configuration for this"
+                           " server.", delete_after=35)
+            try:
+                event: discord.message.Message = await self.client.wait_for("message",
+                                                                check=lambda selection: ctx.channel == selection.channel
+                                                                                        and ctx.author == selection.author,
+                                                                timeout=30)
+            except asyncio.TimeoutError:
+                await ctx.send("configurating timed out. Please try again.", delete_after=30)
+                return
+            player = event.content
+            if player not in members:
+                await ctx.send("That member is not in memberconfig!")
+            else:
+                cur.execute("DELETE FROM memberconfig WHERE guildid=? and playername=?", (ctx.guild.id, player))
+                conn.commit()
+                await ctx.send(f"{player} removed from playerconfig!")
+        else:
+            await ctx.send("no members registered for playerconfig.")
+
+    async def __show_members(self, ctx: Context):
+        with sqlite3.connect(self.databasepath) as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT playername FROM memberconfig WHERE guildid=?", (ctx.guild.id,))
+            members = [row[0] for row in cur.fetchall()]
+
+        msg = "```\n" + "\n".join(members) + "```"
+        await ctx.send(msg)
 
     async def __eventnamecheck(self, ctx: Context, eventname: str):
         """

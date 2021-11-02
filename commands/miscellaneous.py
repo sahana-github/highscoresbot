@@ -367,6 +367,12 @@ class Miscellaneous(commands.Cog):
                                   description="gives a link to invite this bot, also gives a link to the supportserver."
                                   , color=0xFFAFC9)
 
+        elif command == "playerconfig":
+            embed = discord.Embed(title="memberconfig",
+                                  description="With this command you can add players, remove players and show players."
+                                              "After adding a player the player acts as if the player would be in a "
+                                              "registered clan for your server. So it shows encounters, opened "
+                                              "chests etc if those are registered for your server.")
         elif command == "links":
             embed = discord.Embed(title="links", description="gives some usefull links.", color=0xFFAFC9)
 
@@ -531,6 +537,8 @@ class HelpCommand:
                             value="Please note that the bot needs the permission 'mention @ everyone, @ here and all roles' to be able to ping. Adds a role to ping for certain messages.",
                             inline=False)
             embed.add_field(name=".removeping <eventname>", value="Removes a role to ping for certain messages.",
+                            inline=False)
+            embed.add_field(name=".playerconfig", value="adds players as if they are in a registered clan.",
                             inline=False)
             embed.set_footer(text="Page {} of {}".format(str(self.page), str(self.max_page)))
 
