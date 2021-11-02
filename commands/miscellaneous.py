@@ -368,7 +368,7 @@ class Miscellaneous(commands.Cog):
                                   , color=0xFFAFC9)
 
         elif command == "playerconfig":
-            embed = discord.Embed(title="memberconfig",
+            embed = discord.Embed(title="playerconfig",
                                   description="With this command you can add players, remove players and show players."
                                               "After adding a player the player acts as if the player would be in a "
                                               "registered clan for your server. So it shows encounters, opened "
