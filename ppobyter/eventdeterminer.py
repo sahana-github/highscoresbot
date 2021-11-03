@@ -28,7 +28,15 @@ class EventDeterminer:
         pattern = r"``````Next World Boss in (?P<hours>[0-9]+) hours, (?P<minutes>[0-9]+) minutes.``````"
         if match := re.search(pattern, self.message):
             return "powerticketpress", match.groupdict()
-
+        if "`xt`b128`-1`" in self.message:
+            print(self.message)  # DEBUG
+            splittedtext = self.message.split("`")
+            players = [player.lower() for player in splittedtext[6][1:-1].split(",")]
+            prizes_and_amount = []
+            pattern = r"\[([A-Za-z0-9, ]+)\]"
+            for value in re.findall(pattern, splittedtext[5]):
+                prizes_and_amount.append(value.split(","))  # [prize, amount]
+            return "itembomb", {"players": players, "prizesamount": prizes_and_amount}
         if "`xt`r17`-1`" not in self.message:
             return
         pattern = r"'>(?P<player>[0-9a-zA-Z]+) has encountered a Lv (?P<level>[0-9]+) (?P<pokemon>(\[S\])?(\[E\])?([0-9a-zA-Z-]+))( from mining)?!"
@@ -86,6 +94,6 @@ class EventDeterminer:
 if __name__ == "__main__":
     #EventDeterminer("`xt`r17`-1`'>A group of wild snivy and abra have been spotted at route 11.").determineEvent()
     #EventDeterminer("`xt`r17`-1`'>Henkjan spread some Honey in cerulean cave f4!").determineEvent()
-    e = EventDeterminer(r"`xt`r17`-1`'>Kevin has received a Lv 79 [S]Gyarados!").determineEvent()
+    e = EventDeterminer(r"`xt`b128`-1`Ferb`[[Mystery Box,1],[Evolutional Stone Box,1],[Evolutional Stone Box,1],[Max Repel,1],[Ultra Ball,6],[1 Day GM Ticket,1],[Ultra Ball,1],[Evolutional Stone Box,1],[30 Day GM Ticket,1],[1 Day GM Ticket,1]]`[Ferb,PaulWalker,BlackAngelBr,N3TR0xX,kiencuibap1472,AceX93,Benmin,CurtbertMoon,pokemongame2,NDGInferno]`").determineEvent()
     print(e)
    # EventDeterminer("`xt`r17`-1`'>The Little Cup Tournament will start in 30 minutes at the Vermilion City PvP Arena. Tournament prize: PvP Token (250), Credits (400), Honey (2)`").determineEvent()

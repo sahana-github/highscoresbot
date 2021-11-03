@@ -1,17 +1,18 @@
-from events.arceusaltar import ArceusAltar
-from events.dianciealtar import DiancieAltar
-from events.elite4 import Elite4
-from events.goldrush import Goldrush
-from events.kyogrealtar import KyogreAltar
-from events.serverrestart import ServerRestart
-from events.swarm import Swarm
-from events.event import Event
-from events.tournament import Tournament
-from events.worldboss import Worldboss
-from events.honey import Honey
-from events.encounter import Encounter
-from events.powerticketpress import Powerticketpress
+from ppobyter.events.arceusaltar import ArceusAltar
+from ppobyter.events.dianciealtar import DiancieAltar
+from ppobyter.events.elite4 import Elite4
+from ppobyter.events.goldrush import Goldrush
+from ppobyter.events.kyogrealtar import KyogreAltar
+from ppobyter.events.serverrestart import ServerRestart
+from ppobyter.events.swarm import Swarm
+from ppobyter.events.event import Event
+from ppobyter.events.tournament import Tournament
+from ppobyter.events.worldboss import Worldboss
+from ppobyter.events.honey import Honey
+from ppobyter.events.encounter import Encounter
+from ppobyter.events.powerticketpress import Powerticketpress
 from ppobyter.events.chest import Chest
+from ppobyter.events.itembomb import ItemBomb
 from ppobyter.events.roll import Roll
 
 
@@ -58,6 +59,8 @@ class EventMaker:
             event = Chest(kwargs["player"], kwargs["location"])
         elif eventname == "roll":
             event = Roll(kwargs["player"], kwargs["pokemon"], kwargs["level"])
+        elif eventname == "itembomb":
+            event = ItemBomb(kwargs["players"], kwargs["prizesamount"])
         return event
 
 
