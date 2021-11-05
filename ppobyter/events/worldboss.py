@@ -62,10 +62,7 @@ class Worldboss(Event):
         """
         for i in range(2):
             try:
-                powerticket = pyautogui.center(
-                    pyautogui.locateOnScreen(r"C:\Users\paperspace\Desktop\PPoByter\PPOByter\powerticket.png",
-                                             confidence=0.7))
-                pyautogui.click(powerticket.x, powerticket.y, clicks=2)
+                pyautogui.click(300, 420, clicks=2)
                 time.sleep(0.2)
             except Exception as e:
                 print(e)
