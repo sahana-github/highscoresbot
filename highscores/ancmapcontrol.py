@@ -20,4 +20,4 @@ class AncMapcontrol(Highscore):
         instead of the default 1000.
         :param databasepath:
         """
-        super().create(databasepath, 100)
+        super()._create(databasepath, 100)

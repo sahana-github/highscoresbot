@@ -50,13 +50,16 @@ class Highscore:
         messages.append(message)
         return messages
 
-    def create(self, databasepath: str, amount=1000):
+    def create(self, databasepath: str):
         """
         This method is to create the database and initialize the rank column.
         :param databasepath:
         :param amount: the amount of values to put in the database.
         :return:
         """
+        self._create(databasepath)
+
+    def _create(self, databasepath, amount=1000):
         conn = sqlite3.connect(databasepath)
         cur = conn.cursor()
         cur.execute(self.CREATEQUERY)
