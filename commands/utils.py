@@ -2,8 +2,17 @@ import csv
 import sqlite3
 import datetime
 from typing import Union, List
+
+from numpy import isnan
+
 from pathmanager import PathManager
 
+
+def replacenan(list, replacement):
+    for i in range(len(list)):
+        if type(list[i]) == float and isnan(list[i]):
+            list[i] = replacement
+    return list
 
 def tablify(layout: list, values: List[List]):
     """
@@ -87,6 +96,7 @@ def getgoldrushlocations() -> list:
     """
     return open("commands/data/goldrushlocations.csv").read().split(",")
 
+
 def ishoneylocation(location: str) -> bool:
     """
     Checks if the provided location is a honeylocation.
@@ -98,17 +108,20 @@ def ishoneylocation(location: str) -> bool:
         cur.execute("SELECT * FROM honeylocations WHERE location=?", (location,))
         return bool(cur.fetchall())
 
+
 def gethoneylocations() -> list:
     with sqlite3.connect("data.db") as conn:
         cur = conn.cursor()
         cur.execute("SELECT * FROM honeylocations")
         return [row[0] for row in cur.fetchall()]
 
+
 def istournamentprize(prize: str) -> list:
     with sqlite3.connect("data.db") as conn:
         cur = conn.cursor()
         cur.execute("SELECT prize FROM tournamentprizes WHERE prize=?", (prize,))
         return bool(cur.fetchall())
+
 
 def haspermissions(roles: list, guild: int) -> bool:
     """
