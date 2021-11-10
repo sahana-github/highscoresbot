@@ -11,11 +11,12 @@ from requests import Session, Response
 
 class PpoWebSession:
     def __init__(self, username: str, password: str, interval: int = 5):
+        # @todo handle connection issues and raise more specific errors.
         """
         initializes cookies and interval.
-        :param username:
-        :param password:
-        :param interval:
+        :param username: pokemon planet username
+        :param password: pokemon planet password
+        :param interval: interval after pages are loaded.
         """
         self.__cookies = {"user": username, "passwrd": password, "cookielength": "-1"}
         self.interval = interval
@@ -62,10 +63,10 @@ class PpoWebSession:
                     self.session.post(link["href"])
                     self.session.close()
                     self.session = None
+                    print("logged out!")
                     break
         else:
             print("not logged out.")
-
     def __getuserid(self) -> str:
         """
         gets the userid.
@@ -91,6 +92,8 @@ class PpoWebSession:
 
     def __del__(self):
         self.logout()
+
+
 if __name__ == "__main__":
     session = PpoWebSession("username", "password")
   #  help(session)
