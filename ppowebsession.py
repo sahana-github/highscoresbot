@@ -89,6 +89,8 @@ class PpoWebSession:
         element: lxml.html.InputElement = tree.xpath("/html/body/div[8]/div/div/div[2]/div/div[1]/div/form/div[2]/input[3]")[0]
         return element.name, element.value
 
+    def __del__(self):
+        self.logout()
 if __name__ == "__main__":
     session = PpoWebSession("username", "password")
   #  help(session)
