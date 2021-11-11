@@ -3,12 +3,12 @@ from highscores.highscore import Highscore
 
 class BzMapcontrol(Highscore):
     def __init__(self):
-        self.LAYOUT = ["rank", "clanname", "pokemon defeated"]
-        self.NAME = "bzmc"
-        self.LINK = "https://pokemon-planet.com/battleZoneMapControl.php"
-        self.CREATEQUERY = "CREATE TABLE IF NOT EXISTS bzmc(rank INTEGER PRIMARY KEY, clan TEXT, pokemon_defeated " \
+        LAYOUT = ["rank", "clanname", "pokemon defeated"]
+        NAME = "bzmc"
+        LINK = "https://pokemon-planet.com/battleZoneMapControl.php"
+        CREATEQUERY = "CREATE TABLE IF NOT EXISTS bzmc(rank INTEGER PRIMARY KEY, clan TEXT, pokemon_defeated " \
                            "TEXT)"
-        super(BzMapcontrol, self).__init__()
+        super(BzMapcontrol, self).__init__(NAME, LINK, LAYOUT, CREATEQUERY)
 
     def updatequery(self) -> str:
         return "UPDATE bzmc SET clan=?, pokemon_defeated=? WHERE rank=?"

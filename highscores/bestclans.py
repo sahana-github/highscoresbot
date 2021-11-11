@@ -5,12 +5,12 @@ from highscores.highscore import Highscore
 
 class BestClans(Highscore):
     def __init__(self):
-        self.LAYOUT = ["Rank", "Clanname", "Founder", "Clan Experience"]
-        self.NAME = "bestclans"
-        self.LINK = "https://pokemon-planet.com/topStrongestClans.php"
-        self.CREATEQUERY = "CREATE TABLE IF NOT EXISTS bestclans(rank INTEGER PRIMARY KEY, name TEXT, founder TEXT," \
+        LAYOUT = ["Rank", "Clanname", "Founder", "Clan Experience"]
+        NAME = "bestclans"
+        LINK = "https://pokemon-planet.com/topStrongestClans.php"
+        CREATEQUERY = "CREATE TABLE IF NOT EXISTS bestclans(rank INTEGER PRIMARY KEY, name TEXT, founder TEXT," \
                            "experience TEXT)"
-        super(BestClans, self).__init__()
+        super(BestClans, self).__init__(NAME, LINK, LAYOUT, CREATEQUERY)
 
     def updatequery(self) -> str:
         return "UPDATE bestclans SET name=?, founder=?, experience=? WHERE rank=?"

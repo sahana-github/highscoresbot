@@ -3,12 +3,12 @@ from highscores.highscore import Highscore
 
 class AncMapcontrol(Highscore):
     def __init__(self):
-        self.LAYOUT = ["rank", "clanname", "pokemon defeated"]
-        self.NAME = "ancmc"
-        self.LINK = "https://pokemon-planet.com/ancientCave.php"
-        self.CREATEQUERY = "CREATE TABLE IF NOT EXISTS ancmc(rank INTEGER PRIMARY KEY, clan TEXT, pokemon_defeated " \
+        LAYOUT = ["rank", "clanname", "pokemon defeated"]
+        NAME = "ancmc"
+        LINK = "https://pokemon-planet.com/ancientCave.php"
+        CREATEQUERY = "CREATE TABLE IF NOT EXISTS ancmc(rank INTEGER PRIMARY KEY, clan TEXT, pokemon_defeated " \
                            "TEXT)"
-        super(AncMapcontrol, self).__init__()
+        super(AncMapcontrol, self).__init__(NAME, LINK, LAYOUT, CREATEQUERY)
 
     def updatequery(self) -> str:
         return "UPDATE ancmc SET clan=?, pokemon_defeated=? WHERE rank=?"

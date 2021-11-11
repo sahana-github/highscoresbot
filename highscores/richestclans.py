@@ -7,12 +7,12 @@ from highscores.highscore import Highscore
 
 class RichestClans(Highscore):
     def __init__(self):
-        self.LAYOUT = ["Rank", "Clanname", "Founder", "Clan Bank"]
-        self.NAME = "richestclans"
-        self.LINK = "https://pokemon-planet.com/topRichestClans.php"
-        self.CREATEQUERY = "CREATE TABLE IF NOT EXISTS richestclans(rank INTEGER PRIMARY KEY, name TEXT, founder TEXT," \
+        LAYOUT = ["Rank", "Clanname", "Founder", "Clan Bank"]
+        NAME = "richestclans"
+        LINK = "https://pokemon-planet.com/topRichestClans.php"
+        CREATEQUERY = "CREATE TABLE IF NOT EXISTS richestclans(rank INTEGER PRIMARY KEY, name TEXT, founder TEXT," \
                            "clanbank TEXT)"
-        super(RichestClans, self).__init__()
+        super(RichestClans, self).__init__(NAME, LINK, LAYOUT, CREATEQUERY)
 
     def updatequery(self) -> str:
         return "UPDATE richestclans SET name=?, founder=?, clanbank=? WHERE rank=?"

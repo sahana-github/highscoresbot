@@ -3,12 +3,12 @@ from highscores.highscore import Highscore
 
 class SafariMapcontrol(Highscore):
     def __init__(self):
-        self.LAYOUT = ["rank", "clanname", "pokemon defeated"]
-        self.NAME = "safarimc"
-        self.LINK = "https://pokemon-planet.com/safariZoneMapControl.php"
-        self.CREATEQUERY = "CREATE TABLE IF NOT EXISTS safarimc(rank INTEGER PRIMARY KEY, clan TEXT, pokemon_defeated " \
+        LAYOUT = ["rank", "clanname", "pokemon defeated"]
+        NAME = "safarimc"
+        LINK = "https://pokemon-planet.com/safariZoneMapControl.php"
+        CREATEQUERY = "CREATE TABLE IF NOT EXISTS safarimc(rank INTEGER PRIMARY KEY, clan TEXT, pokemon_defeated " \
                            "TEXT)"
-        super(SafariMapcontrol, self).__init__()
+        super(SafariMapcontrol, self).__init__(NAME, LINK, LAYOUT, CREATEQUERY)
 
     def updatequery(self) -> str:
         return "UPDATE safarimc SET clan=?, pokemon_defeated=? WHERE rank=?"

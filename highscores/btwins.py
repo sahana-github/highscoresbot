@@ -3,15 +3,15 @@ from highscores.highscore import Highscore
 
 class Btwins(Highscore):
     def __init__(self):
-        self.LAYOUT = ["Rank", "Username", "Wins", "Win Streak"]
-        self.NAME = "btwins"
-        self.LINK = "https://pokemon-planet.com/btWins.php"
-        self.CREATEQUERY = "CREATE TABLE IF NOT EXISTS btwins(rank INTEGER PRIMARY KEY, name TEXT, wins TEXT, " \
+        LAYOUT = ["Rank", "Username", "Wins", "Win Streak"]
+        NAME = "btwins"
+        LINK = "https://pokemon-planet.com/btWins.php"
+        CREATEQUERY = "CREATE TABLE IF NOT EXISTS btwins(rank INTEGER PRIMARY KEY, username TEXT, wins TEXT, " \
                            "streak TEXT)"
-        super(Btwins, self).__init__()
+        super(Btwins, self).__init__(NAME, LINK, LAYOUT, CREATEQUERY)
 
     def updatequery(self) -> str:
-        return "UPDATE btwins SET name=?, wins=?, streak=? WHERE rank=?"
+        return "UPDATE btwins SET username=?, wins=?, streak=? WHERE rank=?"
 
     def create(self, databasepath: str):
         """

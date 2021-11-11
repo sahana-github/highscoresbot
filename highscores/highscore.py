@@ -6,49 +6,51 @@ from ppowebsession import PpoWebSession
 
 
 class Highscore:
-    def __init__(self):
+    def __init__(self, name, link, layout, createquery=None):
         """
         checks if a subclass has overridden the right attributes.
         """
-        self.LINK: str
-        self.LAYOUT: List[str]
-        self.NAME: str
-        self.CREATEQUERY: str
-        self.__isOverridden()
+        self.LINK: str = link
+        self.LAYOUT: List[str] = layout
+        self.NAME: str = name
+        self.CREATEQUERY: str = createquery
 
     def getDbValues(self, query=None, clan=None, params: List = []):
         conn = sqlite3.connect("main.db")
         cur = conn.cursor()
         if query is not None:
-            cur.execute(query, params)
+            if clan is None:
+                cur.execute(query, params)
+            else:
+                cur.execute(query, [clan] + params)
         elif query is None and clan is not None:
             cur.execute(f"SELECT * FROM {self.NAME} WHERE clan=?", (clan,))
         else:
             cur.execute(f"SELECT * FROM {self.NAME}")
-        result = [self.LAYOUT] + list(cur.fetchall())
+        result = list(cur.fetchall())
         return result
 
-    def tablify(self, result):
-
-        lengths = {}
-        for i in range(len(self.LAYOUT)):
-            lengths[i] = len(str(max(result, key=lambda x: len(str(x[i])))[i]))
-        messages = []
-        message = "```\n"
-        for row in result:
-            rowtext = "|"
-            for columnindex, column in enumerate(row):
-                newtxt = str(column) + " " * (lengths[columnindex] - len(str(column)))
-                rowtext += newtxt + "|"
-            if len(message + rowtext + "```") < 2000:
-                message += rowtext + "\n"
-            else:
-                message += "```"
-                messages.append(message)
-                message = "```\n" + rowtext + "\n"
-        message += "```"
-        messages.append(message)
-        return messages
+    # def tablify(self, result):
+    #
+    #     lengths = {}
+    #     for i in range(len(self.LAYOUT)):
+    #         lengths[i] = len(str(max(result, key=lambda x: len(str(x[i])))[i]))
+    #     messages = []
+    #     message = "```\n"
+    #     for row in result:
+    #         rowtext = "|"
+    #         for columnindex, column in enumerate(row):
+    #             newtxt = str(column) + " " * (lengths[columnindex] - len(str(column)))
+    #             rowtext += newtxt + "|"
+    #         if len(message + rowtext + "```") < 2000:
+    #             message += rowtext + "\n"
+    #         else:
+    #             message += "```"
+    #             messages.append(message)
+    #             message = "```\n" + rowtext + "\n"
+    #     message += "```"
+    #     messages.append(message)
+    #     return messages
 
     def create(self, databasepath: str):
         """
@@ -126,27 +128,6 @@ class Highscore:
         conn.commit()
         conn.close()
 
-    def __isOverridden(self):
-        try:
-            self.LINK
-        except AttributeError:
-            raise NotImplementedError("missing LINK attribute!")
-        try:
-            self.LAYOUT
-        except AttributeError:
-            raise NotImplementedError("missing LAYOUT attribute!")
-
-        try:
-            self.NAME
-        except AttributeError:
-            raise NotImplementedError("missing NAME attribute!")
-
-        self.updatequery()
-
-        try:
-            self.CREATEQUERY
-        except AttributeError:
-            print("\033[93m" + "Warning: no CREATEQUERY available." + "\033[0m")
 
 if __name__ == "__main__":
     Highscore()
