@@ -10,20 +10,22 @@ class Highscores(commands.Cog):
     def __init__(self, client):
         self.client: commands.bot.Bot = client
         self.databasepath = "highscores.db"
-        #self.client.
+        self.makeClanCommands()
 
-    @commands.command(name="exp")
-    async def exp(self, ctx, clanname=None):
-        """
-        shows highscore of top exp
-        :param clanname
-        """
-        if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
-            return
-        exp = Exp()
-        messages = tablify(exp.LAYOUT, exp.getDbValues(clan=clanname))
-        for i in messages:
-            await ctx.send(i)
+    def makeClanCommands(self):
+        for highscore in clanhighscores:
+            highscore = highscore()
+            def outer_cmd(score):
+                @commands.command(name=score.NAME)
+                async def wut(ctx, clanname):
+                    if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
+                        return
+                    messages = tablify(score.LAYOUT, score.getDbValues(clan=clanname))
+                    for i in messages:
+                        await ctx.send(i)
+                return wut
+
+            self.client.add_command(outer_cmd(highscore))
 
     @commands.command(name="richestclans")
     async def richestclans(self, ctx, clanname=None):
@@ -88,70 +90,9 @@ class Highscores(commands.Cog):
             for i in sendmessages:
                 await ctx.send(i)
 
-    @commands.command(name="toprichest")
-    async def toprichest(self, ctx, clanname=None):
-        """
-        gets the highscore of the top richest players
-        :param clanname
-        """
-        if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
-            return
-        richest = Richest()
-        messages = tablify(richest.LAYOUT, richest.getDbValues(clan=clanname.lower()))
-        for i in messages:
-            await ctx.send(i)
 
-    @commands.command(name="pokeboxes")
-    async def pokeboxes(self, ctx, clanname=None):
-        """
-        gets the highscore of most opened pokemon boxes
-        :param clanname
-        """
-        if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
-            return
-        boxes = PokeBoxes()
-        messages = tablify(boxes.LAYOUT, boxes.getDbValues(clan=clanname.lower()))
-        for i in messages:
-            await ctx.send(i)
 
-    @commands.command(name="evoboxes")
-    async def evoboxes(self, ctx, clanname=None):
-        """
-        gets the highscore of most opened evolution boxes.
-        :param clanname
-        """
-        if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
-            return
-        boxes = EvoBoxes()
-        messages = tablify(boxes.LAYOUT, boxes.getDbValues(clan=clanname.lower()))
-        for i in messages:
-            await ctx.send(i)
 
-    @commands.command(name="mysteryboxes")
-    async def mysteryboxes(self, ctx, clanname=None):
-        """
-        gets the highsore of most opened mystery boxes
-        :param clanname
-        """
-        if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
-            return
-        boxes = MysteryBoxes()
-        messages = tablify(boxes.LAYOUT, boxes.getDbValues(clan=clanname.lower()))
-        for i in messages:
-            await ctx.send(i)
-
-    @commands.command(name="tmboxes")
-    async def tmboxes(self, ctx, clanname=None):
-        """
-        gets the highscore of most opened tm boxes
-        :param clanname
-        """
-        if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
-            return
-        boxes = TmBoxes()
-        messages = tablify(boxes.LAYOUT, boxes.getDbValues(clan=clanname.lower()))
-        for i in messages:
-            await ctx.send(i)
 
     @commands.command(name="btwins")
     async def btwins(self, ctx, clanname=None):
@@ -197,140 +138,6 @@ class Highscores(commands.Cog):
         resultmessages = tablify(["Rank", "Username", "Win Streak", "Wins"], adjustedrows)
         for message in resultmessages:
             await ctx.send(message)
-
-    @commands.command(name="wbdmg")
-    async def wbdmg(self, ctx, clanname=None):
-        """
-        gets the highscore of worldboss damage
-        :param clanname
-        """
-        if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
-            return
-        wbdmg = WorldbossDamage()
-        messages = tablify(wbdmg.LAYOUT, wbdmg.getDbValues(clan=clanname.lower()))
-        for i in messages:
-            await ctx.send(i)
-
-    @commands.command(name="cwplayers")
-    async def cwplayers(self, ctx, clanname=None):
-        """
-        gets the best clanwar players
-        :param clanname
-        """
-        if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
-            return
-        cwplayers = Cwplayers()
-        messages = tablify(cwplayers.LAYOUT, cwplayers.getDbValues(clan=clanname.lower()))
-        for i in messages:
-            await ctx.send(i)
-
-    @commands.command(name="cwwins")
-    async def cwwins(self, ctx, clanname=None):
-        """
-        gets the clanwar wins of a clan
-        :param clanname:
-        """
-        if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
-            return
-        cwwins = Cwwins()
-        messages = tablify(cwwins.LAYOUT, cwwins.getDbValues(clan=clanname.lower()))
-        for i in messages:
-            await ctx.send(i)
-
-    @commands.command(name="achievements")
-    async def achievements(self, ctx, clanname=None):
-        """
-        gets the highscore of achievements
-        :param clanname
-        """
-        if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
-            return
-        achievements = Achievements()
-        # layout, values
-        messages = tablify(achievements.LAYOUT, achievements.getDbValues(clan=clanname.lower()))
-        for i in messages:
-            await ctx.send(i)
-
-    @commands.command(name="pp")
-    async def pp(self, ctx, clanname=None):
-        """
-        gets the philanthropists highscores
-        :param clanname: clanname
-        """
-        if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
-            return
-        pp = Philanthropist()
-        # layout, values
-        messages = tablify(pp.LAYOUT, pp.getDbValues(clan=clanname.lower()))
-        for i in messages:
-            await ctx.send(i)
-
-    @commands.command(name="weeklyexp")
-    async def weeklyexp(self, ctx, clanname=None):
-        """
-        gets weeklyexp highscores
-        :param clanname
-        """
-        if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
-            return
-        weeklyexp = Weeklyexp()
-        messages = tablify(weeklyexp.LAYOUT, weeklyexp.getDbValues(clan=clanname.lower()))
-        for i in messages:
-            await ctx.send(i)
-
-    @commands.command(name="lle")
-    async def lle(self, ctx, clanname=None):
-        """
-        gets legendless encounters highscores
-        :param clanname
-        """
-        if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
-            return
-        lle = Lle()
-        # layout, values
-        messages = tablify(lle.LAYOUT, lle.getDbValues(clan=clanname.lower()))
-        for i in messages:
-            await ctx.send(i)
-
-    @commands.command(name="fishing")
-    async def fishing(self, ctx, clanname=None):
-        """
-        gets fishing highscores
-        :param clanname
-        """
-        if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
-            return
-        fishing = Fishing()
-        messages = tablify(fishing.LAYOUT, fishing.getDbValues(clan=clanname.lower()))
-        for i in messages:
-            await ctx.send(i)
-
-    @commands.command(name="mining")
-    async def mining(self, ctx, clanname=None):
-        """
-        gets mining highscores
-        :param clanname:
-        """
-        if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
-            return
-        mining = Mining()
-        # layout, values
-        messages = tablify(mining.LAYOUT, mining.getDbValues(clan=clanname.lower()))
-        for i in messages:
-            await ctx.send(i)
-
-    @commands.command(name="dex")
-    async def dex(self, ctx, clanname=None):
-        """
-        gets the top dex highscore of a clan.
-        :param clanname:
-        """
-        if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
-            return
-        dex = Dex()
-        messages = tablify(dex.LAYOUT, dex.getDbValues(clan=clanname.lower()))
-        for i in messages:
-            await ctx.send(i)
 
     @commands.command(name="mapcontrol")
     async def mapcontrol(self, ctx, clanname = None):
@@ -471,7 +278,6 @@ class Highscores(commands.Cog):
         elif clanname is not None:
             clanname = clanname.lower()
         return clanname
-
 
 
 def setup(client):

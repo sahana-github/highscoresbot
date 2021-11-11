@@ -26,6 +26,10 @@ allhighscores = [Achievements, AncMapcontrol, BestClans, Btwins, Btwinstreak, Bz
            Dex, EvoBoxes, Exp, Fishing, Lle, Mining, MysteryBoxes, Philanthropist, PokeBoxes, Richest, RichestClans,
            SafariMapcontrol, TmBoxes, Weeklyexp, WorldbossDamage]
 
+clanhighscores = [Achievements, Cwplayers, Cwwins, Dex, EvoBoxes, Exp, Fishing, Lle, Mining, MysteryBoxes, Philanthropist,
+                PokeBoxes, Richest, TmBoxes, Weeklyexp, WorldbossDamage]
+
 __all__ = ["Achievements", "AncMapcontrol", "BestClans", "Btwins", "Btwinstreak", "BzMapcontrol", "Cwplayers", "Cwwins",
            "Dex", "EvoBoxes", "Exp", "Fishing", "Lle", "Mining", "MysteryBoxes", "Philanthropist", "PokeBoxes",
-           "Richest", "RichestClans", "SafariMapcontrol", "TmBoxes", "Weeklyexp", "WorldbossDamage", "allhighscores"]
+           "Richest", "RichestClans", "SafariMapcontrol", "TmBoxes", "Weeklyexp", "WorldbossDamage", "allhighscores",
+           "clanhighscores"]
