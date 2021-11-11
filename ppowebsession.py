@@ -67,6 +67,7 @@ class PpoWebSession:
                     break
         else:
             print("not logged out.")
+
     def __getuserid(self) -> str:
         """
         gets the userid.

@@ -3,11 +3,14 @@ import sqlite3
 from commands.utils import tablify
 from discord.ext import commands
 from commands.highscores_database import Database
+from highscores import *
+
 
 class Highscores(commands.Cog):
     def __init__(self, client):
-        self.client = client
+        self.client: commands.bot.Bot = client
         self.databasepath = "highscores.db"
+        #self.client.
 
     @commands.command(name="exp")
     async def exp(self, ctx, clanname=None):
@@ -17,9 +20,8 @@ class Highscores(commands.Cog):
         """
         if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
             return
-        result = Database().getValues("exp", clanname)
-        # layout, values
-        messages = tablify(result[1], result[0])
+        exp = Exp()
+        messages = tablify(exp.LAYOUT, exp.getDbValues(clan=clanname))
         for i in messages:
             await ctx.send(i)
 
@@ -31,10 +33,10 @@ class Highscores(commands.Cog):
         """
         if clanname is None and ((clanname := await self.getdefaultclanname(ctx, comment=False)) is None):
             clanname = ""
-        db = Database()
-        resultmessages = tablify(["Rank", "Name", "Founder", "Clan Bank"],
-                                 db.executeQuery("SELECT Rank, Name, Founder, Clan_Bank FROM richestclans "
-                                                 "WHERE Rank < 10 or Name = '{0}'".format(clanname)))
+        richestclans = RichestClans()
+        values = richestclans.getDbValues(query="SELECT * FROM richestclans WHERE Rank < 10 or Name = ?",
+                                          clan=clanname.lower())
+        resultmessages = tablify(richestclans.LAYOUT, values)
         for i in resultmessages:
             await ctx.send(i)
 
@@ -46,9 +48,10 @@ class Highscores(commands.Cog):
         """
         if clanname is None and ((clanname := await self.getdefaultclanname(ctx, comment=False)) is None):
             clanname = ""
-        db = Database()
-        resultmessages = tablify(["Rank", "Name", "Founder", "Clan Experience"],
-                                 db.executeQuery("SELECT Rank, Name, Founder, Clan_Experience FROM bestclans WHERE Rank < 10 or Name = '{0}'".format(clanname)))
+        bestclans = BestClans()
+        values = bestclans.getDbValues(query="SELECT * FROM bestclans WHERE Rank < 10 or Name = ?",
+                                       clan=clanname.lower())
+        resultmessages = tablify(bestclans.LAYOUT, values)
         for i in resultmessages:
             await ctx.send(i)
 
@@ -59,28 +62,27 @@ class Highscores(commands.Cog):
         :param username:
         """
         username = username.lower()
-        db = Database()
-        messages = []
-        for i in db.getTables():
-            if "Username" not in i[1]:
-                continue
-            query = "SELECT {0}".format(re.sub(r'( |/|-)', "_", str(i[1][0])))
-            for j in i[1][1:]:
-                query += ", {0}".format(re.sub(r'( |/|-)', "_", j))
-            query += " FROM {0} WHERE Username = '{1}'".format(str(i[0]), username)
-            messages += tablify(i[1], db.executeQuery(query))
+        allmessages = []
+        for highscore in allhighscores:
+            highscore = highscore()
+            try:
+                values = highscore.getDbValues(query="SELECT * FROM {0} WHERE username=?".format(highscore.NAME),
+                                               params=[username])
+                if (newmessages := tablify(highscore.LAYOUT, values))[0] != "No results found.":
+                    allmessages += newmessages
+            except sqlite3.OperationalError:
+                pass
+
         sendmessages = []
         newmsg = ""
-        for i in messages:
-            if i.count("\n") < 3:
-                continue
+        for i in allmessages:
             if len(newmsg + i) < 2000:
                 newmsg += i
             else:
                 sendmessages.append(newmsg)
                 newmsg = str(i)
         sendmessages.append(newmsg)
-        if len(sendmessages) == 1 and sendmessages[0] == "":
+        if len(sendmessages) == 0:
             await ctx.send("or {0} is not in any highscore or he does not exist.".format(username))
         else:
             for i in sendmessages:
@@ -94,9 +96,8 @@ class Highscores(commands.Cog):
         """
         if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
             return
-        result = Database().getValues("richest", clanname)
-        # layout, values
-        messages = tablify(result[1], result[0])
+        richest = Richest()
+        messages = tablify(richest.LAYOUT, richest.getDbValues(clan=clanname.lower()))
         for i in messages:
             await ctx.send(i)
 
@@ -108,9 +109,8 @@ class Highscores(commands.Cog):
         """
         if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
             return
-        result = Database().getValues("pokeboxes", clanname)
-        # layout, values
-        messages = tablify(result[1], result[0])
+        boxes = PokeBoxes()
+        messages = tablify(boxes.LAYOUT, boxes.getDbValues(clan=clanname.lower()))
         for i in messages:
             await ctx.send(i)
 
@@ -122,9 +122,8 @@ class Highscores(commands.Cog):
         """
         if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
             return
-        result = Database().getValues("evoboxes", clanname)
-        # layout, values
-        messages = tablify(result[1], result[0])
+        boxes = EvoBoxes()
+        messages = tablify(boxes.LAYOUT, boxes.getDbValues(clan=clanname.lower()))
         for i in messages:
             await ctx.send(i)
 
@@ -136,9 +135,8 @@ class Highscores(commands.Cog):
         """
         if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
             return
-        result = Database().getValues("mysteryboxes", clanname)
-        # layout, values
-        messages = tablify(result[1], result[0])
+        boxes = MysteryBoxes()
+        messages = tablify(boxes.LAYOUT, boxes.getDbValues(clan=clanname.lower()))
         for i in messages:
             await ctx.send(i)
 
@@ -150,9 +148,8 @@ class Highscores(commands.Cog):
         """
         if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
             return
-        result = Database().getValues("tmboxes", clanname)
-        # layout, values
-        messages = tablify(result[1], result[0])
+        boxes = TmBoxes()
+        messages = tablify(boxes.LAYOUT, boxes.getDbValues(clan=clanname.lower()))
         for i in messages:
             await ctx.send(i)
 
@@ -160,18 +157,25 @@ class Highscores(commands.Cog):
     async def btwins(self, ctx, clanname=None):
         if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
             return
+        players = []
+        for highscore in allhighscores:
+            highscore = highscore()
+            try:
+                vals = highscore.getDbValues(query="SELECT username FROM {0} WHERE clan=?", clan=clanname.lower())
+            except sqlite3.OperationalError:
+                continue
+            for val in vals:
+                if val not in players:
+                    players.append(val)
+
         clanname = clanname.lower()
-        db = Database()
-        query = open("query.txt").read()
-        query += "'" + str(clanname) + "'"
-        result = db.executeQuery(query)
-        clanlist = [i[0] for i in result]
-        rows = db.executeQuery("SELECT Rank, Username, Wins, Win_Streak FROM btwins")
+        btwins = Btwins()
+        values = btwins.getDbValues()
         adjustedrows = []
-        for row in rows:
-            if row[1] in clanlist:
+        for row in values:
+            if row[1] in players:
                 adjustedrows.append(row)
-        resultmessages = tablify(["Rank", "Username", "Wins", "Win Streak"], adjustedrows)
+        resultmessages = tablify(btwins.LAYOUT, adjustedrows)
         for message in resultmessages:
             await ctx.send(message)
 
@@ -202,9 +206,8 @@ class Highscores(commands.Cog):
         """
         if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
             return
-        result = Database().getValues("wbdmg", clanname)
-        # layout, values
-        messages = tablify(result[1], result[0])
+        wbdmg = WorldbossDamage()
+        messages = tablify(wbdmg.LAYOUT, wbdmg.getDbValues(clan=clanname.lower()))
         for i in messages:
             await ctx.send(i)
 
@@ -216,9 +219,8 @@ class Highscores(commands.Cog):
         """
         if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
             return
-        result = Database().getValues("playercwwins", clanname)
-        # layout, values
-        messages = tablify(result[1], result[0])
+        cwplayers = Cwplayers()
+        messages = tablify(cwplayers.LAYOUT, cwplayers.getDbValues(clan=clanname.lower()))
         for i in messages:
             await ctx.send(i)
 
@@ -230,9 +232,8 @@ class Highscores(commands.Cog):
         """
         if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
             return
-        result = Database().getValues("cwwins", clanname)
-        # layout, values
-        messages = tablify(result[1], result[0])
+        cwwins = Cwwins()
+        messages = tablify(cwwins.LAYOUT, cwwins.getDbValues(clan=clanname.lower()))
         for i in messages:
             await ctx.send(i)
 
@@ -244,9 +245,9 @@ class Highscores(commands.Cog):
         """
         if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
             return
-        result = Database().getValues("achievements", clanname)
+        achievements = Achievements()
         # layout, values
-        messages = tablify(result[1], result[0])
+        messages = tablify(achievements.LAYOUT, achievements.getDbValues(clan=clanname.lower()))
         for i in messages:
             await ctx.send(i)
 
@@ -258,9 +259,9 @@ class Highscores(commands.Cog):
         """
         if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
             return
-        result = Database().getValues("pp", clanname)
+        pp = Philanthropist()
         # layout, values
-        messages = tablify(result[1], result[0])
+        messages = tablify(pp.LAYOUT, pp.getDbValues(clan=clanname.lower()))
         for i in messages:
             await ctx.send(i)
 
@@ -272,9 +273,8 @@ class Highscores(commands.Cog):
         """
         if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
             return
-        result = Database().getValues("weeklyexp", clanname)
-        # layout, values
-        messages = tablify(result[1], result[0])
+        weeklyexp = Weeklyexp()
+        messages = tablify(weeklyexp.LAYOUT, weeklyexp.getDbValues(clan=clanname.lower()))
         for i in messages:
             await ctx.send(i)
 
@@ -286,9 +286,9 @@ class Highscores(commands.Cog):
         """
         if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
             return
-        result = Database().getValues("lle", clanname)
+        lle = Lle()
         # layout, values
-        messages = tablify(result[1], result[0])
+        messages = tablify(lle.LAYOUT, lle.getDbValues(clan=clanname.lower()))
         for i in messages:
             await ctx.send(i)
 
@@ -300,9 +300,8 @@ class Highscores(commands.Cog):
         """
         if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
             return
-        result = Database().getValues("fishing", clanname)
-        # layout, values
-        messages = tablify(result[1], result[0])
+        fishing = Fishing()
+        messages = tablify(fishing.LAYOUT, fishing.getDbValues(clan=clanname.lower()))
         for i in messages:
             await ctx.send(i)
 
@@ -314,9 +313,9 @@ class Highscores(commands.Cog):
         """
         if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
             return
-        result = Database().getValues("mining", clanname)
+        mining = Mining()
         # layout, values
-        messages = tablify(result[1], result[0])
+        messages = tablify(mining.LAYOUT, mining.getDbValues(clan=clanname.lower()))
         for i in messages:
             await ctx.send(i)
 
@@ -328,9 +327,8 @@ class Highscores(commands.Cog):
         """
         if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
             return
-        result = Database().getValues("dex", clanname)
-        # layout, values
-        messages = tablify(result[1], result[0])
+        dex = Dex()
+        messages = tablify(dex.LAYOUT, dex.getDbValues(clan=clanname.lower()))
         for i in messages:
             await ctx.send(i)
 
