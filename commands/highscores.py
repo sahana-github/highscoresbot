@@ -17,13 +17,13 @@ class Highscores(commands.Cog):
             highscore = highscore()
             def outer_cmd(score):
                 @commands.command(name=score.NAME)
-                async def wut(ctx, clanname):
+                async def cmd(ctx, clanname):
                     if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
                         return
                     messages = tablify(score.LAYOUT, score.getDbValues(clan=clanname))
                     for i in messages:
                         await ctx.send(i)
-                return wut
+                return cmd
 
             self.client.add_command(outer_cmd(highscore))
 
