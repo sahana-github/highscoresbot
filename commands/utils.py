@@ -222,6 +222,21 @@ def datehandler(datestring: str) -> str:
         datelist[2] = "0" + str(datelist[2])
     return "-".join(datelist)
 
+
+def joinmessages(messages, maxlength=2000):
+    allmessages = []
+    newmsg = ""
+    for message in messages:
+        if len(newmsg + message) < maxlength:
+            newmsg += message
+        else:
+            allmessages.append(newmsg)
+            newmsg = ""
+    if newmsg != "":
+        allmessages.append(newmsg)
+    return allmessages
+
+
 if __name__ == "__main__":
 
     tablify(['Rank', 'Username', 'Clan', 'Experience Gained'],

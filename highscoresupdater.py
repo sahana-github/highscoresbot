@@ -32,7 +32,7 @@ class HighscoresUpdater:
 
 
 if __name__ == "__main__":
-    websession = PpoWebSession(os.environ.get("username"), os.environ.get("password"), 5)
+    websession = PpoWebSession(os.environ.get("username"), os.environ.get("password"), 4)
     websession.login()
     updater = HighscoresUpdater(websession)
     updater.makeHighscores("main.db")
