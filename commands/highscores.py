@@ -4,7 +4,6 @@ import sqlite3
 from discord.ext.commands import Command
 from commands.utils import tablify, joinmessages
 from discord.ext import commands
-from commands.highscores_database import Database
 from highscores import *
 from highscores.highscore import Highscore
 
