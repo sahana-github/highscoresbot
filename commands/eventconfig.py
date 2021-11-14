@@ -401,6 +401,7 @@ class Eventconfigurations(commands.Cog):
             await ctx.send("timed out. please try again.")
             return
         membername = msg.content
+        membername = membername.lower()
         with sqlite3.connect(self.databasepath) as conn:
             cur = conn.cursor()
             try:
