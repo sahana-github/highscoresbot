@@ -7,10 +7,8 @@ import datetime
 import asyncio
 
 from discord_components import ButtonStyle, Button
-
-from commands.data import datahandlers
 from commands.utils import getworldbosstime, tablify, datehandler
-from commands.highscores_database import Database
+
 from discord.ext.commands.context import Context
 
 
@@ -82,15 +80,24 @@ class Miscellaneous(commands.Cog):
         if not ctx.author.guild_permissions.administrator:
             await ctx.send("insufficient permissions to use this command. Ask a server administrator!")
             return
-        db = Database()
+        id = ctx.guild.id
+        conn = sqlite3.connect("highscores.db")
+        cur = conn.cursor()
         if clanname is not None:
-            db.register(ctx.guild.id, clanname.lower())
-            await ctx.send(f"{clanname} registered as default!")
+            try:
+                cur.execute("INSERT INTO clannames(id, name) VALUES(?,?)", (id, clanname))
+            except sqlite3.IntegrityError:
+                cur.execute("UPDATE clannames SET name=? WHERE id=?", (clanname, id))
+            msg = await ctx.send(f"{clanname} registered as default!")
         else:
-            db.unregister(ctx.guild.id)
-            await ctx.send("default has been removed!")
-
-
+            cur.execute("UPDATE clannames SET name = NULL WHERE id=?", (id,))
+            msg = await ctx.send("default has been removed!")
+        try:
+            conn.commit()
+        except Exception as e:
+            print(e)
+            await msg.delete()
+            await ctx.send("Something went wrong. Developer is informed.")
 
     @commands.command(name="worldboss")
     async def worldboss(self, ctx: Context, playername: str):
@@ -99,15 +106,42 @@ class Miscellaneous(commands.Cog):
         :param ctx: discord context
         :param playername: the player of who you want to see the worldbosses he/she participated in.
         """
+        viewquery = """
+        CREATE VIEW participants
+        AS
+        SELECT worldbossid, count(*) as amount FROM worldboss_dmg GROUP BY worldbossid;
+        """
+        selectquery = """
+        SELECT worldboss.worldbossname, worldboss_dmg.damage, worldboss.date, rankings.position, participants.amount
+        FROM worldboss_dmg, worldboss, participants, rankings
+        WHERE worldboss_dmg.playername=?
+        AND worldboss.id = worldboss_dmg.worldbossid AND worldboss_dmg.worldbossid = participants.worldbossid
+        AND rankings.playername=worldboss_dmg.playername AND rankings.worldbossid = worldboss_dmg.worldbossid
+        """
+        rankingsquery = """
+        CREATE VIEW rankings
+        AS
+        SELECT rank() OVER (PARTITION BY  worldbossid ORDER BY damage DESC) as position, * FROM worldboss_dmg
+        """
         playername = playername.lower()
-        datahandler = datahandlers.Worldbossdatahandler()
-        data = datahandler.getplayerworldbosses(playername)
-        datahandler.close()
-        messages = tablify(["worldboss", "damage", "date", "position", "participants"], data)
-        await ctx.send("see ?help worldboss to see under what circumstances players are visible with this command."
-                       "\nworld bosses {0} participated in:".format(playername))
-        for i in messages:
-            await ctx.send(i)
+        conn = sqlite3.connect("data.db")
+        cur = conn.cursor()
+        try:
+            cur.execute("DROP VIEW participants")
+            cur.execute("DROP VIEW rankings")
+        except sqlite3.OperationalError:
+            pass  # already exists.
+        cur.execute(viewquery)
+        cur.execute(rankingsquery)
+        cur.execute(selectquery, (playername,))
+
+        result = cur.fetchall()
+        cur.execute("DROP VIEW participants")
+        cur.execute("DROP VIEW rankings")
+        messages = tablify(["worldboss", "damage", "date", "rank", "participants"], result)
+        await ctx.send(messages[-1])
+        for i in messages[0:-1]:
+            await ctx.author.send(i)
 
     @commands.command(name="help")
     async def help(self, ctx: Context, command: str = None):

@@ -30,28 +30,6 @@ class Highscore:
         result = list(cur.fetchall())
         return result
 
-    # def tablify(self, result):
-    #
-    #     lengths = {}
-    #     for i in range(len(self.LAYOUT)):
-    #         lengths[i] = len(str(max(result, key=lambda x: len(str(x[i])))[i]))
-    #     messages = []
-    #     message = "```\n"
-    #     for row in result:
-    #         rowtext = "|"
-    #         for columnindex, column in enumerate(row):
-    #             newtxt = str(column) + " " * (lengths[columnindex] - len(str(column)))
-    #             rowtext += newtxt + "|"
-    #         if len(message + rowtext + "```") < 2000:
-    #             message += rowtext + "\n"
-    #         else:
-    #             message += "```"
-    #             messages.append(message)
-    #             message = "```\n" + rowtext + "\n"
-    #     message += "```"
-    #     messages.append(message)
-    #     return messages
-
     def create(self, databasepath: str):
         """
         This method is to create the database and initialize the rank column.

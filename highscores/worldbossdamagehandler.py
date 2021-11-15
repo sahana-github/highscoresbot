@@ -48,8 +48,8 @@ class WorldbossDamageHandler:
 
         self.result = WorldbossDamage().getDbValues()
         for _, username, _, total_damage in self.result:
-            if self.__getTotalDamage(username, self.worldbossid-1):
-                old_dmg = int(datacur.fetchall()[0][0])
+            if old_dmg := self.__getTotalDamage(username, self.worldbossid-1):
+                pass
             else:
                 # the player was not in the playerdmg table last worldboss.
                 if not self.__playerExists(username):
@@ -61,7 +61,7 @@ class WorldbossDamageHandler:
                     # Just updating adjusted id.
                     datacur.execute("UPDATE playerdmg SET adjusted=?, damage=? WHERE playername=?",
                                     (self.worldbossid, total_damage, username))
-                    dataconn.commit()
+                dataconn.commit()
                 continue
 
             total_damage = int(total_damage)
