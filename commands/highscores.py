@@ -1,4 +1,3 @@
-import re
 import sqlite3
 
 from discord.ext.commands import Command

@@ -14,49 +14,6 @@ def replacenan(list, replacement):
             list[i] = replacement
     return list
 
-# def tablify(layout: list, values: List[List]):
-#     """
-#     puts stuff in a table
-#     example input: layout=["name", "balance"], values=[["hank", "5000"], ["berend", "4000"]]
-#     :param layout: a list of the layout
-#     :param values: a list of lists with a simular length as the layout.
-#     :return: list of messages in table form
-#     """
-#     values = [list(i) for i in values]
-#     length = {}
-#     for i in range(len(layout)):
-#         length[i] = len(layout[i])
-#
-#     for i in range(len(values)):
-#         for j in range(len(values[i])):
-#             if len(str(values[i][j])) > length[j]:
-#                 length[j] = len(str(values[i][j]))
-#
-#     resultmessages = []
-#     result = "```\n"
-#     for i in range(len(layout)):
-#         while len(layout[i]) < length[i]:
-#             layout[i] += " "
-#         result += layout[i] + "|"
-#     result += "\n"
-#
-#     for row in values:
-#         newrow = ""
-#         for i in range(len(row)):
-#             while len(str(row[i])) < length[i]:
-#                 row[i] = str(row[i]) + " "
-#             newrow += str(row[i]) + "|"
-#         if len(result + newrow + "\n```") < 2000:
-#             result += newrow + "\n"
-#         else:
-#             resultmessages.append(result + "```")
-#             result = "```\n"
-#             result += newrow + "\n"
-#     result += "```"
-#     if result.count("\n") < 3 and len(resultmessages) == 0:
-#         result = "Nothing found to be sent."
-#     resultmessages.append(result)
-#     return resultmessages
 
 def tablify(layout, values):
     lengths = {}
@@ -81,6 +38,7 @@ def tablify(layout, values):
         message = "No results found."
     messages.append(message)
     return messages
+
 
 def isswarmpokemon(pokemon: str) -> bool:
     """
