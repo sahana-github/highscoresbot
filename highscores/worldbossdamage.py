@@ -1,7 +1,3 @@
-
-
-
-
 from highscores.highscore import Highscore
 
 
