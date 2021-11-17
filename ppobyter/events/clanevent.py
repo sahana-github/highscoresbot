@@ -1,6 +1,6 @@
 from commands.utils import getClan
 import sqlite3
-
+from highscores import getPlayerClan
 from.event import Event
 
 
@@ -20,7 +20,7 @@ class ClanEvent(Event):
         """
         determines the channel recipients based on the players clan
         """
-        if (clan := getClan(self.player)) is None:
+        if (clan := getPlayerClan(self.player)) is None:
             clan = 'all'
         conn = sqlite3.connect(self.pathManager.getpath("eventconfigurations.db"))
         cur = conn.cursor()
