@@ -16,7 +16,7 @@ class Highscore:
         self.CREATEQUERY: str = createquery
 
     def getDbValues(self, query=None, clan=None, params: List = []):
-        conn = sqlite3.connect("main.db")
+        conn = sqlite3.connect("highscores.db")
         cur = conn.cursor()
         if query is not None:
             if clan is None:
@@ -100,7 +100,7 @@ class Highscore:
         values = [str(val).lower() for val in values]
         if len(values) != query.count("?"):
             raise ValueError(f"length not equal!\nquery: {query}\nValues: {str(values)}")
-        conn = sqlite3.connect("main.db")
+        conn = sqlite3.connect("highscores.db")
         cur = conn.cursor()
         cur.execute(query, values[1:] + [int(values[0])])  # rank as last.
         conn.commit()

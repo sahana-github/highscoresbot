@@ -2,6 +2,8 @@ import sqlite3
 
 from highscores import WorldbossDamage
 from highscores.worldbossdamagehandler import WorldbossDamageHandler
+
+
 class WorldbossMigrater:
     def __init__(self):
         self.worldbossDamage = WorldbossDamage()
