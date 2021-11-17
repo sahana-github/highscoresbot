@@ -2,52 +2,42 @@ import csv
 import sqlite3
 import datetime
 from typing import Union, List
+
+from numpy import isnan
+
 from pathmanager import PathManager
 
 
-def tablify(layout: list, values: List[List]):
-    """
-    puts stuff in a table
-    example input: layout=["name", "balance"], values=[["hank", "5000"], ["berend", "4000"]]
-    :param layout: a list of the layout
-    :param values: a list of lists with a simular length as the layout.
-    :return: list of messages in table form
-    """
-    values = [list(i) for i in values]
-    length = {}
+def replacenan(list, replacement):
+    for i in range(len(list)):
+        if type(list[i]) == float and isnan(list[i]):
+            list[i] = replacement
+    return list
+
+
+def tablify(layout, values):
+    lengths = {}
+    values = [layout] + values
     for i in range(len(layout)):
-        length[i] = len(layout[i])
-
-    for i in range(len(values)):
-        for j in range(len(values[i])):
-            if len(str(values[i][j])) > length[j]:
-                length[j] = len(str(values[i][j]))
-
-    resultmessages = []
-    result = "```\n"
-    for i in range(len(layout)):
-        while len(layout[i]) < length[i]:
-            layout[i] += " "
-        result += layout[i] + "|"
-    result += "\n"
-
+        lengths[i] = len(str(max(values, key=lambda x: len(str(x[i])))[i]))
+    messages = []
+    message = "```\n"
     for row in values:
-        newrow = ""
-        for i in range(len(row)):
-            while len(str(row[i])) < length[i]:
-                row[i] = str(row[i]) + " "
-            newrow += str(row[i]) + "|"
-        if len(result + newrow + "\n```") < 2000:
-            result += newrow + "\n"
+        rowtext = "|"
+        for columnindex, column in enumerate(row):
+            newtxt = str(column) + " " * (lengths[columnindex] - len(str(column)))
+            rowtext += newtxt + "|"
+        if len(message + rowtext + "```") < 2000:
+            message += rowtext + "\n"
         else:
-            resultmessages.append(result + "```")
-            result = "```\n"
-            result += newrow + "\n"
-    result += "```"
-    if result.count("\n") < 3 and len(resultmessages) == 0:
-        result = "Nothing found to be sent."
-    resultmessages.append(result)
-    return resultmessages
+            message += "```"
+            messages.append(message)
+            message = "```\n" + rowtext + "\n"
+    message += "```"
+    if message.count("\n") == 2 and len(messages) == 0:
+        message = "No results found."
+    messages.append(message)
+    return messages
 
 
 def isswarmpokemon(pokemon: str) -> bool:
@@ -87,6 +77,7 @@ def getgoldrushlocations() -> list:
     """
     return open("commands/data/goldrushlocations.csv").read().split(",")
 
+
 def ishoneylocation(location: str) -> bool:
     """
     Checks if the provided location is a honeylocation.
@@ -98,17 +89,20 @@ def ishoneylocation(location: str) -> bool:
         cur.execute("SELECT * FROM honeylocations WHERE location=?", (location,))
         return bool(cur.fetchall())
 
+
 def gethoneylocations() -> list:
     with sqlite3.connect("data.db") as conn:
         cur = conn.cursor()
         cur.execute("SELECT * FROM honeylocations")
         return [row[0] for row in cur.fetchall()]
 
+
 def istournamentprize(prize: str) -> list:
     with sqlite3.connect("data.db") as conn:
         cur = conn.cursor()
         cur.execute("SELECT prize FROM tournamentprizes WHERE prize=?", (prize,))
         return bool(cur.fetchall())
+
 
 def haspermissions(roles: list, guild: int) -> bool:
     """
@@ -186,5 +180,22 @@ def datehandler(datestring: str) -> str:
         datelist[2] = "0" + str(datelist[2])
     return "-".join(datelist)
 
+
+def joinmessages(messages, maxlength=2000):
+    allmessages = []
+    newmsg = ""
+    for message in messages:
+        if len(newmsg + message) < maxlength:
+            newmsg += message
+        else:
+            allmessages.append(newmsg)
+            newmsg = ""
+    if newmsg != "":
+        allmessages.append(newmsg)
+    return allmessages
+
+
 if __name__ == "__main__":
-    isswarmlocation("gyarados")
+
+    tablify(['Rank', 'Username', 'Clan', 'Experience Gained'],
+            [[6, 'benmin', 'nightraiders', '98,190,538'], [8, 'parkero983', 'nightraiders', '89,307,878'], [10, 'fornix', 'nightraiders', '70,838,769'], [11, 'bambamy', 'nightraiders', '69,041,279'], [14, 'dittokarma', 'nightraiders', '65,512,980'], [15, 'forgottenpassword', 'nightraiders', '65,308,742'], [18, 'kataraqueen', 'nightraiders', '58,932,300'], [42, 'hyp3rbolo', 'nightraiders', '42,494,644'], [45, 'ssswiipo', 'nightraiders', '41,877,547'], [59, 'gcoupe2011', 'nightraiders', '32,802,679'], [62, 'bchef', 'nightraiders', '32,173,011'], [67, 'youngblood', 'nightraiders', '31,680,794'], [68, 'ilickedyoursaltlamp', 'nightraiders', '31,204,928'], [82, 'knackeredfarmer', 'nightraiders', '27,081,724'], [83, 'vleeks', 'nightraiders', '26,985,321'], [88, 'o', 'nightraiders', '25,815,959'], [99, 'xxxtenicals', 'nightraiders', '24,549,762'], [118, 'julianozz7', 'nightraiders', '21,969,772'], [127, 'oskay1911', 'nightraiders', '20,967,576'], [128, 'hippohello', 'nightraiders', '20,891,241'], [143, 'tawniere', 'nightraiders', '19,206,001'], [193, 'bigbootyhunter', 'nightraiders', '16,110,168'], [207, 'omegadance', 'nightraiders', '14,829,212'], [229, 'hellblazer', 'nightraiders', '13,656,733'], [231, 'demonicdrake', 'nightraiders', '13,520,272'], [235, 'mathln110', 'nightraiders', '13,294,365'], [301, 'doritho', 'nightraiders', '10,404,674'], [350, 'frankenstein2018', 'nightraiders', '9,047,235'], [421, 'murlander', 'nightraiders', '7,314,597'], [479, 'marshing', 'nightraiders', '6,033,791'], [707, 'andreasthekingdk', 'nightraiders', '3,087,258']])
