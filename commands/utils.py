@@ -144,27 +144,6 @@ def worldbosssent(path: str="worldbosstime.txt") -> bool:
     return bool(sent)
 
 
-def getClan(playername: str) -> Union[str, None]:
-    """
-    gets the clan of a player.
-    :param playername: the player you want the clanname of.
-    :return: either the clan of the player or None
-    """
-    pathmanager = PathManager()
-    highscoresconn = sqlite3.connect(pathmanager.getpath("highscores.db"))
-    highscorescur = highscoresconn.cursor()
-    highscorescur.execute(open(pathmanager.getpath("clanquery.txt")).read() + "?", (playername,))
-    try:
-        clan = [row[0] for row in highscorescur.fetchall()][0]
-        if clan == "":
-            return
-    except IndexError:
-        return
-    finally:
-        highscoresconn.close()
-    return clan
-
-
 def datehandler(datestring: str) -> str:
     """
     handle dates.

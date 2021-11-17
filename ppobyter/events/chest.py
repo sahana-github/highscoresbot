@@ -1,7 +1,6 @@
 import sqlite3
 import datetime
 
-from commands.utils import getClan
 from .clanevent import ClanEvent
 
 

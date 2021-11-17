@@ -1,6 +1,8 @@
 import sqlite3
 from typing import List
 import pandas
+
+from pathmanager import PathManager
 from commands.utils import replacenan
 from ppowebsession import PpoWebSession
 
@@ -16,7 +18,7 @@ class Highscore:
         self.CREATEQUERY: str = createquery
 
     def getDbValues(self, query=None, clan=None, params: List = []):
-        conn = sqlite3.connect("highscores.db")
+        conn = sqlite3.connect(PathManager().getpath("highscores.db"))
         cur = conn.cursor()
         if query is not None:
             if clan is None:
@@ -100,7 +102,7 @@ class Highscore:
         values = [str(val).lower() for val in values]
         if len(values) != query.count("?"):
             raise ValueError(f"length not equal!\nquery: {query}\nValues: {str(values)}")
-        conn = sqlite3.connect("highscores.db")
+        conn = sqlite3.connect(PathManager().getpath("highscores.db"))
         cur = conn.cursor()
         cur.execute(query, values[1:] + [int(values[0])])  # rank as last.
         conn.commit()
