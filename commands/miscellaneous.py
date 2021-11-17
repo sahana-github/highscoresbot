@@ -11,6 +11,8 @@ from commands.utils import getworldbosstime, tablify, datehandler
 
 from discord.ext.commands.context import Context
 
+from highscores import getClanList
+
 
 class Miscellaneous(commands.Cog):
     def __init__(self, client: discord.ext.commands.bot):
@@ -45,11 +47,8 @@ class Miscellaneous(commands.Cog):
         :param ctx: discord context
         :param clanname: the name of the clan you want the clanlist from.
         """
-        conn = sqlite3.connect("highscores.db")
-        cur = conn.cursor()
-        cur.execute(open("query.txt").read() + "?", (clanname,))
-        result = [row[0] for row in cur.fetchall()]
-        conn.close()
+
+        result = getClanList(clanname)
         if result:
             await ctx.send(f"clanlist of {clanname}: \n" + ", ".join(result))
         else:
