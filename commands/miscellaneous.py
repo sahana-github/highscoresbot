@@ -49,6 +49,7 @@ class Miscellaneous(commands.Cog):
         """
 
         result = getClanList(clanname)
+        result.sort()
         if result:
             await ctx.send(f"clanlist of {clanname}: \n" + ", ".join(result))
         else:
