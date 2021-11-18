@@ -20,7 +20,7 @@ class Highscores(commands.Cog):
 
             def outer_cmd(score: Highscore) -> Command:
                 @commands.command(name=score.NAME)
-                async def cmd(ctx, clanname):
+                async def cmd(ctx, clanname=None):
                     if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
                         return
                     messages = tablify(score.LAYOUT, score.getDbValues(clan=clanname))

@@ -1,4 +1,3 @@
-from commands.utils import getClan
 import sqlite3
 from highscores import getPlayerClan
 from.event import Event
