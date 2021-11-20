@@ -241,11 +241,15 @@ class Eventconfigurations(commands.Cog):
                 ctx.message.author.guild_permissions.administrator:
             await ctx.send("insufficient permissions to use this command!")
             return
-        if not await self.__eventnamecheck(ctx, eventname):
+        if eventname != "all" and await self.__eventnamecheck(ctx, eventname):
             return
         conn = sqlite3.connect(self.databasepath)
         cur = conn.cursor()
-        result = cur.execute("UPDATE eventconfig SET channel=null WHERE guildid=? AND eventname=?", (ctx.guild.id, eventname))
+        if eventname == "all":
+            result = cur.execute("UPDATE eventconfig SET channel=null WHERE guildid=?", (ctx.guild.id,))
+        else:
+            result = cur.execute(
+                "UPDATE eventconfig SET channel=null WHERE guildid=? AND eventname=?", (ctx.guild.id, eventname))
         conn.commit()
         conn.close()
         if result.rowcount:
@@ -550,12 +554,13 @@ class Eventconfigurations(commands.Cog):
         msg = "```\n" + "\n".join(members) + "```"
         await ctx.send(msg)
 
-    async def __eventnamecheck(self, ctx: Context, eventname: str):
+    async def __eventnamecheck(self, ctx: Context, eventname: str) -> bool:
         """
         Checks if the provided eventname is a existing event, and shows what events are possible if the eventname is
         invalid.
         :param ctx: discord context
         :param eventname: the eventname.
+        :return boolean, True if the eventname is valid.
         """
         conn = sqlite3.connect(self.databasepath)
         cur = conn.cursor()

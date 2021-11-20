@@ -215,7 +215,7 @@ class Miscellaneous(commands.Cog):
                                   description=f"{prefix}unregister <eventname>")
             embed.add_field(name="Use",
                             value="You will no longer receive messages from the event of the specified eventname "
-                                  "after use.")
+                                  "after use. If the eventname is `all` no events will be announced in that server anymore.")
         elif command == "setpingrole":
             embed = discord.Embed(title=f"{prefix}setpingrole",
                                   description=f"{prefix}setpingrole <eventname> <role>")
