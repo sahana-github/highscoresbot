@@ -1,6 +1,9 @@
+import asyncio
 import sqlite3
 
 from discord.ext.commands import Command
+from discord_components import Select, SelectOption, Interaction, ButtonStyle, Button
+
 from commands.utils import tablify, joinmessages
 from discord.ext import commands
 from highscores import *
@@ -202,6 +205,84 @@ class Highscores(commands.Cog):
             clanname = clanname.lower()
         return clanname
 
+    @commands.command(name="highscore")
+    async def highscore(self, ctx):
+        initializedhighscores = {}
+        for highscore in allhighscores:
+            highscore = highscore()
+            initializedhighscores[highscore.NAME] = highscore
+        originalmsg = await ctx.send("Select the highscore you want to see.", components=[
+            Select(placeholder="Select the highscore you want to see.",
+                   options=[SelectOption(label=highscore,
+                                         value=highscore)
+                            for highscore in initializedhighscores.keys()], )
+        ])
+        try:
+            event: Interaction = await self.client.wait_for("select_option",
+                                                            check=lambda selection: ctx.channel == selection.channel
+                                                                                    and ctx.author == selection.author,
+                                                            timeout=30)
+            await event.send(f"showing highscore {event.values[0]}")
+        except asyncio.TimeoutError:
+            await originalmsg.delete()
+            return
+
+        buttons = [Button(style=ButtonStyle.blue, label="<<"),
+                   Button(style=ButtonStyle.blue, label="<"),
+                   Button(style=ButtonStyle.red, label=">"),
+                   Button(style=ButtonStyle.red, label=">>")]
+        loopedHighscore = LoopedHighscore(initializedhighscores[event.values[0]])
+
+        def check(res):
+            return res.channel == ctx.channel and res.author == ctx.author and \
+                   res.component.id in [button.id for button in buttons]
+
+        msg = await ctx.send(loopedHighscore.change_page(0), components=[buttons], )
+        await originalmsg.delete()
+        while True:
+            try:
+                res = await self.client.wait_for("button_click", check=check, timeout=60)
+                if res.component.label == "<":
+                    await res.edit_origin(loopedHighscore.change_page(0 - loopedHighscore.size))
+                elif res.component.label == ">":
+                    await res.edit_origin(loopedHighscore.change_page(loopedHighscore.size))
+                elif res.component.label == "<<":
+                    await res.edit_origin(loopedHighscore.change_page(loopedHighscore.MINRANK, True))
+                elif res.component.label == ">>":
+                    await res.edit_origin(loopedHighscore.change_page(loopedHighscore.MAXRANK - loopedHighscore.size,
+                                                                      True))
+            except asyncio.TimeoutError:
+                await msg.delete()
+                break
+
+
+class LoopedHighscore:
+    def __init__(self, highscore: Highscore):
+        self.min = 1
+        self.size = 20
+        self.highscore = highscore
+        self.MAXRANK = highscore.getDbValues(f"SELECT rank FROM {highscore.NAME} ORDER BY rank DESC LIMIT 1")[0][0]
+        self.MINRANK = 1
+
+    def change_page(self, movement, absolute=False):
+
+        if absolute:
+            self.min = movement
+        else:
+            newmin = self.min + movement
+            if newmin + movement > self.MAXRANK:
+                self.min = self.MAXRANK - self.size
+            elif newmin < self.MINRANK:
+                self.min = self.MINRANK
+            else:
+                self.min += movement
+        msg = self.getmsg()
+        return msg
+
+    def getmsg(self):
+        values = self.highscore.getDbValues(query=f"SELECT * FROM {self.highscore.NAME} WHERE rank >= ? AND rank <= ?",
+                                            params=[self.min, self.min + self.size])
+        return tablify(self.highscore.LAYOUT, values)[0]
 
 def setup(client):
     client.add_cog(Highscores(client))
