@@ -294,6 +294,68 @@ class Eventconfigurations(commands.Cog):
         conn.close()
         await ctx.send("The following clans have been registered for this server: \n" + ", ".join(clans))
 
+    async def __remove_member(self, ctx: Context):
+        if not haspermissions([role.id for role in ctx.message.author.roles], ctx.guild.id) and not \
+                ctx.message.author.guild_permissions.administrator:
+            await ctx.send("insufficient permissions to use this command!")
+            return
+        with sqlite3.connect(self.databasepath) as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT playername FROM memberconfig WHERE guildid=?", (ctx.guild.id,))
+            members = [row[0] for row in cur.fetchall()]
+        if 25 >= len(members) > 0:
+            originalmsg = await ctx.send("testing selects", components=[
+                Select(placeholder="Select the players you want to remove.",
+                       options=[SelectOption(label=player,
+                                             value=player)
+                                for player in members], )
+            ])
+
+            while True:
+                try:
+                    event: Interaction = await self.client.wait_for("select_option",
+                                                                    check=lambda
+                                                                        selection: ctx.channel == selection.channel
+                                                                                   and ctx.author == selection.author,
+                                                                    timeout=30)
+                except asyncio.TimeoutError:
+                    await originalmsg.delete()
+                    return
+                for player in event.values:
+                    cur.execute("DELETE FROM memberconfig WHERE guildid=? and playername=?", (ctx.guild.id, player))
+                    members.remove(player)
+                conn.commit()
+                if len(members) == 0:
+                    await event.send("No players left!")
+                    await originalmsg.delete()
+                    return
+                await event.edit_origin("Select players to remove:", components=[
+                    Select(placeholder="Select the players you want to remove from configuration for this server.",
+                           options=[SelectOption(label=player,
+                                                 value=player)
+                                    for player in members], )
+                ])
+        elif len(members) > 25:
+            await ctx.send("please enter the name of the player you want to remove from the configuration for this"
+                           " server.", delete_after=35)
+            try:
+                event: discord.message.Message = await self.client.wait_for("message",
+                                                                            check=lambda
+                                                                                selection: ctx.channel == selection.channel
+                                                                                           and ctx.author == selection.author,
+                                                                            timeout=30)
+            except asyncio.TimeoutError:
+                await ctx.send("configurating timed out. Please try again.", delete_after=30)
+                return
+            player = event.content
+            if player not in members:
+                await ctx.send("That member is not in memberconfig!")
+            else:
+                cur.execute("DELETE FROM memberconfig WHERE guildid=? and playername=?", (ctx.guild.id, player))
+                conn.commit()
+                await ctx.send(f"{player} removed from playerconfig!")
+        else:
+            await ctx.send("no members registered for playerconfig.")
     @commands.guild_only()
     @commands.command(name="unregisterclan")
     async def unregisterclan(self, ctx: Context, clanname: str):
@@ -307,9 +369,16 @@ class Eventconfigurations(commands.Cog):
                 ctx.message.author.guild_permissions.administrator:
             await ctx.send("insufficient permissions to use this command!")
             return
+        clanname = clanname.lower()
         conn = sqlite3.connect(self.databasepath)
         cur = conn.cursor()
-        cur.execute("DELETE FROM clanconfig WHERE guildid=? AND clan=?", (ctx.guild.id, clanname.lower()))
+        cur.execute("SELECT * FROM clanconfig WHERE guildid=? AND clan=?", (ctx.guild.id, clanname))
+        allregistered = bool(cur.fetchall())
+        if clanname == "all" and not allregistered:
+            cur.execute("DELETE FROM clanconfig WHERE guildid=?", (ctx.guild.id,))
+        else:
+            cur.execute("DELETE FROM clanconfig WHERE guildid=? AND clan=?", (ctx.guild.id, clanname))
+        conn.commit()
         await ctx.send(f"configuration for {clanname} removed!")
         conn.commit()
         cur.execute("SELECT clan FROM clanconfig WHERE guildid=?", (ctx.guild.id,))

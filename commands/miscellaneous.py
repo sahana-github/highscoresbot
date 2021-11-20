@@ -237,13 +237,17 @@ class Miscellaneous(commands.Cog):
                                   description=f"{prefix}registerclan <clanname>")
             embed.add_field(name="Use",
                             value="The provided clan will be set to receive encounters/elite4/chests "
-                                  "for if those are set. You are able to register multiple clans.")
+                                  "for if those are set. You are able to register multiple clans. You are also able to "
+                                  "register `all`. Then you will receive any announcement of an event based on clans of"
+                                  " players.")
         elif command == "unregisterclan":
             embed = discord.Embed(title=f"{prefix}unregisterclan",
                                   description=f"{prefix}unregisterclan <clanname>")
             embed.add_field(name="Use",
                             value="The provided clan will be removed from the registered clans, which means that you"
-                                  "will no longer receive encounters/elite4/chests from those events if they are set.")
+                                  " will no longer receive encounters/elite4/chests from those events if they are set."
+                                  f" If you do `{prefix}unregisterclan all` everything will be removed unless `all` is "
+                                  f"already set with `{prefix}registerclan all`.")
         elif command == "showregistrations":
             embed = discord.Embed(title=f"{prefix}showregistrations",
                                   description=f"{prefix}showregistrations")
