@@ -175,7 +175,7 @@ class IngameEvents(commands.Cog):
 
         while True:
             try:
-                res = await self.client.wait_for("button_click", check=check, timeout=10)
+                res = await self.client.wait_for("button_click", check=check, timeout=600)
                 query = "SELECT player, pokemon, date FROM rolls WHERE "
                 if res.component.label == "Pokemon":
                     query += "pokemon = ?"
