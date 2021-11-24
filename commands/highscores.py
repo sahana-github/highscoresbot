@@ -127,7 +127,7 @@ class Highscores(commands.Cog):
             await ctx.send(i)
 
     @commands.command(name="top")
-    async def top(self, ctx, highscoretype, clanname=None):
+    async def top(self, ctx, clanname=None):
         """
         shows top 9 + the provided clan.
         :param highscoretype: the type of highscore
@@ -136,7 +136,30 @@ class Highscores(commands.Cog):
         """
         if clanname is None:
             clanname = await self.getdefaultclanname(ctx, comment=False)
-        highscoretype = highscoretype.lower()
+        highscorenames = []
+        for highscore in allhighscores:
+            highscore = highscore()
+            highscorenames.append(highscore.NAME)
+
+        selects = [
+            Select(placeholder="Select the highscore you want to see.",
+                   options=[SelectOption(label=highscore,
+                                         value=highscore)
+                            for highscore in highscorenames], )
+        ]
+        selectids = [selection.id for selection in selects]
+        originalmsg = await ctx.send("Select the highscore you want to see.", components=selects)
+        try:
+            event: Interaction = await self.client.wait_for("select_option",
+                                                            check=lambda selection: ctx.channel == selection.channel
+                                                                                    and ctx.author == selection.author
+                                                                                    and selection.component.id in selectids,
+                                                            timeout=30)
+            await event.send(f"showing highscore {event.values[0]}")
+        except asyncio.TimeoutError:
+            await originalmsg.delete()
+            return
+        highscoretype = event.values[0]
         if highscoretype == "btwins" or highscoretype == "btwinstreak":
             values = []
             clanlist = getClanList(clanname.lower()) if clanname is not None else []
@@ -148,19 +171,16 @@ class Highscores(commands.Cog):
             for msg in resultmessages:
                 await ctx.send(msg)
             return
-        for highscore in clanhighscores:
+        for highscore in allhighscores:
             highscore = highscore()
             if highscore.NAME == highscoretype:
                 break
-        else:
-            await ctx.send("No valid highscore was given! Possible highscores:```" +
-                           "\n".join(highscore().NAME for highscore in clanhighscores) + "```")
-            return
 
-
-        values = highscore.getDbValues(query="SELECT * FROM {0} WHERE clan=? OR rank<10".format(highscore.NAME),
+        try:
+            values = highscore.getDbValues(query="SELECT * FROM {0} WHERE clan=? OR rank<10".format(highscore.NAME),
                                        params=[(clanname.lower() if clanname is not None else None)])
-
+        except Exception as e:
+            values = highscore.getDbValues(query="SELECT * FROM {0} WHERE rank<10".format(highscore.NAME))
         messages = tablify(highscore.LAYOUT, values)
         for i in messages:
             await ctx.send(i)

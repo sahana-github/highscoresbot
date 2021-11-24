@@ -327,11 +327,8 @@ class Miscellaneous(commands.Cog):
             # highscores commands
         elif command == "top":
             embed = discord.Embed(title="top", color=0xFFAFC9)
-            embed.add_field(name="top <highscore> <clanname(optional)>",
-                            value="shows top 9 from a highscore (+ clan if specified or registered). "
-                                  "Possible highscores:\ndex\nrichest\npokeboxes\nevoboxes\nmysteryboxes\ntmboxes\n"
-                                  "wbdmg\ncwplayers\ncwwins\nweeklyexp\nlle\nfishing\nmining\nachievements\npp\nexp\n"
-                                  "btwins\nbtwinstreak",
+            embed.add_field(name="top <clanname(optional)>",
+                            value="shows top 9 from a highscore (+ clan if specified or registered). ",
                             inline=False)
 
         elif command == "achievements":
@@ -632,7 +629,7 @@ class HelpCommand:
 
         if self.page == 7:
             embed = discord.Embed(title="Help", description='Highscores Commands', color=0xEE8700)
-            embed.add_field(name=".top <highscore> <clanname(optional)>",
+            embed.add_field(name=".top <clanname(optional)>",
                             value="shows top 9 from a highscore (+ clan if specified or registered)", inline=False)
             embed.add_field(name=".achievements <clanname>",
                             value="shows achievements highscore of a clan. This highscore usually is max 13 hours old",
