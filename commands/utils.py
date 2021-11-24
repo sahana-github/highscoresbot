@@ -15,7 +15,7 @@ def replacenan(list, replacement):
     return list
 
 
-def tablify(layout, values):
+def tablify(layout, values, maxlength=2000):
     lengths = {}
     values = [layout] + values
     for i in range(len(layout)):
@@ -27,7 +27,7 @@ def tablify(layout, values):
         for columnindex, column in enumerate(row):
             newtxt = str(column) + " " * (lengths[columnindex] - len(str(column)))
             rowtext += newtxt + "|"
-        if len(message + rowtext + "```") < 2000:
+        if len(message + rowtext + "```") < maxlength:
             message += rowtext + "\n"
         else:
             message += "```"
@@ -174,7 +174,33 @@ def joinmessages(messages, maxlength=2000):
     return allmessages
 
 
-if __name__ == "__main__":
+class PageTurner:
+    def __init__(self, pages: List[str]):
+        self.pages: List[str] = pages
+        self.MINPAGE = 1 if self.pages else 0
+        self.MAXPAGE = len(self.pages)
+        self.page = self.MINPAGE
 
-    tablify(['Rank', 'Username', 'Clan', 'Experience Gained'],
-            [[6, 'benmin', 'nightraiders', '98,190,538'], [8, 'parkero983', 'nightraiders', '89,307,878'], [10, 'fornix', 'nightraiders', '70,838,769'], [11, 'bambamy', 'nightraiders', '69,041,279'], [14, 'dittokarma', 'nightraiders', '65,512,980'], [15, 'forgottenpassword', 'nightraiders', '65,308,742'], [18, 'kataraqueen', 'nightraiders', '58,932,300'], [42, 'hyp3rbolo', 'nightraiders', '42,494,644'], [45, 'ssswiipo', 'nightraiders', '41,877,547'], [59, 'gcoupe2011', 'nightraiders', '32,802,679'], [62, 'bchef', 'nightraiders', '32,173,011'], [67, 'youngblood', 'nightraiders', '31,680,794'], [68, 'ilickedyoursaltlamp', 'nightraiders', '31,204,928'], [82, 'knackeredfarmer', 'nightraiders', '27,081,724'], [83, 'vleeks', 'nightraiders', '26,985,321'], [88, 'o', 'nightraiders', '25,815,959'], [99, 'xxxtenicals', 'nightraiders', '24,549,762'], [118, 'julianozz7', 'nightraiders', '21,969,772'], [127, 'oskay1911', 'nightraiders', '20,967,576'], [128, 'hippohello', 'nightraiders', '20,891,241'], [143, 'tawniere', 'nightraiders', '19,206,001'], [193, 'bigbootyhunter', 'nightraiders', '16,110,168'], [207, 'omegadance', 'nightraiders', '14,829,212'], [229, 'hellblazer', 'nightraiders', '13,656,733'], [231, 'demonicdrake', 'nightraiders', '13,520,272'], [235, 'mathln110', 'nightraiders', '13,294,365'], [301, 'doritho', 'nightraiders', '10,404,674'], [350, 'frankenstein2018', 'nightraiders', '9,047,235'], [421, 'murlander', 'nightraiders', '7,314,597'], [479, 'marshing', 'nightraiders', '6,033,791'], [707, 'andreasthekingdk', 'nightraiders', '3,087,258']])
+    def changePage(self, movement, absolute=False):
+        if absolute:
+            newpage = movement
+        else:
+            newpage = self.page + movement
+        if newpage > self.MAXPAGE or newpage < self.MINPAGE:
+            return self.pages[self.page - 1]
+        self.page = newpage
+        return self.pages[self.page - 1]
+
+    def add_page(self, page: str):
+        self.pages.append(page)
+        self.MAXPAGE = len(self.pages)
+
+    def remove_page(self, index: int):
+        self.pages.pop(index)
+        self.MINPAGE = 1 if self.pages else 0
+        self.MAXPAGE = len(self.pages)
+        if self.page > self.MAXPAGE:
+            self.page = self.MAXPAGE
+
+if __name__ == "__main__":
+    PageTurner(["message1", "message2", "message3"])
