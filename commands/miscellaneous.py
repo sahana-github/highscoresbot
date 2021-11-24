@@ -383,13 +383,6 @@ class Miscellaneous(commands.Cog):
                                               "the players with the highest fishing level of a clan.",
                                   color=0xFFAFC9)
 
-        elif command == "getencounters":
-            embed = discord.Embed(title="getencounters <playername>",
-                                  description="Shows the encounters of a player. "
-                                              "It has been keeping track since around 15 december 2020 but it is "
-                                              "possible that it has been missing some encounters since.",
-                                  color=0xFFAFC9)
-
         elif command == "getplayer":
             embed = discord.Embed(title="getplayer <playername>", description="shows all highscores a player is in.",
                                   color=0xFFAFC9)
@@ -492,15 +485,11 @@ class Miscellaneous(commands.Cog):
         elif command == "getencounters":
             embed = discord.Embed(title=f"{prefix}getencounters", description=f"{prefix}getencounters <name>",
                                   color=0xFF5733)
-            embed.add_field(name="Use", value="Shows you all pokemon encountered by a person.")
 
-        elif command == "getpokemon":
-            embed = discord.Embed(title=f"{prefix}getpokemon", description=f"{prefix}getpokemon <name>", color=0xFF5733)
-            embed.add_field(name="Use", value="Shows you first 45 pokemon encountered by people.")
-
-        elif command == "getdate":
-            embed = discord.Embed(title=f"{prefix}getdate", description=".getdate <date>", color=0xFF5733)
-            embed.add_field(name="Use", value="Shows you first 45 pokemon encountered by date. Year-Month-Day")
+            embed.add_field(name="Use",
+                            value="Shows you the pokemons encountered on that date, pokemons encountered by a specific "
+                                  "player or a specific pokemon that has been captured by players.\n"
+                                  "The bot has been keeping track since about 15 december 2020.")
 
         elif command == "topchestplayers":
             embed = discord.Embed(title=f"{prefix}topchestplayers", description=f"{prefix}topchestplayers",
@@ -584,13 +573,11 @@ class HelpCommand:
             embed = discord.Embed(title="Help", description='Encounter Queries', color=0xEE8700)
             embed.add_field(name=f".getrolls <parameter>", value="Gets the rolls of a player, a date or a pokemon."
                                                                  " Format of a date is yyyy-mm-dd")
-            embed.add_field(name=".getpokemon <name>", value="Shows you first 45 pokemon encountered by people.",
+            embed.add_field(name=".getencounters <name>",
+                            value="Shows you the pokemons encountered on that date, pokemons encountered by a specific "
+                                  "player or a specific pokemon that has been captured by players.",
                             inline=False)
-            embed.add_field(name=".getencounters <name>", value="Shows you all pokemon encountered by a person.",
-                            inline=False)
-            embed.add_field(name=".getdate <date>",
-                            value="Shows you first 45 pokemon encountered by date. Year-Month-Day, default is today.",
-                            inline=False)
+
             embed.set_footer(text="Page {} of {}".format(str(self.page), str(self.max_page)))
 
         if self.page == 3:  # chest queries
