@@ -211,16 +211,20 @@ class Highscores(commands.Cog):
         for highscore in allhighscores:
             highscore = highscore()
             initializedhighscores[highscore.NAME] = highscore
-        originalmsg = await ctx.send("Select the highscore you want to see.", components=[
+
+        selects = [
             Select(placeholder="Select the highscore you want to see.",
                    options=[SelectOption(label=highscore,
                                          value=highscore)
                             for highscore in initializedhighscores.keys()], )
-        ])
+        ]
+        selectids = [selection.id for selection in selects]
+        originalmsg = await ctx.send("Select the highscore you want to see.", components=selects)
         try:
             event: Interaction = await self.client.wait_for("select_option",
                                                             check=lambda selection: ctx.channel == selection.channel
-                                                                                    and ctx.author == selection.author,
+                                                                                    and ctx.author == selection.author
+                                                            and selection.component.id in selectids,
                                                             timeout=30)
             await event.send(f"showing highscore {event.values[0]}")
         except asyncio.TimeoutError:
@@ -252,7 +256,9 @@ class Highscores(commands.Cog):
                     await res.edit_origin(loopedHighscore.change_page(loopedHighscore.MAXRANK - loopedHighscore.size,
                                                                       True))
             except asyncio.TimeoutError:
-                await msg.delete()
+                for button in buttons:
+                    button.set_disabled(True)
+                await msg.edit(loopedHighscore.change_page(0), components=[buttons])
                 break
 
 
