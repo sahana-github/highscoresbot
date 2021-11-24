@@ -64,7 +64,7 @@ class Miscellaneous(commands.Cog):
         embed = discord.Embed()
         embed.description = "this is the [invite link]" \
                             "({})"  \
-                            "\n also join the [support server](https://discord.gg/gZAMHUX86F)".format(self.invitelink)
+                            "\n also join the [support server](https://discord.gg/PmXY35aqgH)".format(self.invitelink)
         await ctx.send(embed=embed)
 
     @commands.command(name="setdefault")
