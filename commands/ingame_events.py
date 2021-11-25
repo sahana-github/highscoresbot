@@ -1,4 +1,5 @@
 import asyncio
+import re
 import sqlite3
 import datetime
 from typing import List
@@ -36,7 +37,13 @@ class IngameEvents(commands.Cog):
             if res.component.label == "Pokemon":
                 resultmessages = self.__getpokemon(name.lower())
             elif res.component.label == "Date (yyyy-mm-dd)":
-                resultmessages = self.__getdate(name.lower())
+                try:
+                    resultmessages = self.__getdate(name.lower())
+                except ValueError:
+                    await res.send(f"{name} does not match date format 'yyyy-mm-dd'!")
+                    await msg.delete()
+                    await self.getencounters(ctx, name)
+                    return
             elif res.component.label == "Player":
                 resultmessages = self.__getplayerencounters(name.lower())
             else:
@@ -73,7 +80,8 @@ class IngameEvents(commands.Cog):
             except asyncio.TimeoutError:
                 for button in buttons:
                     button.set_disabled(True)
-                await msg.edit(pageChanger.changePage(0), components=[buttons])
+                await msg.edit(f"```page {pageChanger.page} of {pageChanger.MAXPAGE}```\n" +
+                               pageChanger.changePage(0), components=[buttons])
                 break
 
     def __getplayerencounters(self, playername: str) -> List[str]:
@@ -102,6 +110,8 @@ class IngameEvents(commands.Cog):
         get all encounters on a specific date.
         :param date: the date a encounter happened.
         """
+        datetime.datetime.strptime(date, "%Y-%m-%d")
+
         date = datehandler(date)
         conn = sqlite3.connect(r"ingame_data.db")
         cur = conn.cursor()
