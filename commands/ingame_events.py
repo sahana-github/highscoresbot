@@ -103,7 +103,7 @@ class IngameEvents(commands.Cog):
                     (pokemonname,))
         resultmessages = tablify(["Name", "encounter", "date"], cur.fetchall(), maxlength=1000)
         conn.close()
-        return resultmessages
+        return resultmessages[::-1]
 
     def __getdate(self, date: str) -> List[str]:
         """
@@ -119,6 +119,16 @@ class IngameEvents(commands.Cog):
         resultmessages = tablify(["Name", "encounter", "date"], cur.fetchall(), maxlength=1000)
         conn.close()
         return resultmessages
+
+    @commands.command(name="getpokemon")
+    async def getpokemon(self, ctx: Context, *_):
+        """
+        @deprecated
+        :param ctx:
+        :param _:
+        :return:
+        """
+        await ctx.send("please use .getencounters instead!")
 
     @commands.command(name="topchestlocations")
     async def topchestlocations(self, ctx: Context):
