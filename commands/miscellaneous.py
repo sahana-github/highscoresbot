@@ -31,9 +31,12 @@ class Miscellaneous(commands.Cog):
         try:
             worldboss_datetime = getworldbosstime()
             timedifference = worldboss_datetime - datetime.datetime.now()
-            await ctx.send(f"world boss starting in "
-                           f"{(timedifference.days * 86400 + timedifference.seconds) // 3600} hours and "
-                           f"{(timedifference.seconds // 60) % 60} minutes")
+            embed = discord.Embed(title="worldboss",
+                                  description=f"The worldboss will start at <t:{str(int(worldboss_datetime.timestamp()))}>")
+            embed.add_field(name="relative",
+                            value=f"that is in {(timedifference.days * 86400 + timedifference.seconds) // 3600} hours "
+                                  f"and {(timedifference.seconds // 60) % 60} minutes\n")
+            await ctx.send(embed=embed)
         except IndexError:
             await ctx.send("something went wrong!")
         except Exception as e:
