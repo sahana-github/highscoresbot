@@ -38,7 +38,7 @@ class HighscoresUpdater:
                 highscore.updatetable(self.__ppowebsession)
                 if type(highscore) == WorldbossDamage and getworldbosstime() >= datetime.datetime.now():
                     self.worldbossDamageHandler.update()
-                else:
+                elif type(highscore) == WorldbossDamage:
                     print("NOT UPDATING worldbossDamage, possible crash!!")
                 if self.DEBUG:
                     print("updated highscore", highscore.NAME, f"at {datetime.datetime.now()}")
