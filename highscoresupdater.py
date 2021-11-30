@@ -6,7 +6,7 @@ from highscores.worldbossdamagehandler import WorldbossDamageHandler
 from ppowebsession import PpoWebSession
 import os
 import datetime
-
+from commands.utils import getworldbosstime
 
 class HighscoresUpdater:
     def __init__(self, websession: PpoWebSession, debug=True, timeout=600):
@@ -36,8 +36,10 @@ class HighscoresUpdater:
                 if exceptionhappened:
                     self.__ppowebsession.login()
                 highscore.updatetable(self.__ppowebsession)
-                if type(highscore) == WorldbossDamage:
+                if type(highscore) == WorldbossDamage and getworldbosstime() >= datetime.datetime.now():
                     self.worldbossDamageHandler.update()
+                else:
+                    print("NOT UPDATING worldbossDamage, possible crash!!")
                 if self.DEBUG:
                     print("updated highscore", highscore.NAME, f"at {datetime.datetime.now()}")
                 break
