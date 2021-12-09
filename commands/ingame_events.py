@@ -28,6 +28,7 @@ class IngameEvents(commands.Cog):
         msg = await ctx.send("is that a pokemon, date, or player? Press the button to get a response! "
                              "This will be visible to you only.",
                              components=[buttons])
+        name = name.lower()
 
         def check(res):
             return res.component.id in rollids
@@ -35,17 +36,17 @@ class IngameEvents(commands.Cog):
         try:
             res = await self.client.wait_for("button_click", check=check, timeout=600)
             if res.component.label == "Pokemon":
-                resultmessages = self.__getpokemon(name.lower())
+                resultmessages = self.__getpokemon(name)
             elif res.component.label == "Date (yyyy-mm-dd)":
                 try:
-                    resultmessages = self.__getdate(name.lower())
+                    resultmessages = self.__getdate(name)
                 except ValueError:
                     await res.send(f"{name} does not match date format 'yyyy-mm-dd'!")
                     await msg.delete()
                     await self.getencounters(ctx, name)
                     return
             elif res.component.label == "Player":
-                resultmessages = self.__getplayerencounters(name.lower())
+                resultmessages = self.__getplayerencounters(name)
             else:
                 raise Exception("????????????????????????")
         except asyncio.TimeoutError:

@@ -93,7 +93,10 @@ class Eventconfigurations(commands.Cog):
             if role is not None:
                 message += str(role) + "\n"
         message = escape_mentions(message)
-        await ctx.send(message)
+        if message != "":
+            await ctx.send(message)
+        else:
+            await ctx.send("no permissions set.")
 
     @commands.guild_only()
     @commands.command(name="register")
@@ -169,6 +172,7 @@ class Eventconfigurations(commands.Cog):
                 ctx.message.author.guild_permissions.administrator:
             await ctx.send("insufficient permissions to use this command!")
             return
+        eventname = eventname.lower()
         try:
             if time is not None:
                 time = int(time)
@@ -202,6 +206,7 @@ class Eventconfigurations(commands.Cog):
                 ctx.message.author.guild_permissions.administrator:
             await ctx.send("insufficient permissions to use this command!")
             return
+        eventname = eventname.lower()
         try:
             if match := re.search(pattern=r"(?<=<@&)([0-9]+)(?=>)", string=pingrole):
                 pingrole = match.group()
@@ -236,6 +241,7 @@ class Eventconfigurations(commands.Cog):
                 ctx.message.author.guild_permissions.administrator:
             await ctx.send("insufficient permissions to use this command!")
             return
+        eventname = eventname.lower()
         conn = sqlite3.connect(self.databasepath)
         cur = conn.cursor()
         cur.execute("UPDATE eventconfig SET pingrole=null WHERE guildid=? AND eventname=?", (ctx.guild.id, eventname))
@@ -258,6 +264,7 @@ class Eventconfigurations(commands.Cog):
             return
         if eventname != "all" and await self.__eventnamecheck(ctx, eventname):
             return
+        eventname = eventname.lower()
         conn = sqlite3.connect(self.databasepath)
         cur = conn.cursor()
         if eventname == "all":
@@ -367,6 +374,8 @@ class Eventconfigurations(commands.Cog):
                 await ctx.send("configurating timed out. Please try again.", delete_after=30)
                 return
             player = event.content
+            if type(player) == str:
+                player = player.lower()
             if player not in members:
                 await ctx.send("That member is not in memberconfig!")
             else:

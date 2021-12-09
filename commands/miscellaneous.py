@@ -77,6 +77,7 @@ class Miscellaneous(commands.Cog):
         :param ctx: discord context
         :param clanname: the clan you want to set as default for the highscores commands.
         """
+        clanname = clanname.lower()
         if ctx.guild is None:
             await ctx.send("this command can't be used in pm.")
             return
@@ -101,6 +102,7 @@ class Miscellaneous(commands.Cog):
             print(e)
             await msg.delete()
             await ctx.send("Something went wrong. Developer is informed.")
+            raise e
 
     @commands.command(name="worldboss")
     async def worldboss(self, ctx: Context, playername: str):
@@ -157,6 +159,7 @@ class Miscellaneous(commands.Cog):
         :param ctx: discord context
         :param command: the name of the command you want to see the help message from.
         """
+        command = command.lower()
         embed = None
         if type(self.client.command_prefix) == list:
             prefix = random.choice(self.client.command_prefix)

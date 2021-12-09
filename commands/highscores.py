@@ -27,7 +27,7 @@ class Highscores(commands.Cog):
                 async def cmd(ctx, clanname=None):
                     if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
                         return
-                    messages = tablify(score.LAYOUT, score.getDbValues(clan=clanname))
+                    messages = tablify(score.LAYOUT, score.getDbValues(clan=clanname.lower()))
                     for i in messages:
                         await ctx.send(i)
                 return cmd
@@ -123,7 +123,7 @@ class Highscores(commands.Cog):
             highscore = highscore()
             values = tablify(highscore.LAYOUT, highscore.getDbValues(
                 query=f"SELECT * FROM {highscore.NAME} WHERE rank < 10 or clan=?",
-                clan=clanname))
+                clan=clanname.lower()))
             messages.append(area)
             messages += values
         messages = joinmessages(messages)
@@ -191,7 +191,7 @@ class Highscores(commands.Cog):
             await ctx.send(i)
 
     @commands.command(name="getclan")
-    async def getclan(self, ctx, clanname):
+    async def getclan(self, ctx, clanname: str):
         clanname = clanname.lower()
         getclanhighscores = [(SafariMapcontrol, "Safari zone mapcontrol"),
                              (AncMapcontrol, "Ancient cave mapcontrol"),
