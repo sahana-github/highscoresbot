@@ -1,7 +1,8 @@
 import asyncio
 import sqlite3
+from typing import Union
 
-from discord.ext.commands import Command
+from discord.ext.commands import Command, Context
 from discord_components import Select, SelectOption, Interaction, ButtonStyle, Button
 
 from commands.utils import tablify, joinmessages
@@ -37,6 +38,7 @@ class Highscores(commands.Cog):
         somelist = [RichestClans, BestClans]
         for highscore in somelist:
             highscore = highscore()
+
             def outer_cmd(score: Highscore) -> Command:
                 @commands.command(name=score.NAME)
                 async def cmd(ctx, clanname=None):
@@ -51,10 +53,11 @@ class Highscores(commands.Cog):
             self.client.add_command(outer_cmd(highscore))
 
     @commands.command(name="getplayer")
-    async def getplayer(self, ctx, username):
+    async def getplayer(self, ctx: Context, username: str):
         """
         gets a collection of highscores a player is in.
-        :param username:
+        :param ctx: discord context
+        :param username: the name of the player you want info from.
         """
         username = username.lower()
         allmessages = []
@@ -105,13 +108,14 @@ class Highscores(commands.Cog):
             await ctx.send(message)
 
     @commands.command(name="mapcontrol")
-    async def mapcontrol(self, ctx, clanname = None):
+    async def mapcontrol(self, ctx, clanname: str = None):
         """
         shows the standings of all mapcontrol areas.
-        :param clanname
+        :param ctx: discord context
+        :param clanname: the name of the clan, optional.
         """
         mapcontrolhighscores = [(AncMapcontrol, "Ancient cave"), (BzMapcontrol, "Battle zone"),
-                                                                  (SafariMapcontrol, "Safari zone")]
+                                (SafariMapcontrol, "Safari zone")]
         if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
             clanname = ""
         messages = []
@@ -127,12 +131,11 @@ class Highscores(commands.Cog):
             await ctx.send(i)
 
     @commands.command(name="top")
-    async def top(self, ctx, clanname=None):
+    async def top(self, ctx: Context, clanname=None):
         """
-        shows top 9 + the provided clan.
-        :param highscoretype: the type of highscore
+        shows top 9 + the provided clan if available.
+        :param ctx: discord context
         :param clanname: the clanname, default none, clannamehandler gets clan from db if none.
-        :return:
         """
         if clanname is None:
             clanname = await self.getdefaultclanname(ctx, comment=False)
@@ -151,9 +154,10 @@ class Highscores(commands.Cog):
         originalmsg = await ctx.send("Select the highscore you want to see.", components=selects)
         try:
             event: Interaction = await self.client.wait_for("select_option",
-                                                            check=lambda selection: ctx.channel == selection.channel
-                                                                                    and ctx.author == selection.author
-                                                                                    and selection.component.id in selectids,
+                                                            check=lambda selection:
+                                                            ctx.channel == selection.channel
+                                                            and ctx.author == selection.author
+                                                            and selection.component.id in selectids,
                                                             timeout=30)
             await event.send(f"showing highscore {event.values[0]}")
         except asyncio.TimeoutError:
@@ -178,8 +182,9 @@ class Highscores(commands.Cog):
 
         try:
             values = highscore.getDbValues(query="SELECT * FROM {0} WHERE clan=? OR rank<10".format(highscore.NAME),
-                                       params=[(clanname.lower() if clanname is not None else None)])
+                                           params=[(clanname.lower() if clanname is not None else None)])
         except Exception as e:
+            print(e)
             values = highscore.getDbValues(query="SELECT * FROM {0} WHERE rank<10".format(highscore.NAME))
         messages = tablify(highscore.LAYOUT, values)
         for i in messages:
@@ -209,7 +214,7 @@ class Highscores(commands.Cog):
         for message in allmessages:
             await ctx.send(message)
 
-    async def getdefaultclanname(self, ctx, comment=True) -> str:
+    async def getdefaultclanname(self, ctx, comment=True) -> Union[str, None]:
         if ctx.guild is None:
             return
         conn = sqlite3.connect(self.databasepath)
@@ -242,8 +247,9 @@ class Highscores(commands.Cog):
         originalmsg = await ctx.send("Select the highscore you want to see.", components=selects)
         try:
             event: Interaction = await self.client.wait_for("select_option",
-                                                            check=lambda selection: ctx.channel == selection.channel
-                                                                                    and ctx.author == selection.author
+                                                            check=lambda selection:
+                                                            ctx.channel == selection.channel
+                                                            and ctx.author == selection.author
                                                             and selection.component.id in selectids,
                                                             timeout=30)
             await event.send(f"showing highscore {event.values[0]}")
@@ -309,6 +315,7 @@ class LoopedHighscore:
         values = self.highscore.getDbValues(query=f"SELECT * FROM {self.highscore.NAME} WHERE rank >= ? AND rank <= ?",
                                             params=[self.min, self.min + self.size])
         return tablify(self.highscore.LAYOUT, values)[0]
+
 
 def setup(client):
     client.add_cog(Highscores(client))

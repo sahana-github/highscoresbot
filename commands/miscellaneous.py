@@ -7,7 +7,7 @@ import datetime
 import asyncio
 
 from discord_components import ButtonStyle, Button
-from commands.utils import getworldbosstime, tablify, datehandler
+from commands.utils import getworldbosstime, tablify
 
 from discord.ext.commands.context import Context
 

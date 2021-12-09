@@ -3,6 +3,7 @@ import re
 
 import discord
 import discord_components
+from discord import NotFound, Forbidden
 from discord.ext import commands
 import sqlite3
 
@@ -119,11 +120,20 @@ class Eventconfigurations(commands.Cog):
             try:
                 chan = await self.client.fetch_channel(int(match.group()))
                 if chan.guild.id != ctx.guild.id:
-                    raise Exception("user tries to register an event at another guild.")
+                    raise ValueError("user tries to register an event at another guild.")
                 channel = int(match.group())
-            except:
-                await ctx.send("i have no access to that channel! are you sure that is a channel?")
+            except ValueError:
+                await ctx.send("i have no access to that channel! are you sure that channel is in the current server?")
                 return
+            except NotFound:
+                await ctx.send("channel not found!!")
+                return
+            except Forbidden:
+                await ctx.send("I can't access that channel. Please check permissions.")
+                return
+            except Exception as e:
+                await ctx.send("unknown error.")
+                raise e
         else:
             await ctx.send("please provide a valid channel to register for that event.")
             return
@@ -132,9 +142,11 @@ class Eventconfigurations(commands.Cog):
         cur = conn.cursor()
 
         try:
-            result = cur.execute("UPDATE eventconfig SET channel=? WHERE guildid=? AND eventname=?", (channel, ctx.guild.id, eventname))
+            result = cur.execute("UPDATE eventconfig SET channel=? WHERE guildid=? AND eventname=?",
+                                 (channel, ctx.guild.id, eventname))
             if not result.rowcount:  # no rows affected by previous statement.
-                cur.execute("INSERT INTO eventconfig(guildid, eventname, channel) VALUES(?, ?, ?)", (ctx.guild.id, eventname, channel))
+                cur.execute("INSERT INTO eventconfig(guildid, eventname, channel) VALUES(?, ?, ?)",
+                            (ctx.guild.id, eventname, channel))
             conn.commit()
             await chan.send(
                 f"This channel has been properly configured for sending the {eventname} event {ctx.author.mention}!")
@@ -167,7 +179,8 @@ class Eventconfigurations(commands.Cog):
             return
         conn = sqlite3.connect(self.databasepath)
         cur = conn.cursor()
-        cur.execute("UPDATE eventconfig SET alivetime=? WHERE guildid=? AND eventname=?", (time, ctx.guild.id, eventname))
+        cur.execute("UPDATE eventconfig SET alivetime=? WHERE guildid=? AND eventname=?",
+                    (time, ctx.guild.id, eventname))
         conn.commit()
         conn.close()
         if time is not None:
@@ -202,9 +215,11 @@ class Eventconfigurations(commands.Cog):
             return
         conn = sqlite3.connect(self.databasepath)
         cur = conn.cursor()
-        result = cur.execute("UPDATE eventconfig SET pingrole=? WHERE guildid=? AND eventname=?", (pingrole, ctx.guild.id, eventname))
+        result = cur.execute("UPDATE eventconfig SET pingrole=? WHERE guildid=? AND eventname=?",
+                             (pingrole, ctx.guild.id, eventname))
         if not result.rowcount:
-            cur.execute("INSERT INTO eventconfig(guildid, eventname, channel, pingrole) VALUES(?, ?, null, ?)", (ctx.guild.id, eventname, pingrole))
+            cur.execute("INSERT INTO eventconfig(guildid, eventname, channel, pingrole) VALUES(?, ?, null, ?)",
+                        (ctx.guild.id, eventname, pingrole))
         conn.commit()
         conn.close()
         await ctx.send("pingrole set!")
@@ -308,7 +323,7 @@ class Eventconfigurations(commands.Cog):
             cur.execute("SELECT playername FROM memberconfig WHERE guildid=?", (ctx.guild.id,))
             members = [row[0] for row in cur.fetchall()]
         if 25 >= len(members) > 0:
-            originalmsg = await ctx.send("testing selects", components=[
+            originalmsg = await ctx.send("please select the players you want to remove.", components=[
                 Select(placeholder="Select the players you want to remove.",
                        options=[SelectOption(label=player,
                                              value=player)
@@ -318,9 +333,9 @@ class Eventconfigurations(commands.Cog):
             while True:
                 try:
                     event: Interaction = await self.client.wait_for("select_option",
-                                                                    check=lambda
-                                                                        selection: ctx.channel == selection.channel
-                                                                                   and ctx.author == selection.author,
+                                                                    check=lambda selection:
+                                                                    ctx.channel == selection.channel
+                                                                    and ctx.author == selection.author,
                                                                     timeout=30)
                 except asyncio.TimeoutError:
                     await originalmsg.delete()
@@ -344,9 +359,9 @@ class Eventconfigurations(commands.Cog):
                            " server.", delete_after=35)
             try:
                 event: discord.message.Message = await self.client.wait_for("message",
-                                                                            check=lambda
-                                                                                selection: ctx.channel == selection.channel
-                                                                                           and ctx.author == selection.author,
+                                                                            check=lambda selection:
+                                                                            ctx.channel == selection.channel
+                                                                            and ctx.author == selection.author,
                                                                             timeout=30)
             except asyncio.TimeoutError:
                 await ctx.send("configurating timed out. Please try again.", delete_after=30)
@@ -360,6 +375,7 @@ class Eventconfigurations(commands.Cog):
                 await ctx.send(f"{player} removed from playerconfig!")
         else:
             await ctx.send("no members registered for playerconfig.")
+
     @commands.guild_only()
     @commands.command(name="unregisterclan")
     async def unregisterclan(self, ctx: Context, clanname: str):
@@ -408,8 +424,13 @@ class Eventconfigurations(commands.Cog):
                 try:
                     chan = await self.client.fetch_channel(row[1])
                     chan = str(chan)
-                except:
-                    chan = "not available"
+                except NotFound:
+                    chan = "not found"
+                except Forbidden:
+                    chan = "no permissions"
+                except Exception as e:
+                    print(e)
+                    chan = "unknown"
             else:
                 chan = "not available"
             row[1] = chan
@@ -417,7 +438,9 @@ class Eventconfigurations(commands.Cog):
             if row[2] is not None:
                 try:
                     role = ctx.guild.get_role(int(row[2]))
-                except:
+                except Exception as e:
+                    print("fetching role failed.")
+                    print(e)
                     role = "failed to fetch role"
             else:
                 role = None
@@ -467,9 +490,10 @@ class Eventconfigurations(commands.Cog):
         await ctx.send("type the name of the player:")
         try:
             msg: discord.message.Message = await self.client.wait_for('message',
-                                                                      check=lambda newmsg: ctx.author.id == newmsg.author.id
+                                                                      check=lambda newmsg:
+                                                                      ctx.author.id == newmsg.author.id
                                                                       and ctx.channel.id == newmsg.channel.id,
-                                             timeout=30)
+                                                                      timeout=30)
         except asyncio.exceptions.TimeoutError:
             await ctx.send("timed out. please try again.")
             return
@@ -484,66 +508,6 @@ class Eventconfigurations(commands.Cog):
                 return
             conn.commit()
             await ctx.send(f"`{membername}` added to configuration for this server!")
-
-    async def __remove_member(self, ctx: Context):
-        if not haspermissions([role.id for role in ctx.message.author.roles], ctx.guild.id) and not\
-                ctx.message.author.guild_permissions.administrator:
-            await ctx.send("insufficient permissions to use this command!")
-            return
-        with sqlite3.connect(self.databasepath) as conn:
-            cur = conn.cursor()
-            cur.execute("SELECT playername FROM memberconfig WHERE guildid=?", (ctx.guild.id,))
-            members = [row[0] for row in cur.fetchall()]
-        if 25 >= len(members) > 0:
-            originalmsg = await ctx.send("testing selects", components=[
-                Select(placeholder="Select the players you want to remove.",
-                       options=[SelectOption(label=player,
-                                             value=player)
-                                for player in members], )
-            ])
-
-            while True:
-                try:
-                    event: Interaction = await self.client.wait_for("select_option",
-                                                       check=lambda selection: ctx.channel == selection.channel
-                                                       and ctx.author == selection.author, timeout=30)
-                except asyncio.TimeoutError:
-                    await originalmsg.delete()
-                    return
-                for player in event.values:
-                    cur.execute("DELETE FROM memberconfig WHERE guildid=? and playername=?", (ctx.guild.id, player))
-                    members.remove(player)
-                conn.commit()
-                if len(members) == 0:
-                    await event.send("No players left!")
-                    await originalmsg.delete()
-                    return
-                await event.edit_origin("Select players to remove:", components=[
-                Select(placeholder="Select the players you want to remove from configuration for this server.",
-                       options=[SelectOption(label=player,
-                                             value=player)
-                                for player in members], )
-            ])
-        elif len(members) > 25:
-            await ctx.send("please enter the name of the player you want to remove from the configuration for this"
-                           " server.", delete_after=35)
-            try:
-                event: discord.message.Message = await self.client.wait_for("message",
-                                                                check=lambda selection: ctx.channel == selection.channel
-                                                                                        and ctx.author == selection.author,
-                                                                timeout=30)
-            except asyncio.TimeoutError:
-                await ctx.send("configurating timed out. Please try again.", delete_after=30)
-                return
-            player = event.content
-            if player not in members:
-                await ctx.send("That member is not in memberconfig!")
-            else:
-                cur.execute("DELETE FROM memberconfig WHERE guildid=? and playername=?", (ctx.guild.id, player))
-                conn.commit()
-                await ctx.send(f"{player} removed from playerconfig!")
-        else:
-            await ctx.send("no members registered for playerconfig.")
 
     async def __show_members(self, ctx: Context):
         with sqlite3.connect(self.databasepath) as conn:

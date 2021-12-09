@@ -1,5 +1,4 @@
 import time
-
 from highscores import *
 from highscores.highscore import Highscore
 from highscores.worldbossdamagehandler import WorldbossDamageHandler
@@ -7,6 +6,7 @@ from ppowebsession import PpoWebSession
 import os
 import datetime
 from commands.utils import getworldbosstime
+
 
 class HighscoresUpdater:
     def __init__(self, websession: PpoWebSession, debug=True, timeout=600):
@@ -48,7 +48,8 @@ class HighscoresUpdater:
                 exceptionhappened = True
                 time.sleep(self.timeout)
 
-    def makeHighscores(self, path: str):
+    @staticmethod
+    def makeHighscores(path: str):
         for i in allhighscores:
             highscore: Highscore = i()
             highscore.create(path)
