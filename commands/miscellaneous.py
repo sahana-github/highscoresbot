@@ -50,7 +50,7 @@ class Miscellaneous(commands.Cog):
         :param ctx: discord context
         :param clanname: the name of the clan you want the clanlist from.
         """
-
+        clanname = clanname.lower()
         result = getClanList(clanname)
         result.sort()
         if result:
