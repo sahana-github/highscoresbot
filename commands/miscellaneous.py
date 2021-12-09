@@ -146,6 +146,10 @@ class Miscellaneous(commands.Cog):
         for i in messages[0:-1]:
             await ctx.author.send(i)
 
+    @commands.command(name="servercount")
+    async def servercount(self, ctx: Context):
+        await ctx.send("i'm in {0} servers.".format(str(len(self.client.guilds))))
+
     @commands.command(name="help")
     async def help(self, ctx: Context, command: str = None):
         """
