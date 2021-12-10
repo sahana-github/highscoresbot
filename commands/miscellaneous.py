@@ -159,7 +159,8 @@ class Miscellaneous(commands.Cog):
         :param ctx: discord context
         :param command: the name of the command you want to see the help message from.
         """
-        command = command.lower()
+        if command is not None:
+            command = command.lower()
         embed = None
         if type(self.client.command_prefix) == list:
             prefix = random.choice(self.client.command_prefix)
