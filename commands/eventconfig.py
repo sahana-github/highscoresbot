@@ -262,8 +262,9 @@ class Eventconfigurations(commands.Cog):
                 ctx.message.author.guild_permissions.administrator:
             await ctx.send("insufficient permissions to use this command!")
             return
-        if eventname != "all" and await self.__eventnamecheck(ctx, eventname):
-            return
+        if eventname != "all":
+            if not await self.__eventnamecheck(ctx, eventname):
+                return
         eventname = eventname.lower()
         conn = sqlite3.connect(self.databasepath)
         cur = conn.cursor()
