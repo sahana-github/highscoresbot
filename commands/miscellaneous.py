@@ -17,6 +17,7 @@ from highscores import getClanList
 class Miscellaneous(commands.Cog):
     def __init__(self, client: discord.ext.commands.bot):
         self.client: discord.ext.commands.bot = client
+        self.client.loop.create_task(self.status_task())
         self.invitelink = "https://discord.com/login?redirect_to=" \
                           "%2Foauth2%2Fauthorize%3Fclient_id%3D733434249771745401%26permissions%3D2048%26redirect_uri" \
                           "%3Dhttps%253A%252F%252Fdiscordapp.com%252Foauth2%252Fauthorize%253F%2526" \
@@ -151,6 +152,20 @@ class Miscellaneous(commands.Cog):
     @commands.command(name="servercount")
     async def servercount(self, ctx: Context):
         await ctx.send("i'm in {0} servers.".format(str(len(self.client.guilds))))
+
+    @commands.command(name="about")
+    async def about(self, ctx: Context):
+        embed = discord.Embed(title="About Us", description="Who are we?", color=0xFF5733)
+        embed.add_field(name="Green", value="One of the founders of the bot along with Kevin. Currently not working "
+                                            "on the project anymore.")
+        embed.add_field(name="Kevin123456#2069", value="One of the founders of the bot along with Green. "
+                                                       "Feel free to pm me if you have any questions.")
+        embed.add_field(name="Degjay", value="Funds the machine the bot is run on. Making this bot free to use. "
+                                             "Also has his own bot called evobot which shows the evolutionary line of "
+                                             "pokemon.")
+        embed.add_field(name="Patreon", value="Come support as us at Patreon - https://www.patreon.com/highscores_bot")
+        embed.add_field(name="Source", value="The sourcecode is available at https://github.com/graatje/highscoresbot")
+        await ctx.send(embed=embed)
 
     @commands.command(name="help")
     async def help(self, ctx: Context, command: str = None):
@@ -521,6 +536,17 @@ class Miscellaneous(commands.Cog):
         if embed is not None:
             await ctx.send(embed=embed)
 
+    async def status_task(self):
+        await self.client.wait_until_ready()
+        while True:
+
+            await self.client.change_presence(activity=
+                                              discord.Activity(type=discord.ActivityType.watching, name="?about"))
+            await asyncio.sleep(60)
+            await self.client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching,
+                                                                        name=".help"))
+            await asyncio.sleep(60)
+
 
 class HelpCommand:
     def __init__(self):
@@ -728,5 +754,6 @@ class HelpCommand:
 
 
 def setup(client):
+
     client.remove_command('help')
     client.add_cog(Miscellaneous(client))
