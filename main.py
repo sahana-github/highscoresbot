@@ -7,7 +7,7 @@ import discord.ext.commands
 from discord_components import DiscordComponents, Button, ButtonStyle
 from discord.ext.commands import CommandNotFound
 from discord.ext.commands.errors import MissingRequiredArgument, CommandInvokeError, NoPrivateMessage
-from discord.errors import Forbidden
+from discord.errors import Forbidden, NotFound
 import traceback
 from discord.ext.commands.context import Context
 
@@ -36,6 +36,8 @@ async def on_command_error(ctx: Context, error: Exception):
             except Forbidden:
                 await ctx.send("I lack permissions to send you messages in pm!")
             return
+        elif isinstance(error.original, NotFound):
+            return
         else:
             await send_error(ctx, error)
     elif isinstance(error, MissingRequiredArgument):
@@ -45,22 +47,6 @@ async def on_command_error(ctx: Context, error: Exception):
     elif isinstance(error, NoPrivateMessage):
         await ctx.send("this command can only be used in discord servers!")
         return
-    elif isinstance(error, asyncio.exceptions.CancelledError):
-        buttons = [Button(style=ButtonStyle.green, label="Yes"),
-                   Button(style=ButtonStyle.red, label="No")]
-        buttonids = [button.id for button in buttons]
-        def check(res):
-            return res.component.id in buttonids and res.channel == ctx.channel and res.author == ctx.author
-        await ctx.send("as a result of the command, an error occured. May the developer ask you some questions about "
-                       "this?", components=[buttons])
-        res = await client.wait_for("button_click", check=check)
-        if res.component.label == "Yes":
-            chan = await client.fetch_channel(893831090454790154)
-            await chan.send("contact about bug:" + str(ctx.author))
-            await chan.send("user id:" + str(ctx.author.id))
-            await res.send("thank you! The developer will contact you soon.")
-        elif res.component.label == "No":
-            return
     raise error
 
 
