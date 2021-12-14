@@ -158,7 +158,7 @@ class Highscores(commands.Cog):
                                                             ctx.channel == selection.channel
                                                             and ctx.author == selection.author
                                                             and selection.component.id in selectids,
-                                                            timeout=30)
+                                                            timeout=120)
             await event.send(f"showing highscore {event.values[0]}")
         except asyncio.TimeoutError:
             await originalmsg.delete()
