@@ -22,6 +22,12 @@ class PpoWebSession:
         self.interval = interval
         self.session: Session = None
 
+    def login(self):
+        try:
+            self.loginmethod1()
+        except Exception as e:
+            print(e)
+            self.loginmethod2()
     def getpage(self, page: str) -> str:
         """
         gets the html of the webpage.
@@ -35,7 +41,7 @@ class PpoWebSession:
         else:
             raise Exception("logged out!")
 
-    def login(self):
+    def loginmethod1(self):
         """
         Logging in to the pokemon planet website to be able to visit the highscore pages.
         """
@@ -91,8 +97,16 @@ class PpoWebSession:
         element: lxml.html.InputElement = tree.xpath("/html/body/div[8]/div/div/div[2]/div/div[1]/div/form/div[2]/input[3]")[0]
         return element.name, element.value
 
-
-
+    def loginmethod2(self):
+        if self.session is not None:
+            self.session.close()
+        self.session = requests.session()
+        req = self.session.get(r"https://pokemon-planet.com/forums/index.php?topic=18395.0")
+        tree = html.fromstring(req.content)
+        element = lxml.html.InputElement = tree.xpath("/html/body/div[3]/div/form/div/div[3]/input")[0]
+        logincookies = self.__cookies.copy()
+        logincookies[element.name] = element.value
+        self.session.post("https://pokemon-planet.com/forums/index.php?action=login2", data=logincookies)
 
 if __name__ == "__main__":
     session = PpoWebSession("username", "password")
