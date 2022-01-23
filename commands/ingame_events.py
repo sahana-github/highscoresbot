@@ -1,5 +1,4 @@
 import asyncio
-import re
 import sqlite3
 import datetime
 from typing import List
@@ -20,7 +19,7 @@ class IngameEvents(commands.Cog):
         """
         gets the encounters
         :param ctx: message context
-        :param playername: name of player to get the encounters from.
+        :param name: either playername, pokemonname or a date
         """
         buttons = [Button(style=ButtonStyle.blue, label="Pokemon"),
                    Button(style=ButtonStyle.blue, label="Date (yyyy-mm-dd)"),
@@ -28,24 +27,26 @@ class IngameEvents(commands.Cog):
         rollids = [button.id for button in buttons]
         msg = await ctx.send("is that a pokemon, date, or player? Press the button to get a response! "
                              "This will be visible to you only.",
-                       components=[buttons])
+                             components=[buttons])
+        name = name.lower()
+
         def check(res):
             return res.component.id in rollids
 
         try:
             res = await self.client.wait_for("button_click", check=check, timeout=600)
             if res.component.label == "Pokemon":
-                resultmessages = self.__getpokemon(name.lower())
+                resultmessages = self.__getpokemon(name)
             elif res.component.label == "Date (yyyy-mm-dd)":
                 try:
-                    resultmessages = self.__getdate(name.lower())
+                    resultmessages = self.__getdate(name)
                 except ValueError:
                     await res.send(f"{name} does not match date format 'yyyy-mm-dd'!")
                     await msg.delete()
                     await self.getencounters(ctx, name)
                     return
             elif res.component.label == "Player":
-                resultmessages = self.__getplayerencounters(name.lower())
+                resultmessages = self.__getplayerencounters(name)
             else:
                 raise Exception("????????????????????????")
         except asyncio.TimeoutError:
@@ -53,35 +54,38 @@ class IngameEvents(commands.Cog):
                 button.set_disabled(True)
             await msg.edit("responding has expired. Please try again.", components=[buttons])
             return
-        pageChanger = PageTurner(resultmessages[::-1])
+        page_changer = PageTurner(resultmessages[::-1])
         buttons = [Button(style=ButtonStyle.blue, label="<<"),
                    Button(style=ButtonStyle.blue, label="<"),
                    Button(style=ButtonStyle.red, label=">"),
                    Button(style=ButtonStyle.red, label=">>")]
         buttonids = [button.id for button in buttons]
-        await res.edit_origin(f"```page {pageChanger.page} of {pageChanger.MAXPAGE}```\n" +
-                              pageChanger.changePage(0), components=[buttons])
+        await res.edit_origin(f"```page {page_changer.page} of {page_changer.MAXPAGE}```\n" +
+                              page_changer.changePage(0), components=[buttons])
         while True:
             try:
                 res = await self.client.wait_for("button_click",
-                                                 check=lambda response: response.component.id in buttonids and
-                                                                        response.author.id == ctx.author.id,
+                                                 check=lambda response:
+                                                 response.component.id in buttonids and
+                                                 response.author.id == ctx.author.id,
                                                  timeout=600)
                 if res.component.label == "<":
-                    page = pageChanger.changePage(-1)
+                    page = page_changer.changePage(-1)
                 elif res.component.label == ">":
-                    page = pageChanger.changePage(1)
+                    page = page_changer.changePage(1)
                 elif res.component.label == "<<":
-                    page = pageChanger.changePage(pageChanger.MINPAGE, True)
+                    page = page_changer.changePage(page_changer.MINPAGE, True)
                 elif res.component.label == ">>":
-                    page = pageChanger.changePage(pageChanger.MAXPAGE, True)
-                await res.edit_origin(f"```page {pageChanger.page} of {pageChanger.MAXPAGE}```\n"
+                    page = page_changer.changePage(page_changer.MAXPAGE, True)
+                else:
+                    page = page_changer.changePage(0)
+                await res.edit_origin(f"```page {page_changer.page} of {page_changer.MAXPAGE}```\n"
                                       + page)
             except asyncio.TimeoutError:
                 for button in buttons:
                     button.set_disabled(True)
-                await msg.edit(f"```page {pageChanger.page} of {pageChanger.MAXPAGE}```\n" +
-                               pageChanger.changePage(0), components=[buttons])
+                await msg.edit(f"```page {page_changer.page} of {page_changer.MAXPAGE}```\n" +
+                               page_changer.changePage(0), components=[buttons])
                 break
 
     def __getplayerencounters(self, playername: str) -> List[str]:
@@ -157,8 +161,6 @@ class IngameEvents(commands.Cog):
         conn.close()
         await ctx.send(result[0])
 
-
-
     @commands.command(name="getchestsbydate")
     async def getchestsbydate(self, ctx, date=None):
         if date is None:
@@ -181,14 +183,13 @@ class IngameEvents(commands.Cog):
         :param parameter: The pokemon, date or player
         """
 
-
         buttons = [Button(style=ButtonStyle.blue, label="Pokemon"),
                    Button(style=ButtonStyle.blue, label="Date (yyyy-mm-dd)"),
                    Button(style=ButtonStyle.blue, label="Player")]
         rollids = [button.id for button in buttons]
         msg = await ctx.send("is that a pokemon, date, or player? Press the button to get a response! "
                              "This will be visible to you only.",
-                       components=[buttons])
+                             components=[buttons])
 
         def check(res):
             return res.component.id in rollids

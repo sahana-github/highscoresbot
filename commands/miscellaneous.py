@@ -7,7 +7,7 @@ import datetime
 import asyncio
 
 from discord_components import ButtonStyle, Button
-from commands.utils import getworldbosstime, tablify, datehandler
+from commands.utils import getworldbosstime, tablify
 
 from discord.ext.commands.context import Context
 
@@ -17,6 +17,7 @@ from highscores import getClanList
 class Miscellaneous(commands.Cog):
     def __init__(self, client: discord.ext.commands.bot):
         self.client: discord.ext.commands.bot = client
+        self.client.loop.create_task(self.status_task())
         self.invitelink = "https://discord.com/login?redirect_to=" \
                           "%2Foauth2%2Fauthorize%3Fclient_id%3D733434249771745401%26permissions%3D2048%26redirect_uri" \
                           "%3Dhttps%253A%252F%252Fdiscordapp.com%252Foauth2%252Fauthorize%253F%2526" \
@@ -31,9 +32,12 @@ class Miscellaneous(commands.Cog):
         try:
             worldboss_datetime = getworldbosstime()
             timedifference = worldboss_datetime - datetime.datetime.now()
-            await ctx.send(f"world boss starting in "
-                           f"{(timedifference.days * 86400 + timedifference.seconds) // 3600} hours and "
-                           f"{(timedifference.seconds // 60) % 60} minutes")
+            embed = discord.Embed(title="worldboss",
+                                  description=f"The worldboss will start at <t:{str(int(worldboss_datetime.timestamp()))}>")
+            embed.add_field(name="relative",
+                            value=f"that is in {(timedifference.days * 86400 + timedifference.seconds) // 3600} hours "
+                                  f"and {(timedifference.seconds // 60) % 60} minutes\n")
+            await ctx.send(embed=embed)
         except IndexError:
             await ctx.send("something went wrong!")
         except Exception as e:
@@ -47,7 +51,7 @@ class Miscellaneous(commands.Cog):
         :param ctx: discord context
         :param clanname: the name of the clan you want the clanlist from.
         """
-
+        clanname = clanname.lower()
         result = getClanList(clanname)
         result.sort()
         if result:
@@ -74,6 +78,7 @@ class Miscellaneous(commands.Cog):
         :param ctx: discord context
         :param clanname: the clan you want to set as default for the highscores commands.
         """
+        clanname = clanname.lower()
         if ctx.guild is None:
             await ctx.send("this command can't be used in pm.")
             return
@@ -98,6 +103,7 @@ class Miscellaneous(commands.Cog):
             print(e)
             await msg.delete()
             await ctx.send("Something went wrong. Developer is informed.")
+            raise e
 
     @commands.command(name="worldboss")
     async def worldboss(self, ctx: Context, playername: str):
@@ -143,6 +149,24 @@ class Miscellaneous(commands.Cog):
         for i in messages[0:-1]:
             await ctx.author.send(i)
 
+    @commands.command(name="servercount")
+    async def servercount(self, ctx: Context):
+        await ctx.send("i'm in {0} servers.".format(str(len(self.client.guilds))))
+
+    @commands.command(name="about")
+    async def about(self, ctx: Context):
+        embed = discord.Embed(title="About Us", description="Who are we?", color=0xFF5733)
+        embed.add_field(name="Green", value="One of the founders of the bot along with Kevin. Currently not working "
+                                            "on the project anymore.")
+        embed.add_field(name="Kevin123456#2069", value="One of the founders of the bot along with Green. "
+                                                       "Feel free to pm me if you have any questions.")
+        embed.add_field(name="Degjay", value="Funds the machine the bot is run on. Making this bot free to use. "
+                                             "Also has his own bot called evobot which shows the evolutionary line of "
+                                             "pokemon.")
+        embed.add_field(name="Patreon", value="Come support as us at Patreon - https://www.patreon.com/highscores_bot")
+        embed.add_field(name="Source", value="The sourcecode is available at https://github.com/graatje/highscoresbot")
+        await ctx.send(embed=embed)
+
     @commands.command(name="help")
     async def help(self, ctx: Context, command: str = None):
         """
@@ -150,6 +174,8 @@ class Miscellaneous(commands.Cog):
         :param ctx: discord context
         :param command: the name of the command you want to see the help message from.
         """
+        if command is not None:
+            command = command.lower()
         embed = None
         if type(self.client.command_prefix) == list:
             prefix = random.choice(self.client.command_prefix)
@@ -510,6 +536,17 @@ class Miscellaneous(commands.Cog):
         if embed is not None:
             await ctx.send(embed=embed)
 
+    async def status_task(self):
+        await self.client.wait_until_ready()
+        while True:
+
+            await self.client.change_presence(activity=
+                                              discord.Activity(type=discord.ActivityType.watching, name="?about"))
+            await asyncio.sleep(60)
+            await self.client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching,
+                                                                        name=".help"))
+            await asyncio.sleep(60)
+
 
 class HelpCommand:
     def __init__(self):
@@ -717,5 +754,6 @@ class HelpCommand:
 
 
 def setup(client):
+
     client.remove_command('help')
     client.add_cog(Miscellaneous(client))

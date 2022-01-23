@@ -133,6 +133,16 @@ def getworldbosstime(path="worldbosstime.txt") -> datetime.datetime:
     return datetime.datetime.fromtimestamp(worldboss_time)
 
 
+def getworldbosstime(path="worldbosstime.txt") -> datetime.datetime:
+    """
+    returns the datetime object of when the worldboss is.
+    :param path: the path to worldbosstime.txt
+    :return: datetime of when the worldboss is.
+    """
+    with open(path) as file:
+        worldboss_time = int(file.readlines()[1])
+    return datetime.datetime.fromtimestamp(worldboss_time)
+
 def worldbosssent(path: str="worldbosstime.txt") -> bool:
     """
     returns if the message 30 mins before worldboss already has been sent.

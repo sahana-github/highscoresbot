@@ -1,14 +1,13 @@
 """
 This file runs the bot for processing commands and handles errors when those happen in commands.
 """
-
-
+import asyncio
 import os
 import discord.ext.commands
-from discord_components import DiscordComponents
+from discord_components import DiscordComponents, Button, ButtonStyle
 from discord.ext.commands import CommandNotFound
 from discord.ext.commands.errors import MissingRequiredArgument, CommandInvokeError, NoPrivateMessage
-from discord.errors import Forbidden
+from discord.errors import Forbidden, NotFound
 import traceback
 from discord.ext.commands.context import Context
 
@@ -37,6 +36,8 @@ async def on_command_error(ctx: Context, error: Exception):
             except Forbidden:
                 await ctx.send("I lack permissions to send you messages in pm!")
             return
+        elif isinstance(error.original, NotFound):
+            return
         else:
             await send_error(ctx, error)
     elif isinstance(error, MissingRequiredArgument):
@@ -46,7 +47,6 @@ async def on_command_error(ctx: Context, error: Exception):
     elif isinstance(error, NoPrivateMessage):
         await ctx.send("this command can only be used in discord servers!")
         return
-
     raise error
 
 
