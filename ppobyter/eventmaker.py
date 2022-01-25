@@ -10,7 +10,7 @@ from ppobyter.events.tournament import Tournament
 from ppobyter.events.worldboss import Worldboss
 from ppobyter.events.honey import Honey
 from ppobyter.events.encounter import Encounter
-from ppobyter.events.powerticketpress import Powerticketpress
+
 from ppobyter.events.chest import Chest
 from ppobyter.events.itembomb import ItemBomb
 from ppobyter.events.roll import Roll
@@ -53,8 +53,6 @@ class EventMaker:
             event = Encounter(kwargs["player"], kwargs["pokemon"], kwargs["level"])
         elif eventname == "elite4":
             event = Elite4(kwargs["player"], kwargs["region"])
-        elif eventname == "powerticketpress":
-            event = Powerticketpress(kwargs["hours"], kwargs["minutes"])
         elif eventname == "chest":
             event = Chest(kwargs["player"], kwargs["location"])
         elif eventname == "roll":
