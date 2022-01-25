@@ -11,12 +11,11 @@ class TimedEvent(Event):
     This class is an event based on timing, it is in the first place initiated by the server but the actual event is
     has not started yet.
     """
-    def __init__(self, amount: Union[int, None], cooldown: datetime.timedelta):
+    def __init__(self, cooldown: datetime.timedelta):
         """
         :param cooldown: how long the event should wait before beïng able to be repeated.
         :param amount: how many times the event should be repeated.
         """
-        self.amount = amount
         self.cooldown = cooldown
         super().__init__()
         self.activationtime = None
@@ -52,7 +51,7 @@ class TimedEvent(Event):
         await super().__call__(client)
 
     def __bool__(self):
-        """"
+        """
         returns if the event can be sent.
         """
         raise NotImplementedError

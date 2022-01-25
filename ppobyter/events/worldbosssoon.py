@@ -16,7 +16,7 @@ class WorldbossSoon(TimedEvent):
         worldboss time. It sets the recipients to an empty list if the current time falls outside that failsafe check.
         """
         self.EVENTNAME = "worldboss"
-        super(WorldbossSoon, self).__init__(None, datetime.timedelta(hours=10))
+        super(WorldbossSoon, self).__init__(datetime.timedelta(hours=10))
         self.setActivationTime(getworldbosstime(path=self.pathManager.getpath("worldbosstime.txt")) - \
                               datetime.timedelta(minutes=30))
         print("worldboss soon announcement at:" + str(self.activationtime))

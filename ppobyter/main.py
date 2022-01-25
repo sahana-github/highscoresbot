@@ -5,6 +5,7 @@ import nest_asyncio  # this makes the discord client useable together with pysha
 
 from ppobyter.eventdeterminer import EventDeterminer
 from ppobyter.eventmaker import EventMaker
+from ppobyter.events.clanwars import Clanwars
 from ppobyter.events.timedevent import TimedEvent
 from ppobyter.events.worldblessing import WorldBlessing
 from ppobyter.events.worldbosssoon import WorldbossSoon
@@ -22,12 +23,13 @@ class Main:
         self.__tasks: List[TimedEvent] = []
         self.__tasks.append(WorldBlessing())
         self.__tasks.append(WorldbossSoon())
+        self.__tasks.append(Clanwars())
 
     async def mainloop(self):
         await self.__client.wait_until_ready()
         cap = self.__pysharkwrapper.cap()
         for message in cap:
-           # print(message)
+            #print(message)
             if event := EventDeterminer(message).determineEvent():
                 self.__scheduler.addEvent(EventMaker.makeEvent(event[0], **event[1]))
             self.handleTimedEvents(message)
