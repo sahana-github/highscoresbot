@@ -11,7 +11,6 @@ class SettimeEvent(TimedEvent):
         :param times: List of times in a day the event should activate.
         :param cooldown: the cooldown after an event has been sent.
         """
-        self.EVENTNAME = "clanwars"
         self.activationtimes = []
         self.days = []
         for day in days:
