@@ -22,9 +22,6 @@ class EventDeterminer:
 
         if "`xt`sr`-1`" in self.message:
             return "serverrestart", {}
-        pattern = r"``````Next World Boss in (?P<hours>[0-9]+) hours, (?P<minutes>[0-9]+) minutes.``````"
-        if match := re.search(pattern, self.message):
-            return "powerticketpress", match.groupdict()
         if "`xt`b128`-1`" in self.message:
             print(self.message)  # DEBUG
             splittedtext = self.message.split("`")
