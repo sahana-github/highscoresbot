@@ -19,10 +19,7 @@ class EventDeterminer:
         :return: A tuple with eventtype and a dict of info about the event.
                 Example: ("honey", {"player": "me", "location": "vermillion city"})
         """
-        pattern = r"(?<=<\/var><var n='d' t='s'>)([0-9]+:[0-9]+)(?=<\/var><var n='a' t='n'>1.1</var><var n='_cmd' t='s'>" \
-                  r"worldBlessing<\/var><\/dataObj>]]><\/body><\/msg>)"
-        if re.search(pattern, self.message):
-            return "worldblessing", {}
+
         if "`xt`sr`-1`" in self.message:
             return "serverrestart", {}
         pattern = r"``````Next World Boss in (?P<hours>[0-9]+) hours, (?P<minutes>[0-9]+) minutes.``````"
