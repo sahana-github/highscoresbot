@@ -65,7 +65,7 @@ class WorldbossSoon(TimedEvent):
         return f"world boss starting in {int(timedifference.total_seconds() / 60)} minutes!"
 
     def hasCooldown(self) -> bool:
-        return not (not super().hasCooldown() and not worldbosssent())
+        return not (not super().hasCooldown() and not worldbosssent(self.pathManager.getpath("worldbosstime.txt")))
 
     def __bool__(self):
         now = datetime.datetime.now()
