@@ -21,12 +21,6 @@ class WorldBlessing(TimedEvent):
             print("activation time set.")
             self.setActivationTime(datetime.datetime.now() + datetime.timedelta(minutes=57))
 
-    def determineRecipients(self):
-        """
-        Determines the recipients for channels.
-        """
-        self._determinechannelrecipients()
-
     def makeMessage(self) -> str:
         """
         Makes the message that gets sent to the recipients.
