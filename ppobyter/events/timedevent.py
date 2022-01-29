@@ -18,6 +18,10 @@ class TimedEvent(Event):
         """
         self.cooldown = cooldown
         super().__init__()
+        self._pingroles = []
+        self._recipients = []
+        self._alive_time = []
+        self._pmrecipients = []
         self.activationtime = None
         self.lastsent = None
 

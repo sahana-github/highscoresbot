@@ -134,8 +134,10 @@ class IngameEvents(commands.Cog):
         """
         await ctx.send("please use .getencounters instead!")
 
-    @commands.command(name="topchestlocations")
-    async def topchestlocations(self, ctx: Context):
+
+
+
+    def __topchestlocations(self):
         """
         Shows you locations with the most spawned chests.
         :param ctx: discord context
@@ -145,10 +147,9 @@ class IngameEvents(commands.Cog):
         cur.execute("SELECT location, COUNT(*) FROM chests GROUP BY location ORDER BY COUNT(*) DESC")
         result = tablify(["Location", "Number Of Times Spawned"], cur.fetchall())
         conn.close()
-        await ctx.send(result[0])
+        return result[::-1]
 
-    @commands.command(name="topchestplayers")
-    async def topchestplayers(self, ctx: Context):
+    def __topchestplayers(self):
         """
         shows you the players who opened the most chests.
         :param ctx:
@@ -159,10 +160,89 @@ class IngameEvents(commands.Cog):
         cur.execute("SELECT player, COUNT(*) FROM chests GROUP BY player ORDER BY COUNT(*) DESC")
         result = tablify(["Name", "Chests"], cur.fetchall())
         conn.close()
-        await ctx.send(result[0])
+        return result[::-1]
 
-    @commands.command(name="getchestsbydate")
-    async def getchestsbydate(self, ctx, date=None):
+    @commands.command(name="getchests")
+    async def getchests(self, ctx, *argument):
+        rollids = []
+        buttons = [[Button(style=ButtonStyle.blue, label="Location"),
+                   Button(style=ButtonStyle.blue, label="Date (yyyy-mm-dd)"),
+                   Button(style=ButtonStyle.blue, label="Player")],
+                   [Button(style=ButtonStyle.blue, label="Top chest locations"),
+                    Button(style=ButtonStyle.blue, label="Top chest players")]
+                   ]
+        for buttonrow in buttons:
+            for button in buttonrow:
+                rollids.append(button.id)
+        msg = await ctx.send("is that a location, date, or player? Press the button to get a response! ",
+                             components=buttons)
+        name = " ".join(argument).lower().strip()
+
+        def check(res):
+            return res.component.id in rollids
+
+        try:
+            res = await self.client.wait_for("button_click", check=check, timeout=600)
+            if res.component.label == "Location":
+                resultmessages = self.__getchestsbylocation(name)
+            elif res.component.label == "Date (yyyy-mm-dd)":
+                try:
+                    resultmessages = self.__getchestsbydate(name)
+                except ValueError:
+                    await res.send(f"{name} does not match date format 'yyyy-mm-dd'!")
+                    await msg.delete()
+                    await self.getencounters(ctx, name)
+                    return
+            elif res.component.label == "Player":
+                resultmessages = self.__getchestsbyplayer(name)
+            elif res.component.label == "Top chest locations":
+                resultmessages = self.__topchestlocations()
+            elif res.component.label == "Top chest players":
+                resultmessages = self.__topchestplayers()
+            else:
+                raise Exception("????????????????????????")
+        except asyncio.TimeoutError:
+            for buttonrow in buttons:
+                for button in buttonrow:
+                    button.set_disabled(True)
+            await msg.edit("responding has expired. Please try again.", components=[buttons])
+            return
+        page_changer = PageTurner(resultmessages[::-1])
+        buttons = [Button(style=ButtonStyle.blue, label="<<"),
+                   Button(style=ButtonStyle.blue, label="<"),
+                   Button(style=ButtonStyle.red, label=">"),
+                   Button(style=ButtonStyle.red, label=">>")]
+        buttonids = [button.id for button in buttons]
+        await res.edit_origin(f"```page {page_changer.page} of {page_changer.MAXPAGE}```\n" +
+                              page_changer.changePage(0), components=[buttons])
+        while True:
+            try:
+                res = await self.client.wait_for("button_click",
+                                                 check=lambda response:
+                                                 response.component.id in buttonids and
+                                                 response.author.id == ctx.author.id,
+                                                 timeout=600)
+                if res.component.label == "<":
+                    page = page_changer.changePage(-1)
+                elif res.component.label == ">":
+                    page = page_changer.changePage(1)
+                elif res.component.label == "<<":
+                    page = page_changer.changePage(page_changer.MINPAGE, True)
+                elif res.component.label == ">>":
+                    page = page_changer.changePage(page_changer.MAXPAGE, True)
+                else:
+                    page = page_changer.changePage(0)
+                await res.edit_origin(f"```page {page_changer.page} of {page_changer.MAXPAGE}```\n"
+                                      + page)
+            except asyncio.TimeoutError:
+                for button in buttons:
+                    button.set_disabled(True)
+                await msg.edit(f"```page {page_changer.page} of {page_changer.MAXPAGE}```\n" +
+                               page_changer.changePage(0), components=[buttons])
+                break
+
+
+    def __getchestsbydate(self, date=None):
         if date is None:
             date = str(datetime.datetime.now()).split(" ")[0]
         date = datehandler(date)
@@ -171,8 +251,23 @@ class IngameEvents(commands.Cog):
         cur.execute("SELECT player, location, date FROM chests WHERE date=?", (date,))
         resultmessages = tablify(["playername", "location", "date"], cur.fetchall())
         conn.close()
-        for i in resultmessages:
-            await ctx.send(i)
+        return resultmessages
+
+    def __getchestsbyplayer(self, player):
+        conn = sqlite3.connect(r"ingame_data.db")
+        cur = conn.cursor()
+        cur.execute("SELECT player, location, date FROM chests WHERE player=?", (player,))
+        resultmessages = tablify(["playername", "location", "date"], cur.fetchall())
+        conn.close()
+        return resultmessages
+
+    def __getchestsbylocation(self, location):
+        conn = sqlite3.connect(r"ingame_data.db")
+        cur = conn.cursor()
+        cur.execute("SELECT player, location, date FROM chests WHERE location=?", (location,))
+        resultmessages = tablify(["playername", "location", "date"], cur.fetchall())
+        conn.close()
+        return resultmessages
 
     @commands.command(name="getrolls")
     async def getrolls(self, ctx: Context, parameter: str):
@@ -217,6 +312,10 @@ class IngameEvents(commands.Cog):
                     button.set_disabled(True)
                 await msg.edit("responding has expired. Please try again.", components=[buttons])
                 break
+
+    @commands.command(name="getchestsbydate", aliases=["topchestlocations", "topchestplayers"])
+    async def getchestsbydate(self, ctx, *_):
+        await ctx.send("please use .getchests instead!")
 
 
 def setup(client):
