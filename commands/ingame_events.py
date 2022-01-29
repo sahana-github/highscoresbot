@@ -145,7 +145,7 @@ class IngameEvents(commands.Cog):
         conn = sqlite3.connect(r"ingame_data.db")
         cur = conn.cursor()
         cur.execute("SELECT location, COUNT(*) FROM chests GROUP BY location ORDER BY COUNT(*) DESC")
-        result = tablify(["Location", "Number Of Times Spawned"], cur.fetchall())
+        result = tablify(["Location", "Number Of Times Spawned"], cur.fetchall(), maxlength=1000)
         conn.close()
         return result[::-1]
 
@@ -158,7 +158,7 @@ class IngameEvents(commands.Cog):
         conn = sqlite3.connect(r"ingame_data.db")
         cur = conn.cursor()
         cur.execute("SELECT player, COUNT(*) FROM chests GROUP BY player ORDER BY COUNT(*) DESC")
-        result = tablify(["Name", "Chests"], cur.fetchall())
+        result = tablify(["Name", "Chests"], cur.fetchall(), maxlength=1000)
         conn.close()
         return result[::-1]
 
@@ -249,7 +249,7 @@ class IngameEvents(commands.Cog):
         conn = sqlite3.connect(r"ingame_data.db")
         cur = conn.cursor()
         cur.execute("SELECT player, location, date FROM chests WHERE date=?", (date,))
-        resultmessages = tablify(["playername", "location", "date"], cur.fetchall())
+        resultmessages = tablify(["playername", "location", "date"], cur.fetchall(), maxlength=1000)
         conn.close()
         return resultmessages
 
@@ -257,7 +257,7 @@ class IngameEvents(commands.Cog):
         conn = sqlite3.connect(r"ingame_data.db")
         cur = conn.cursor()
         cur.execute("SELECT player, location, date FROM chests WHERE player=?", (player,))
-        resultmessages = tablify(["playername", "location", "date"], cur.fetchall())
+        resultmessages = tablify(["playername", "location", "date"], cur.fetchall(), maxlength=1000)
         conn.close()
         return resultmessages
 
@@ -265,7 +265,7 @@ class IngameEvents(commands.Cog):
         conn = sqlite3.connect(r"ingame_data.db")
         cur = conn.cursor()
         cur.execute("SELECT player, location, date FROM chests WHERE location=?", (location,))
-        resultmessages = tablify(["playername", "location", "date"], cur.fetchall())
+        resultmessages = tablify(["playername", "location", "date"], cur.fetchall(), maxlength=1000)
         conn.close()
         return resultmessages
 
