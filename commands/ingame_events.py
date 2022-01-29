@@ -21,13 +21,19 @@ class IngameEvents(commands.Cog):
         :param ctx: message context
         :param name: either playername, pokemonname or a date
         """
-        buttons = [Button(style=ButtonStyle.blue, label="Pokemon"),
+        rollids = []
+        buttons = [[Button(style=ButtonStyle.blue, label="Pokemon"),
                    Button(style=ButtonStyle.blue, label="Date (yyyy-mm-dd)"),
-                   Button(style=ButtonStyle.blue, label="Player")]
-        rollids = [button.id for button in buttons]
-        msg = await ctx.send("is that a pokemon, date, or player? Press the button to get a response! "
-                             "This will be visible to you only.",
-                             components=[buttons])
+                   Button(style=ButtonStyle.blue, label="Player")],
+                   [Button(style=ButtonStyle.blue, label="Top encounter dates"),
+                    Button(style=ButtonStyle.blue, label="Top encounter players"),
+                    Button(style=ButtonStyle.blue, label="Top encounter pokemon")]
+                   ]
+        for buttonrow in buttons:
+            for button in buttonrow:
+                rollids.append(button.id)
+        msg = await ctx.send("is that a pokemon, date, or player? Press the button to get a response! ",
+                             components=buttons)
         name = name.lower()
 
         def check(res):
@@ -47,6 +53,12 @@ class IngameEvents(commands.Cog):
                     return
             elif res.component.label == "Player":
                 resultmessages = self.__getplayerencounters(name)
+            elif res.component.label == "Top encounter dates":
+                resultmessages = self.__getencountersamount()
+            elif res.component.label == "Top encounter players":
+                resultmessages = self.__getencountersamountplayers()
+            elif res.component.label == "Top encounter pokemon":
+                resultmessages = self.__getencounteramountpokemon()
             else:
                 raise Exception("????????????????????????")
         except asyncio.TimeoutError:
@@ -82,8 +94,9 @@ class IngameEvents(commands.Cog):
                 await res.edit_origin(f"```page {page_changer.page} of {page_changer.MAXPAGE}```\n"
                                       + page)
             except asyncio.TimeoutError:
-                for button in buttons:
-                    button.set_disabled(True)
+                for buttonrow in buttons:
+                    for button in buttonrow:
+                        button.set_disabled(True)
                 await msg.edit(f"```page {page_changer.page} of {page_changer.MAXPAGE}```\n" +
                                page_changer.changePage(0), components=[buttons])
                 break
@@ -123,6 +136,33 @@ class IngameEvents(commands.Cog):
         resultmessages = tablify(["Name", "encounter", "date"], cur.fetchall(), maxlength=1000)
         conn.close()
         return resultmessages
+
+    def __getencountersamount(self):
+        conn = sqlite3.connect(r"ingame_data.db")
+        cur = conn.cursor()
+        cur.execute("SELECT date, count(date) FROM encounters GROUP BY date ORDER BY count(date) DESC")
+        resultset = cur.fetchall()
+        resultmessages = tablify(("Date", "Amount of encounters"), resultset, maxlength=1000)
+        conn.close()
+        return resultmessages[::-1]
+
+    def __getencountersamountplayers(self):
+        conn = sqlite3.connect(r"ingame_data.db")
+        cur = conn.cursor()
+        cur.execute("SELECT name, count(name) FROM encounters GROUP BY name ORDER BY count(name) DESC")
+        resultset = cur.fetchall()
+        resultmessages = tablify(("Player", "Amount of encounters"), resultset, maxlength=1000)
+        conn.close()
+        return resultmessages[::-1]
+
+    def __getencounteramountpokemon(self):
+        conn = sqlite3.connect(r"ingame_data.db")
+        cur = conn.cursor()
+        cur.execute("SELECT encounters, count(encounters) FROM encounters GROUP BY name ORDER BY count(encounters) DESC")
+        resultset = cur.fetchall()
+        resultmessages = tablify(("Pokemon", "Amount of encounters"), resultset, maxlength=1000)
+        conn.close()
+        return resultmessages[::-1]
 
     @commands.command(name="getpokemon")
     async def getpokemon(self, ctx: Context, *_):

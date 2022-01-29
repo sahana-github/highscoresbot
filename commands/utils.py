@@ -17,11 +17,15 @@ def replacenan(list, replacement):
 
 def tablify(layout, values, maxlength=2000):
     lengths = {}
-    values = [layout] + values
+    valuespluslayout = [layout] + values
     for i in range(len(layout)):
-        lengths[i] = len(str(max(values, key=lambda x: len(str(x[i])))[i]))
+        lengths[i] = len(str(max(valuespluslayout, key=lambda x: len(str(x[i])))[i]))
+    toptext = "|"
+    for index, i in enumerate(layout):
+        toptext += str(i) + " " * (lengths[index] - len(str(i))) + "|"
+    toptext += "\n"
     messages = []
-    message = "```\n"
+    message = "```\n" + toptext
     for row in values:
         rowtext = "|"
         for columnindex, column in enumerate(row):
@@ -32,7 +36,7 @@ def tablify(layout, values, maxlength=2000):
         else:
             message += "```"
             messages.append(message)
-            message = "```\n" + rowtext + "\n"
+            message = "```\n" + toptext + rowtext + "\n"
     message += "```"
     if message.count("\n") == 2 and len(messages) == 0:
         message = "No results found."
