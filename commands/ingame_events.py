@@ -62,8 +62,9 @@ class IngameEvents(commands.Cog):
             else:
                 raise Exception("????????????????????????")
         except asyncio.TimeoutError:
-            for button in buttons:
-                button.set_disabled(True)
+            for buttonrow in buttons:
+                for button in buttonrow:
+                    button.set_disabled(True)
             await msg.edit("responding has expired. Please try again.", components=[buttons])
             return
         page_changer = PageTurner(resultmessages[::-1])
@@ -158,7 +159,7 @@ class IngameEvents(commands.Cog):
     def __getencounteramountpokemon(self):
         conn = sqlite3.connect(r"ingame_data.db")
         cur = conn.cursor()
-        cur.execute("SELECT encounters, count(encounters) FROM encounters GROUP BY name ORDER BY count(encounters) DESC")
+        cur.execute("SELECT encounters.encounters, count(encounters.encounters) FROM encounters GROUP BY encounters ORDER BY count(encounters.encounters) DESC")
         resultset = cur.fetchall()
         resultmessages = tablify(("Pokemon", "Amount of encounters"), resultset, maxlength=1000)
         conn.close()
