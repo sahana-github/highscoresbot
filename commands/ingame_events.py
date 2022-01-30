@@ -228,6 +228,8 @@ class IngameEvents(commands.Cog):
                 resultmessages = self.__getchestsbylocation(name)
             elif res.component.label == "Date (yyyy-mm-dd)":
                 try:
+                    if name == "":
+                        name = str(datetime.datetime.now()).split()[0]
                     resultmessages = self.__getchestsbydate(name)
                 except ValueError:
                     await res.send(f"{name} does not match date format 'yyyy-mm-dd'!")
