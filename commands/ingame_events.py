@@ -65,7 +65,7 @@ class IngameEvents(commands.Cog):
             for buttonrow in buttons:
                 for button in buttonrow:
                     button.set_disabled(True)
-            await msg.edit("responding has expired. Please try again.", components=[buttons])
+            await msg.edit("responding has expired. Please try again.", components=buttons)
             return
         page_changer = PageTurner(resultmessages[::-1])
         buttons = [Button(style=ButtonStyle.blue, label="<<"),
@@ -81,7 +81,7 @@ class IngameEvents(commands.Cog):
                                                  check=lambda response:
                                                  response.component.id in buttonids and
                                                  response.author.id == ctx.author.id,
-                                                 timeout=600)
+                                                 timeout=600) # set to 600!!!!
                 if res.component.label == "<":
                     page = page_changer.changePage(-1)
                 elif res.component.label == ">":
@@ -95,9 +95,8 @@ class IngameEvents(commands.Cog):
                 await res.edit_origin(f"```page {page_changer.page} of {page_changer.MAXPAGE}```\n"
                                       + page)
             except asyncio.TimeoutError:
-                for buttonrow in buttons:
-                    for button in buttonrow:
-                        button.set_disabled(True)
+                for button in buttons:
+                    button.set_disabled(True)
                 await msg.edit(f"```page {page_changer.page} of {page_changer.MAXPAGE}```\n" +
                                page_changer.changePage(0), components=[buttons])
                 break
@@ -248,7 +247,7 @@ class IngameEvents(commands.Cog):
             for buttonrow in buttons:
                 for button in buttonrow:
                     button.set_disabled(True)
-            await msg.edit("responding has expired. Please try again.", components=[buttons])
+            await msg.edit("responding has expired. Please try again.", components=buttons)
             return
         page_changer = PageTurner(resultmessages[::-1])
         buttons = [Button(style=ButtonStyle.blue, label="<<"),
