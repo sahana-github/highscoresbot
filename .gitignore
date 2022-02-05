@@ -21,3 +21,12 @@ testfile.py
 migrater.py
 
 paths.json
+
+__pycache__/
+
+data.db
+
+highscores/__pycache__/
+quickstart/__pycache__/
+
+afkpreventor.py
