@@ -211,7 +211,12 @@ class Miscellaneous(commands.Cog):
             embed.add_field(name="Use",
                             value="this gives permissions to the specified role to adjust eventconfigurations for this "
                                   "server. You can use either a role mention or a role id.")
-
+        elif command == "getclanencounters":
+            embed = discord.Embed(title=f"{prefix}getclanencounters",
+                                  description=f"{prefix}getclanencounters <clanname>", color=0xFF5733)
+            embed.add_field(name="Use",
+                            value="This command gets encounters of a clan, they are sorted by day but not sorted by "
+                                  "time the encounter happened")
         elif command == "getrolls":
             embed = discord.Embed(title=f"{prefix}getrolls",
                                   description=f"{prefix}getrolls <parameter>", color=0xFF5733)
@@ -504,7 +509,10 @@ class Miscellaneous(commands.Cog):
                                               "top richest clans, top exp clans and all map control areas.",
                                   color=0xFFAFC9)
 
-            # other
+        elif command == "getchests":
+            embed = discord.Embed(title="getchests <parameter>",
+                                  description="Shows the chests opened, you can select what you want the chests sorted"
+                                              " by by clicking the buttons.", color=0xFFAFC9)
         elif command == "getencounters":
             embed = discord.Embed(title=f"{prefix}getencounters", description=f"{prefix}getencounters <name>",
                                   color=0xFF5733)
@@ -514,20 +522,7 @@ class Miscellaneous(commands.Cog):
                                   "player or a specific pokemon that has been captured by players.\n"
                                   "The bot has been keeping track since about 15 december 2020.")
 
-        elif command == "topchestplayers":
-            embed = discord.Embed(title=f"{prefix}topchestplayers", description=f"{prefix}topchestplayers",
-                                  color=0xFF5733)
-            embed.add_field(name="Use", value="Shows you people who has opened the most chests.")
 
-        elif command == "topchestlocations":
-            embed = discord.Embed(title=f"{prefix}topchestlocations", description=f"{prefix}topchestlocations",
-                                  color=0xFF5733)
-            embed.add_field(name="Use", value="Shows you locations with the most spawned chests")
-
-        elif command == "getchestsbydate":
-            embed = discord.Embed(title=f"{prefix}getchestsbydate", description=f"{prefix}getchestsbydate",
-                                  color=0xFF5733)
-            embed.add_field(name="Use", value="Shows the chests opened on a date")
         elif command == "worldbosstime":
             embed = discord.Embed(title=f"{prefix}worldbosstime",
                                   description=f"{prefix}worldbosstime")
@@ -616,11 +611,8 @@ class HelpCommand:
 
         if self.page == 3:  # chest queries
             embed = discord.Embed(title="Help", description='Treasure Chest Queries', color=0xEE8700)
-            embed.add_field(name=".topchestplayers",
-                            value="Shows you the treasure chest leaderboard. (According to our data)", inline=False)
-            embed.add_field(name=".topchestlocations", value="Shows you locations with the most spawned chests",
-                            inline=False)
-            embed.add_field(name=".getchestsbydate", value="Shows the chests opened on a date. Year-Month-Day",
+            embed.add_field(name=".getchests", value="Shows the chests opened, you can select what you want the "
+                                                     "chests sorted by.",
                             inline=False)
             embed.set_footer(text="Page {} of {}".format(str(self.page), str(self.max_page)))
 
