@@ -1,8 +1,12 @@
+import asyncio
 import csv
 import sqlite3
 import datetime
 from typing import Union, List
 
+import discord
+from discord.ext.commands import Context
+from discord_components import Button, ButtonStyle
 from numpy import isnan
 
 from pathmanager import PathManager
@@ -215,6 +219,57 @@ class PageTurner:
         self.MAXPAGE = len(self.pages)
         if self.page > self.MAXPAGE:
             self.page = self.MAXPAGE
+
+
+class ResultmessageShower:
+    def __init__(self, client: discord.Client, resultmessages: List[str], ctx: Context, timeout: int=600,
+                 startpage: Union[str, None]=None):
+        self.client = client
+        self.timeout = timeout
+        self.__pageTurner = PageTurner(resultmessages)
+        self.__buttons = [[Button(style=ButtonStyle.blue, label="<<"),
+                           Button(style=ButtonStyle.blue, label="<"),
+                           Button(style=ButtonStyle.red, label=">"),
+                           Button(style=ButtonStyle.red, label=">>")]]
+        self.__buttonids = []
+        for row in self.__buttons:
+            for button in row:
+                self.__buttonids.append(button.id)
+        if startpage is None:
+            startpage = resultmessages[0]
+        self.startpage = startpage
+        self.ctx = ctx
+
+    async def loop(self):
+        self.originmsg = await self.ctx.send(f"```page {self.__pageTurner.page} of {self.__pageTurner.MAXPAGE}```\n" +
+                                        self.startpage,
+                                        components=self.__buttons)
+        while True:
+            try:
+                res = await self.client.wait_for("button_click",
+                                                 check=lambda response:
+                                                 response.component.id in self.__buttonids,
+                                                 timeout=self.timeout)
+                if res.component.label == "<":
+                    page = self.__pageTurner.changePage(-1)
+                elif res.component.label == ">":
+                    page = self.__pageTurner.changePage(1)
+                elif res.component.label == "<<":
+                    page = self.__pageTurner.changePage(self.__pageTurner.MINPAGE, True)
+                elif res.component.label == ">>":
+                    page = self.__pageTurner.changePage(self.__pageTurner.MAXPAGE, True)
+                else:
+                    page = self.__pageTurner.changePage(0)
+                await res.edit_origin(f"```page {self.__pageTurner.page} of {self.__pageTurner.MAXPAGE}```\n"
+                                      + page)
+            except asyncio.TimeoutError:
+                for buttonrow in self.__buttons:
+                    for button in buttonrow:
+                        button.set_disabled(True)
+                await self.originmsg.edit(f"```page {self.__pageTurner.page} of {self.__pageTurner.MAXPAGE}```\n" +
+                               self.__pageTurner.changePage(0), components=self.__buttons)
+                break
+
 
 if __name__ == "__main__":
     PageTurner(["message1", "message2", "message3"])

@@ -7,7 +7,7 @@ from discord.ext import commands
 from discord.ext.commands.context import Context
 from discord_components import Button, ButtonStyle
 
-from commands.utils import tablify, datehandler, PageTurner
+from commands.utils import tablify, datehandler, ResultmessageShower
 from highscores import getClanList
 
 
@@ -68,39 +68,9 @@ class IngameEvents(commands.Cog):
                     button.set_disabled(True)
             await msg.edit("responding has expired. Please try again.", components=buttons)
             return
-        page_changer = PageTurner(resultmessages[::-1])
-        buttons = [Button(style=ButtonStyle.blue, label="<<"),
-                   Button(style=ButtonStyle.blue, label="<"),
-                   Button(style=ButtonStyle.red, label=">"),
-                   Button(style=ButtonStyle.red, label=">>")]
-        buttonids = [button.id for button in buttons]
-        await res.edit_origin(f"```page {page_changer.page} of {page_changer.MAXPAGE}```\n" +
-                              page_changer.changePage(0), components=[buttons])
-        while True:
-            try:
-                res = await self.client.wait_for("button_click",
-                                                 check=lambda response:
-                                                 response.component.id in buttonids and
-                                                 response.author.id == ctx.author.id,
-                                                 timeout=600) # set to 600!!!!
-                if res.component.label == "<":
-                    page = page_changer.changePage(-1)
-                elif res.component.label == ">":
-                    page = page_changer.changePage(1)
-                elif res.component.label == "<<":
-                    page = page_changer.changePage(page_changer.MINPAGE, True)
-                elif res.component.label == ">>":
-                    page = page_changer.changePage(page_changer.MAXPAGE, True)
-                else:
-                    page = page_changer.changePage(0)
-                await res.edit_origin(f"```page {page_changer.page} of {page_changer.MAXPAGE}```\n"
-                                      + page)
-            except asyncio.TimeoutError:
-                for button in buttons:
-                    button.set_disabled(True)
-                await msg.edit(f"```page {page_changer.page} of {page_changer.MAXPAGE}```\n" +
-                               page_changer.changePage(0), components=[buttons])
-                break
+        await msg.delete()
+        resultmessageshower = ResultmessageShower(self.client, resultmessages, ctx)
+        await resultmessageshower.loop()
 
     def __getplayerencounters(self, playername: str) -> List[str]:
         conn = sqlite3.connect(r"ingame_data.db")
@@ -108,7 +78,7 @@ class IngameEvents(commands.Cog):
         cur.execute("SELECT Name, Encounters, Date FROM Encounters WHERE Name = ?", (playername,))
         resultmessages = tablify(["Name", "encounter", "date"], cur.fetchall(), maxlength=1000)
         conn.close()
-        return resultmessages
+        return resultmessages[::-1]
 
     def __getpokemon(self, pokemonname: str) -> List[str]:
         """
@@ -121,7 +91,7 @@ class IngameEvents(commands.Cog):
                     (pokemonname,))
         resultmessages = tablify(["Name", "encounter", "date"], cur.fetchall(), maxlength=1000)
         conn.close()
-        return resultmessages[::-1]
+        return resultmessages
 
     def __getdate(self, date: str) -> List[str]:
         """
@@ -145,7 +115,7 @@ class IngameEvents(commands.Cog):
         resultset = cur.fetchall()
         resultmessages = tablify(("Date", "Amount of encounters"), resultset, maxlength=1000)
         conn.close()
-        return resultmessages[::-1]
+        return resultmessages
 
     def __getencountersamountplayers(self):
         conn = sqlite3.connect(r"ingame_data.db")
@@ -154,7 +124,7 @@ class IngameEvents(commands.Cog):
         resultset = cur.fetchall()
         resultmessages = tablify(("Player", "Amount of encounters"), resultset, maxlength=1000)
         conn.close()
-        return resultmessages[::-1]
+        return resultmessages
 
     def __getencounteramountpokemon(self):
         conn = sqlite3.connect(r"ingame_data.db")
@@ -163,7 +133,7 @@ class IngameEvents(commands.Cog):
         resultset = cur.fetchall()
         resultmessages = tablify(("Pokemon", "Amount of encounters"), resultset, maxlength=1000)
         conn.close()
-        return resultmessages[::-1]
+        return resultmessages
 
     @commands.command(name="getpokemon")
     async def getpokemon(self, ctx: Context, *_):
@@ -250,39 +220,9 @@ class IngameEvents(commands.Cog):
                     button.set_disabled(True)
             await msg.edit("responding has expired. Please try again.", components=buttons)
             return
-        page_changer = PageTurner(resultmessages[::-1])
-        buttons = [Button(style=ButtonStyle.blue, label="<<"),
-                   Button(style=ButtonStyle.blue, label="<"),
-                   Button(style=ButtonStyle.red, label=">"),
-                   Button(style=ButtonStyle.red, label=">>")]
-        buttonids = [button.id for button in buttons]
-        await res.edit_origin(f"```page {page_changer.page} of {page_changer.MAXPAGE}```\n" +
-                              page_changer.changePage(0), components=[buttons])
-        while True:
-            try:
-                res = await self.client.wait_for("button_click",
-                                                 check=lambda response:
-                                                 response.component.id in buttonids and
-                                                 response.author.id == ctx.author.id,
-                                                 timeout=600)
-                if res.component.label == "<":
-                    page = page_changer.changePage(-1)
-                elif res.component.label == ">":
-                    page = page_changer.changePage(1)
-                elif res.component.label == "<<":
-                    page = page_changer.changePage(page_changer.MINPAGE, True)
-                elif res.component.label == ">>":
-                    page = page_changer.changePage(page_changer.MAXPAGE, True)
-                else:
-                    page = page_changer.changePage(0)
-                await res.edit_origin(f"```page {page_changer.page} of {page_changer.MAXPAGE}```\n"
-                                      + page)
-            except asyncio.TimeoutError:
-                for button in buttons:
-                    button.set_disabled(True)
-                await msg.edit(f"```page {page_changer.page} of {page_changer.MAXPAGE}```\n" +
-                               page_changer.changePage(0), components=[buttons])
-                break
+        await msg.delete()
+        resultmessageshower = ResultmessageShower(self.client, resultmessages[::-1], ctx, startpage=resultmessages[-1])
+        await resultmessageshower.loop()
 
 
     def __getchestsbydate(self, date=None):
@@ -325,36 +265,36 @@ class IngameEvents(commands.Cog):
                    Button(style=ButtonStyle.blue, label="Date (yyyy-mm-dd)"),
                    Button(style=ButtonStyle.blue, label="Player")]
         rollids = [button.id for button in buttons]
-        msg = await ctx.send("is that a pokemon, date, or player? Press the button to get a response! "
-                             "This will be visible to you only.",
+        msg = await ctx.send("is that a pokemon, date, or player? Press the button to get a response! ",
                              components=[buttons])
 
         def check(res):
             return res.component.id in rollids
+        try:
+            res = await self.client.wait_for("button_click", check=check, timeout=600)
+        except asyncio.TimeoutError:
+            for button in buttons:
+                button.set_disabled(True)
+            await msg.edit("responding has expired. Please try again.", components=[buttons])
+            return
+        query = "SELECT player, pokemon, date FROM rolls WHERE "
+        if res.component.label == "Pokemon":
+            query += "pokemon = ?"
+        elif res.component.label == "Date (yyyy-mm-dd)":
+            query += "date = ?"
+        elif res.component.label == "Player":
+            query += "player = ?"
+        else:
+            raise ValueError("error with getrolls. This should not happen.")
+        query += " ORDER BY date DESC"
+        await msg.delete()
+        conn = sqlite3.connect(r"ingame_data.db")
+        cur = conn.cursor()
+        cur.execute(query, (parameter,))
+        resultmessages = tablify(["player", "pokemon", "date"], cur.fetchall())
+        resultmessageshower = ResultmessageShower(self.client, resultmessages, ctx)
+        await resultmessageshower.loop()
 
-        while True:
-            try:
-                res = await self.client.wait_for("button_click", check=check, timeout=600)
-                query = "SELECT player, pokemon, date FROM rolls WHERE "
-                if res.component.label == "Pokemon":
-                    query += "pokemon = ?"
-                elif res.component.label == "Date (yyyy-mm-dd)":
-                    query += "date = ?"
-                elif res.component.label == "Player":
-                    query += "player = ?"
-                else:
-                    continue  # just in case
-                conn = sqlite3.connect(r"ingame_data.db")
-                cur = conn.cursor()
-                cur.execute(query, (parameter,))
-                for message in tablify(["player", "pokemon", "date"], cur.fetchall()):
-                    await res.send(message)
-                conn.close()
-            except asyncio.TimeoutError:
-                for button in buttons:
-                    button.set_disabled(True)
-                await msg.edit("responding has expired. Please try again.", components=[buttons])
-                break
 
     @commands.command(name="getclanencounters")
     async def getclanencounters(self, ctx: Context, clanname: str):
@@ -368,39 +308,9 @@ class IngameEvents(commands.Cog):
             [totalencounters.append(row) for row in cur.fetchall()]
         totalencounters.sort(key=lambda x: x[2])
         resultmessages = tablify(["name", "pokemon", "date"], totalencounters, maxlength=1200)
-        page_changer = PageTurner(resultmessages[::-1])
-        buttons = [Button(style=ButtonStyle.blue, label="<<"),
-                   Button(style=ButtonStyle.blue, label="<"),
-                   Button(style=ButtonStyle.red, label=">"),
-                   Button(style=ButtonStyle.red, label=">>")]
-        buttonids = [button.id for button in buttons]
-        msg = await ctx.send(f"```page {page_changer.page} of {page_changer.MAXPAGE}```\n" + resultmessages[0],
-                             components=[buttons])
-        while True:
-            try:
-                res = await self.client.wait_for("button_click",
-                                                 check=lambda response:
-                                                 response.component.id in buttonids and
-                                                 response.author.id == ctx.author.id,
-                                                 timeout=600)  # set to 600!!!!
-                if res.component.label == "<":
-                    page = page_changer.changePage(-1)
-                elif res.component.label == ">":
-                    page = page_changer.changePage(1)
-                elif res.component.label == "<<":
-                    page = page_changer.changePage(page_changer.MINPAGE, True)
-                elif res.component.label == ">>":
-                    page = page_changer.changePage(page_changer.MAXPAGE, True)
-                else:
-                    page = page_changer.changePage(0)
-                await res.edit_origin(f"```page {page_changer.page} of {page_changer.MAXPAGE}```\n"
-                                      + page)
-            except asyncio.TimeoutError:
-                for button in buttons:
-                    button.set_disabled(True)
-                await msg.edit(f"```page {page_changer.page} of {page_changer.MAXPAGE}```\n" +
-                               page_changer.changePage(0), components=[buttons])
-                break
+
+        resultmessageshower = ResultmessageShower(self.client, resultmessages[::-1], ctx, startpage=resultmessages[-1])
+        await resultmessageshower.loop()
 
     @commands.command(name="getchestsbydate", aliases=["topchestlocations", "topchestplayers"])
     async def getchestsbydate(self, ctx: Context, *_):
