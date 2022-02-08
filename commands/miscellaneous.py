@@ -7,7 +7,7 @@ import datetime
 import asyncio
 
 from discord_components import ButtonStyle, Button
-from commands.utils import getworldbosstime, tablify
+from commands.utils import getworldbosstime, tablify, ResultmessageShower
 
 from discord.ext.commands.context import Context
 
@@ -145,9 +145,8 @@ class Miscellaneous(commands.Cog):
         cur.execute("DROP VIEW participants")
         cur.execute("DROP VIEW rankings")
         messages = tablify(["worldboss", "damage", "date", "rank", "participants"], result)
-        await ctx.send(messages[-1])
-        for i in messages[0:-1]:
-            await ctx.author.send(i)
+        messageshower = ResultmessageShower(self.client, messages[::-1], ctx, 600)
+        await messageshower.loop()
 
     @commands.command(name="servercount")
     async def servercount(self, ctx: Context):
