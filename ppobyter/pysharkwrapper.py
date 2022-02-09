@@ -1,3 +1,5 @@
+from typing import Generator
+
 import pyshark
 
 
@@ -5,7 +7,7 @@ class PysharkWrapper:
     def __init__(self):
         self.__cap = pyshark.LiveCapture(interface="Ethernet 2", include_raw=True, use_json=True, display_filter="ip.src == 167.114.159.20")
 
-       # self.__cap = pyshark.LiveCapture(interface=r"\Device\NPF_{65E2C297-AC80-4851-95C2-795C9783D00F}", include_raw=True,
+        # self.__cap = pyshark.LiveCapture(interface=r"\Device\NPF_{65E2C297-AC80-4851-95C2-795C9783D00F}", include_raw=True,
         #                                 use_json=True, display_filter="ip.src == 167.114.159.20")
     @staticmethod
     def decodehex(hexa: str) -> str:
@@ -23,7 +25,11 @@ class PysharkWrapper:
                 temp = ""
         return result
 
-    def cap(self):
+    def cap(self) -> Generator[str, None, None]:
+        """
+        generator: captures the messages from the pyshark cap and yields the string messages.
+        :return:
+        """
         currentmsg = ""
         for packet in self.__cap.sniff_continuously():
             try:
@@ -33,6 +39,7 @@ class PysharkWrapper:
                     if character == "\x00":
                         yield currentmsg
                         currentmsg = ""
+
                     else:
                         currentmsg += character
 
