@@ -5,10 +5,10 @@ import pyshark
 
 class PysharkWrapper:
     def __init__(self):
-        self.__cap = pyshark.LiveCapture(interface="Ethernet 2", include_raw=True, use_json=True, display_filter="ip.src == 167.114.159.20")
+        #self.__cap = pyshark.LiveCapture(interface="Ethernet 2", include_raw=True, use_json=True, display_filter="ip.src == 167.114.159.20")
 
-        # self.__cap = pyshark.LiveCapture(interface=r"\Device\NPF_{65E2C297-AC80-4851-95C2-795C9783D00F}", include_raw=True,
-        #                                 use_json=True, display_filter="ip.src == 167.114.159.20")
+        self.__cap = pyshark.LiveCapture(interface=r"\Device\NPF_{65E2C297-AC80-4851-95C2-795C9783D00F}", include_raw=True,
+                                        use_json=True, display_filter="ip.src == 167.114.159.20")
     @staticmethod
     def decodehex(hexa: str) -> str:
         """

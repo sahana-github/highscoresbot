@@ -1,6 +1,7 @@
 from ppobyter.events.arceusaltar import ArceusAltar
 from ppobyter.events.dianciealtar import DiancieAltar
 from ppobyter.events.elite4 import Elite4
+from ppobyter.events.gmsearch import GMSearch
 from ppobyter.events.goldrush import Goldrush
 from ppobyter.events.kyogrealtar import KyogreAltar
 from ppobyter.events.serverrestart import ServerRestart
@@ -32,6 +33,8 @@ class EventMaker:
         event = None
         if eventname == "swarm":
             event = Swarm(kwargs["location"], kwargs["pokemon1"], kwargs["pokemon2"])
+        elif eventname == "gmsearch":
+            event = GMSearch(kwargs["searcheditems"])
         elif eventname == "worldboss":
             event = Worldboss(kwargs["location"], kwargs["pokemon"])
         elif eventname == "goldrush":

@@ -1,3 +1,4 @@
+import json
 from typing import Union
 
 from ppobyter.marketplace.pokemon import Pokemon
@@ -7,7 +8,7 @@ class Item:
     """
     Represents an item in gm.
     """
-    def __init__(self, itemname : str, sellid, seller, price, amount, intention="sell",
+    def __init__(self, itemname: str, sellid, seller, price, amount, intention="sell",
                  pokemon: Union[Pokemon, None] = None):
         """
 
@@ -31,6 +32,7 @@ class Item:
         return self.pokemon is not None
 
     def __str__(self):
+        print(f"is pokemon: {self.isPokemon()}")
         return f"""
 sellid: {self.sellid}
 name item: {self.itemname}
@@ -40,3 +42,23 @@ seller: {self.seller}
 
 {str(self.pokemon) if self.isPokemon() else ""}
 """
+
+    def to_dict(self):
+        asdict = {"sellid": self.sellid,
+                "name": self.itemname,
+                "amount": self.amount,
+                "price": self.price,
+                "seller": self.seller
+         }
+        if self.isPokemon():
+            asdict["pokemon"] = self.pokemon.to_dict()
+        return asdict
+
+    @staticmethod
+    def from_dict(jsondata: dict):
+        print(jsondata)
+        pokemon = None
+        if "pokemon" in jsondata:
+            pokemon = Pokemon.from_dict(jsondata["pokemon"])
+        return Item(jsondata["name"], jsondata["sellid"], jsondata["seller"], jsondata["price"], jsondata["amount"],
+                    "sell", pokemon)

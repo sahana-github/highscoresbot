@@ -2,7 +2,7 @@ import re
 import time
 
 from ppobyter.events.timedevent import TimedEvent
-from commands.utils import getworldbosstime, worldbosssent
+from commands.utils.utils import getworldbosstime, worldbosssent
 import datetime
 
 

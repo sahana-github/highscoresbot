@@ -8,7 +8,10 @@ class Pokemon:
     def __init__(self, happiness, spdef, spatk, speed, defense, atk, hp, spdefev, spatkev, speedev, defev, atkev, hpev,
                  hpiv, atkiv, defiv, spatkiv, spdefiv, speediv, ability, nature, pokemonname, helditem, level, catcher,
                  buildstring):
-        ability = int(ability)
+        try:
+            ability = int(ability)
+        except ValueError:
+            pass
         self.buildstring = buildstring
         self.hpiv = hpiv
         self.atkiv = atkiv
@@ -90,3 +93,62 @@ class Pokemon:
                speedev: {self.speedev}
                buildstring: {self.buildstring}
                """
+    def to_dict(self):
+        return {
+            "catcher": self.catcher,
+            "ability": self.ability,
+            "nature": self.nature,
+            "pokemon": self.pokemonname,
+            "helditem": self.helditem,
+            "level": self.level,
+            "happiness": self.happiness,
+            "hpiv": self.hpiv,
+            "atkiv": self.atkiv,
+            "defiv": self.defiv,
+            "spatkiv": self.spatkiv,
+            "spdefiv": self.spdefiv,
+            "speediv": self.speediv,
+
+            "hpev": self.hpev,
+            "atkev": self.atkev,
+            "defev": self.defev,
+            "spatkev": self.spatkev,
+            "spdefev": self.spdefev,
+            "speedev": self.speedev,
+
+            "hp": self.hp,
+            "atk": self.atk,
+            "def": self.defense,
+            "spatk": self.spatk,
+            "spdef": self.spdef,
+            "speed": self.speed,
+        }
+
+    @staticmethod
+    def from_dict(jsondata):
+        return Pokemon(happiness=jsondata["happiness"],
+                spdef=jsondata["spdef"],
+                spatk=jsondata["spatk"],
+                speed=jsondata["speed"],
+                defense=jsondata["def"],
+                atk=jsondata["atk"],
+                hp=jsondata["hp"],
+                spdefev=jsondata["spdefev"],
+                spatkev=jsondata["spatkev"],
+                speedev=jsondata["speedev"],
+                defev=jsondata["defev"],
+                atkev=jsondata["atkev"],
+                hpev=jsondata["hpev"],
+                hpiv=jsondata["hpiv"],
+                atkiv=jsondata["atkiv"],
+                defiv=jsondata["defiv"],
+                spatkiv=jsondata["spatkiv"],
+                spdefiv=jsondata["spdefiv"],
+                speediv=jsondata["speediv"],
+                ability=jsondata["ability"],
+                nature=jsondata["nature"],
+                pokemonname=jsondata["pokemon"],
+                helditem=jsondata["helditem"],
+                level=jsondata["level"],
+                catcher=jsondata["catcher"],
+                buildstring="")

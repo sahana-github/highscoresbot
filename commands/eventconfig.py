@@ -9,7 +9,7 @@ import sqlite3
 
 from discord_components import ButtonStyle, Button, Select, SelectOption, Interaction
 
-from commands.utils import haspermissions, tablify
+from commands.utils.utils import haspermissions, tablify
 from discord.utils import escape_mentions
 from typing import Union
 from discord.ext.commands.context import Context

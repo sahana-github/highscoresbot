@@ -5,7 +5,7 @@ from highscores.worldbossdamagehandler import WorldbossDamageHandler
 from ppowebsession import PpoWebSession
 import os
 import datetime
-from commands.utils import getworldbosstime
+from commands.utils.utils import getworldbosstime
 from highscores.mostgifts import MostGifts
 
 class HighscoresUpdater:

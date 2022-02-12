@@ -32,9 +32,10 @@ class Main:
             #print(message)
             #print(EventDeterminer(message).determineEvent())
             if event := EventDeterminer(message).determineEvent():
-                if event[0] == "gmsearch":
-                    print("gm searched.")
-                    continue
+                print(event)
+                # if event[0] == "gmsearch":
+                #     print("gm searched.")
+                #     continue
                 self.__scheduler.addEvent(EventMaker.makeEvent(event[0], **event[1]))
             self.handleTimedEvents(message)
             await self.__scheduler.handleEvent()

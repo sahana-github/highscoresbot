@@ -5,6 +5,7 @@ import datetime
 from typing import Union, List
 
 import discord
+from PIL import Image
 from discord.ext.commands import Context
 from discord_components import Button, ButtonStyle
 from numpy import isnan
@@ -269,6 +270,10 @@ class ResultmessageShower:
                 await self.originmsg.edit(f"```page {self.__pageTurner.page} of {self.__pageTurner.MAXPAGE}```\n" +
                                self.__pageTurner.changePage(0), components=self.__buttons)
                 break
+
+
+
+
 
 
 if __name__ == "__main__":
