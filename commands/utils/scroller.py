@@ -38,6 +38,7 @@ class Scroller:
     async def loop(self):
         self.originmsg = await self.ctx.send(f"```page {self.__pageTurner.page} of {self.__pageTurner.MAXPAGE}```\n",
                                         components=self.__buttons)
+        await self.edit_source(self.__pageTurner.changePage(0))
         while True:
             try:
                 res = await self.client.wait_for("button_click",
@@ -60,8 +61,8 @@ class Scroller:
                 for buttonrow in self.__buttons:
                     for button in buttonrow:
                         button.set_disabled(True)
-                await self.originmsg.edit(f"```page {self.__pageTurner.page} of {self.__pageTurner.MAXPAGE}```\n" +
-                               self.__pageTurner.changePage(0), components=self.__buttons)
+                await self.originmsg.edit(f"```page {self.__pageTurner.page} of {self.__pageTurner.MAXPAGE}```\n",
+                                          components=self.__buttons)
                 break
 
     async def edit_source(self, page: Union[ImgWithText, str]):

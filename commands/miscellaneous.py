@@ -200,12 +200,18 @@ class Miscellaneous(commands.Cog):
                                   description=f"amount: {item.amount}")
             embed.add_field(name="price", value=item.price)
             embed.add_field(name="seller", value=item.seller)
+
+
             if item.isPokemon():
                 def generate_img(pokemon):
                     return lambda: self.__generate_img(pokemon)
                 img = generate_img(item.pokemon)
             else:
-                img = None
+                try:
+                    img = Image.open(r"sprites/items/" + str(item.itemname.lower()).replace(" ", "-") + ".png")
+                except Exception as e:
+                    print(f"failed to load img for item: {item.itemname}", e)
+                    img = None
             pages.append(ImgWithText(img, embed))
         c = Scroller(self.client, pages, ctx)
         await c.loop()
@@ -265,7 +271,7 @@ class Miscellaneous(commands.Cog):
             print(f"exception with {pokemon.pokemonname} when adding sprite for pokemon", e)
         if pokemon.helditem != "none":
             try:
-                helditem = Image.open(r"sprites/items/" + str(pokemon.helditem).replace(" ", "-") + ".png")
+                helditem = Image.open(r"sprites/items/" + str(pokemon.helditem.lower()).replace(" ", "-") + ".png")
                 helditem = helditem.resize((46, 44))
                 img.paste(helditem, (22, 470))
             except Exception as e:

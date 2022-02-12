@@ -56,7 +56,6 @@ seller: {self.seller}
 
     @staticmethod
     def from_dict(jsondata: dict):
-        print(jsondata)
         pokemon = None
         if "pokemon" in jsondata:
             pokemon = Pokemon.from_dict(jsondata["pokemon"])
