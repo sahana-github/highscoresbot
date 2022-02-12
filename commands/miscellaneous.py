@@ -191,6 +191,9 @@ class Miscellaneous(commands.Cog):
                 print("results are in!")
                 break
         pages = []
+        if gmsearches[0][1] is None:
+            await ctx.send("the search didn't return any items/pokemon!")
+            return
         for row in gmsearches:
             item = Item.from_dict(dict(json.loads(row[1].replace("'", '"'))))
             embed = discord.Embed(title=item.itemname,
@@ -198,7 +201,9 @@ class Miscellaneous(commands.Cog):
             embed.add_field(name="price", value=item.price)
             embed.add_field(name="seller", value=item.seller)
             if item.isPokemon():
-                img = lambda: self.__generate_img(item.pokemon)
+                def generate_img(pokemon):
+                    return lambda: self.__generate_img(pokemon)
+                img = generate_img(item.pokemon)
             else:
                 img = None
             pages.append(ImgWithText(img, embed))
@@ -211,13 +216,17 @@ class Miscellaneous(commands.Cog):
         #print(gmsearches)
 
     def __generate_img(self, pokemon: Pokemon):
+        # all sprites come from https://github.com/PokeAPI/sprites
+        if pokemon is None:
+            print("warning: None")
+            return
         img = Image.open(r"base_pokemon.png")
         draw = ImageDraw.Draw(img)
         font = ImageFont.truetype(r"memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-muw.ttf",
                                   15)
         # font = ImageFont.load_default()
         draw.text((79, 478), pokemon.helditem, (255, 255, 255), font=font)  # held item
-        draw.text((390, 95), f"{pokemon.pokemonname}", (255, 255, 255), font=font)  # pokemon name
+        draw.text((363, 95), f"{pokemon.pokemonnumber}", (255, 255, 255), font=font)  # pokemon number
         draw.text((83, 375), f"Lv {pokemon.level} {pokemon.pokemonname}", font=font)
         draw.text((363, 172), pokemon.nature, (255, 255, 255), font=font)  # nature
         draw.text((363, 210), f"{pokemon.happiness}", (255, 255, 255), font=font)  # happiness
@@ -243,6 +252,24 @@ class Miscellaneous(commands.Cog):
         draw.text((435, 484), f"({pokemon.spatkev})", (182, 219, 180), font=font)  # spatk ev
         draw.text((435, 520), f"({pokemon.spdefev})", (182, 219, 180), font=font)  # spdef ev
         draw.text((435, 557), f"({pokemon.speedev})", (182, 219, 180), font=font)  # speed ev
+        try:  # adding sprite of the pokemon.
+            sprite = Image.open(r"sprites/pokemon/" + str(pokemon.pokemonnumber) + ".png")
+            sprite = sprite.resize((200,200))
+            for y in range(sprite.height):
+                for x in range(sprite.width):
+                    pixel = sprite.getpixel((x, y))
+                    if pixel == 0 or pixel == 9:
+                        sprite.putpixel((x, y), (233, 235, 233))
+            img.paste(sprite, (48, 128))
+        except Exception as e:
+            print(f"exception with {pokemon.pokemonname} when adding sprite for pokemon", e)
+        if pokemon.helditem != "none":
+            try:
+                helditem = Image.open(r"sprites/items/" + str(pokemon.helditem).replace(" ", "-") + ".png")
+                helditem = helditem.resize((46, 44))
+                img.paste(helditem, (22, 470))
+            except Exception as e:
+                print(f"exception when adding held item. Held item: {pokemon.helditem}", e)
         return img
 
     @commands.command(name="about")

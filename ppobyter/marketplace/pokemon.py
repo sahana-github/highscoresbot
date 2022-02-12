@@ -7,11 +7,12 @@ class Pokemon:
     """
     def __init__(self, happiness, spdef, spatk, speed, defense, atk, hp, spdefev, spatkev, speedev, defev, atkev, hpev,
                  hpiv, atkiv, defiv, spatkiv, spdefiv, speediv, ability, nature, pokemonname, helditem, level, catcher,
-                 buildstring):
+                 buildstring, pokemonnumber):
         try:
             ability = int(ability)
         except ValueError:
             pass
+        self.pokemonnumber = pokemonnumber
         self.buildstring = buildstring
         self.hpiv = hpiv
         self.atkiv = atkiv
@@ -58,7 +59,7 @@ class Pokemon:
                                 hpev=hpev,
                                 hpiv=hpiv, atkiv=atkiv, defiv=defiv, spatkiv=spatkiv, spdefiv=spdefiv, speediv=speediv,
                                 ability=abilitynumber, nature=nature, pokemonname=pokemonname, helditem=item,
-                                level=level, catcher=catcher, buildstring=string)
+                                level=level, catcher=catcher, buildstring=string, pokemonnumber=pokemonnumber)
             return builtpoke
         except Exception as e:
 
@@ -122,6 +123,7 @@ class Pokemon:
             "spatk": self.spatk,
             "spdef": self.spdef,
             "speed": self.speed,
+            "pokemonnumber": self.pokemonnumber
         }
 
     @staticmethod
@@ -151,4 +153,6 @@ class Pokemon:
                 helditem=jsondata["helditem"],
                 level=jsondata["level"],
                 catcher=jsondata["catcher"],
-                buildstring="")
+                pokemonnumber=jsondata["pokemonnumber"],
+                buildstring=""
+                       )

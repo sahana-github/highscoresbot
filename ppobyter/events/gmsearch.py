@@ -24,6 +24,9 @@ class GMSearch(Event):
         """
         conn = sqlite3.connect(self.pathManager.getpath("eventconfigurations.db"))
         cur = conn.cursor()
+        if len(self.searchedItems) == 0:
+            cur.execute("INSERT INTO gmsearchresult(responseid, page, content) VALUES(?,?,?)",
+                        (self.responseid, 1, None))
         for index, item in enumerate(self.searchedItems):
             cur.execute("INSERT INTO gmsearchresult(responseid, page, content) VALUES(?,?,?)",
                         (self.responseid, index + 1, str(item.to_dict())))

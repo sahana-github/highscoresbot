@@ -84,6 +84,7 @@ class Scroller:
             await self.previousmsg.delete()
         self.previousmsg = msg
 
+
 class PageTurner:
     def __init__(self, pages: List):
         self.pages: List[str] = pages
