@@ -164,6 +164,9 @@ class Miscellaneous(commands.Cog):
     @commands.command(name="gmsearch")
     async def gmsearch(self, ctx: Context, *searchstring):
         searchstring = " ".join(searchstring)
+        if len(searchstring) > 80:
+            await ctx.send("the max length for the item to search for is 80 characters!")
+            return
         if not searchstring:
             await ctx.send("use .gmsearch manaphy for example, where manaphy is the pokemon you search for.")
             return
