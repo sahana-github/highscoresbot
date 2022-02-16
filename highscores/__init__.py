@@ -23,14 +23,13 @@ from .safarimapcontrol import SafariMapcontrol
 from .tmboxes import TmBoxes
 from .weeklyexp import Weeklyexp
 from .worldbossdamage import WorldbossDamage
-from .mostgifts import MostGifts
 
 allhighscores = [Achievements, AncMapcontrol, BestClans, Btwins, Btwinstreak, BzMapcontrol, Cwplayers, Cwwins,
            Dex, EvoBoxes, Exp, Fishing, Lle, Mining, MysteryBoxes, Philanthropist, PokeBoxes, Richest, RichestClans,
-           SafariMapcontrol, TmBoxes, Weeklyexp, WorldbossDamage, MostGifts]
+           SafariMapcontrol, TmBoxes, Weeklyexp, WorldbossDamage]
 
 clanhighscores = [Achievements, Cwplayers, Cwwins, Dex, EvoBoxes, Exp, Fishing, Lle, Mining, MysteryBoxes, Philanthropist,
-                PokeBoxes, Richest, TmBoxes, Weeklyexp, WorldbossDamage, MostGifts]
+                PokeBoxes, Richest, TmBoxes, Weeklyexp, WorldbossDamage]
 
 
 def getPlayerClan(playername: str) -> Union[str, None]:
@@ -60,4 +59,4 @@ def getClanList(clanname: str) -> List[str]:
 __all__ = ["Achievements", "AncMapcontrol", "BestClans", "Btwins", "Btwinstreak", "BzMapcontrol", "Cwplayers", "Cwwins",
            "Dex", "EvoBoxes", "Exp", "Fishing", "Lle", "Mining", "MysteryBoxes", "Philanthropist", "PokeBoxes",
            "Richest", "RichestClans", "SafariMapcontrol", "TmBoxes", "Weeklyexp", "WorldbossDamage", "allhighscores",
-           "clanhighscores", "getClanList", "getPlayerClan", "MostGifts"]
+           "clanhighscores", "getClanList", "getPlayerClan"]

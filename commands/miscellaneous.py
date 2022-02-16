@@ -1,22 +1,30 @@
+import io
+import json
 import sqlite3
 import random
+from threading import Thread
 
 import discord
+from PIL import Image, ImageDraw, ImageFont
+from discord import ClientUser
 from discord.ext import commands
 import datetime
 import asyncio
 
 from discord_components import ButtonStyle, Button
-from commands.utils import getworldbosstime, tablify, ResultmessageShower
+from commands.utils.utils import getworldbosstime, tablify, ResultmessageShower
 
 from discord.ext.commands.context import Context
 
+from commands.utils.scroller import ImgWithText, Scroller
 from highscores import getClanList
+from ppobyter.marketplace.item import Item
+from ppobyter.marketplace.pokemon import Pokemon
 
 
 class Miscellaneous(commands.Cog):
     def __init__(self, client: discord.ext.commands.bot):
-        self.client: discord.ext.commands.bot = client
+        self.client: discord.ext.commands.bot.Bot = client
         self.client.loop.create_task(self.status_task())
         self.invitelink = "https://discord.com/login?redirect_to=" \
                           "%2Foauth2%2Fauthorize%3Fclient_id%3D733434249771745401%26permissions%3D2048%26redirect_uri" \
@@ -43,6 +51,7 @@ class Miscellaneous(commands.Cog):
         except Exception as e:
             await ctx.send("uncaught exception.")
             print(e)
+
 
     @commands.command(name="clanlist")
     async def clanlist(self, ctx: Context, clanname: str):
@@ -151,6 +160,126 @@ class Miscellaneous(commands.Cog):
     @commands.command(name="servercount")
     async def servercount(self, ctx: Context):
         await ctx.send("i'm in {0} servers.".format(str(len(self.client.guilds))))
+
+    @commands.command(name="gmsearch")
+    async def gmsearch(self, ctx: Context, *searchstring):
+        searchstring = " ".join(searchstring)
+        if len(searchstring) > 80:
+            await ctx.send("the max length for the item to search for is 80 characters!")
+            return
+        if not searchstring:
+            await ctx.send("use .gmsearch manaphy for example, where manaphy is the pokemon you search for.")
+            return
+        msg = await ctx.send("queued up for gm search.")
+        if ctx.guild is None:
+            # is pm
+            ispm = 1
+            fetchid = ctx.author.id
+        else:
+            ispm = 0
+            # is guild
+            fetchid = ctx.channel.id
+        conn = sqlite3.connect("eventconfigurations.db")
+        cur = conn.cursor()
+        result = cur.execute("INSERT INTO gmsearch(msgid, fetchid, isdm, searchstring, timestamp) VALUES(?,?,?,?,?)",
+                    (msg.id, fetchid, ispm, searchstring, int(datetime.datetime.now().timestamp())))
+        print(result.lastrowid)
+        conn.commit()
+
+        while True:
+            await asyncio.sleep(5)
+            cur.execute("SELECT page, content FROM gmsearchresult WHERE responseid=?", (result.lastrowid,))
+            #cur.execute("SELECT page, content FROM gmsearchresult WHERE responseid=?", (result.lastrowid,))
+            if gmsearches := cur.fetchall():
+                print("results are in!")
+                break
+        pages = []
+        if gmsearches[0][1] is None:
+            await ctx.send("the search didn't return any items/pokemon!")
+            return
+        for row in gmsearches:
+            item = Item.from_dict(dict(json.loads(row[1].replace("'", '"'))))
+            embed = discord.Embed(title=item.itemname,
+                                  description=f"amount: {item.amount}")
+            embed.add_field(name="price", value=item.price)
+            embed.add_field(name="seller", value=item.seller)
+
+
+            if item.isPokemon():
+                def generate_img(pokemon):
+                    return lambda: self.__generate_img(pokemon)
+                img = generate_img(item.pokemon)
+            else:
+                try:
+                    img = Image.open(r"sprites/items/" + str(item.itemname.lower()).replace(" ", "-") + ".png")
+                except Exception as e:
+                    print(f"failed to load img for item: {item.itemname}", e)
+                    img = None
+            pages.append(ImgWithText(img, embed))
+        c = Scroller(self.client, pages, ctx)
+        await c.loop()
+
+
+
+
+        #print(gmsearches)
+
+    def __generate_img(self, pokemon: Pokemon):
+        # all sprites come from https://github.com/PokeAPI/sprites
+        if pokemon is None:
+            print("warning: None")
+            return
+        img = Image.open(r"base_pokemon.png")
+        draw = ImageDraw.Draw(img)
+        font = ImageFont.truetype(r"memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-muw.ttf",
+                                  15)
+        # font = ImageFont.load_default()
+        draw.text((79, 478), pokemon.helditem, (255, 255, 255), font=font)  # held item
+        draw.text((363, 95), f"{pokemon.pokemonnumber}", (255, 255, 255), font=font)  # pokemon number
+        draw.text((83, 375), f"Lv {pokemon.level} {pokemon.pokemonname}", font=font)
+        draw.text((363, 172), pokemon.nature, (255, 255, 255), font=font)  # nature
+        draw.text((363, 210), f"{pokemon.happiness}", (255, 255, 255), font=font)  # happiness
+        draw.text((363, 247), f"{pokemon.ability}", (255, 255, 255), font=font)  # ability
+        draw.text((363, 285), pokemon.catcher, (255, 255, 255), font=font)  # catcher
+        draw.text((363, 331), f"{pokemon.hp}", (255, 255, 255), font=font)  # calculated hp
+        draw.text((363, 408), f"{pokemon.atk}", (255, 255, 255), font=font)  # calculated atk
+        draw.text((363, 445), f"{pokemon.defense}", (255, 255, 255), font=font)  # calculated def
+        draw.text((363, 484), f"{pokemon.spatk}", (255, 255, 255), font=font)  # calculated spatk
+        draw.text((363, 520), f"{pokemon.spdef}", (255, 255, 255), font=font)  # calculated spdef
+        draw.text((363, 557), f"{pokemon.speed}", (255, 255, 255), font=font)  # calculated speed
+
+        draw.text((400, 331), f"({pokemon.hpiv})", (219, 225, 165), font=font)  # hp iv
+        draw.text((400, 408), f"({pokemon.atkiv})", (219, 225, 165), font=font)  # atk iv
+        draw.text((400, 445), f"({pokemon.defiv})", (219, 225, 165), font=font)  # def iv
+        draw.text((400, 484), f"({pokemon.spatkiv})", (219, 225, 165), font=font)  # spatk iv
+        draw.text((400, 520), f"({pokemon.spdefiv})", (219, 225, 165), font=font)  # spdef iv
+        draw.text((400, 557), f"({pokemon.speediv})", (219, 225, 165), font=font)  # speed iv
+
+        draw.text((435, 331), f"({pokemon.hpev})", (182, 219, 180), font=font)  # hp ev
+        draw.text((435, 408), f"({pokemon.atkev})", (182, 219, 180), font=font)  # atk ev
+        draw.text((435, 445), f"({pokemon.defev})", (182, 219, 180), font=font)  # def ev
+        draw.text((435, 484), f"({pokemon.spatkev})", (182, 219, 180), font=font)  # spatk ev
+        draw.text((435, 520), f"({pokemon.spdefev})", (182, 219, 180), font=font)  # spdef ev
+        draw.text((435, 557), f"({pokemon.speedev})", (182, 219, 180), font=font)  # speed ev
+        try:  # adding sprite of the pokemon.
+            sprite = Image.open(r"sprites/pokemon/" + str(pokemon.pokemonnumber) + ".png")
+            sprite = sprite.resize((200,200))
+            for y in range(sprite.height):
+                for x in range(sprite.width):
+                    pixel = sprite.getpixel((x, y))
+                    if pixel == 0 or pixel == 9:
+                        sprite.putpixel((x, y), (233, 235, 233))
+            img.paste(sprite, (48, 128))
+        except Exception as e:
+            print(f"exception with {pokemon.pokemonname} when adding sprite for pokemon", e)
+        if pokemon.helditem != "none":
+            try:
+                helditem = Image.open(r"sprites/items/" + str(pokemon.helditem.lower()).replace(" ", "-") + ".png")
+                helditem = helditem.resize((46, 44))
+                img.paste(helditem, (22, 470))
+            except Exception as e:
+                print(f"exception when adding held item. Held item: {pokemon.helditem}", e)
+        return img
 
     @commands.command(name="about")
     async def about(self, ctx: Context):
@@ -529,6 +658,18 @@ class Miscellaneous(commands.Cog):
                             value="gives the time untill the worldboss appears.")
         if embed is not None:
             await ctx.send(embed=embed)
+
+    @commands.command(name="testcommand")
+    async def testcommand(self, ctx):
+        self.__generate_img(None)
+        # embed = discord.Embed(title="[1] Lv 100 Manaphy", description='3000000')
+        # #embed.
+        # embed.add_field(name="stat", value="\n\n\n\n\nspeed", inline=True)
+        # embed.add_field(name="base", value="hp: 300\natk: 310\ndef: 310\nspatk: 310\nspdef:310\nspeed:310", inline=True)
+        # embed.add_field(name="iv's", value="31\n31\n31\n31\n31\n31", inline=True)
+        # embed.add_field(name="ev's", value="131\n251\n31\n31\n31\n31", inline=True)
+        #
+        # await ctx.send(embed=embed)
 
     async def status_task(self):
         await self.client.wait_until_ready()

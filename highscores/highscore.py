@@ -3,7 +3,7 @@ from typing import List
 import pandas
 
 from pathmanager import PathManager
-from commands.utils import replacenan
+from commands.utils.utils import replacenan
 from ppowebsession import PpoWebSession
 
 
