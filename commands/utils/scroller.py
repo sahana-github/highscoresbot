@@ -20,6 +20,7 @@ class Scroller:
                  startpage: Union[str, None]=None):
         self.client = client
         self.timeout = timeout
+        self.res = None
         self.__pageTurner = PageTurner(resultmessages)
         self.__buttons = [[Button(style=ButtonStyle.blue, label="<<"),
                            Button(style=ButtonStyle.blue, label="<"),
@@ -55,7 +56,8 @@ class Scroller:
                     page = self.__pageTurner.changePage(self.__pageTurner.MAXPAGE, True)
                 else:
                     page = self.__pageTurner.changePage(0)
-                await res.edit_origin(f"```page {self.__pageTurner.page} of {self.__pageTurner.MAXPAGE}```")
+                self.res = res
+                # await res.edit_origin(f"```page {self.__pageTurner.page} of {self.__pageTurner.MAXPAGE}```", embed=embed)
                 await self.edit_source(page)
             except asyncio.TimeoutError:
                 for buttonrow in self.__buttons:
@@ -78,12 +80,15 @@ class Scroller:
             with io.BytesIO() as image_binary:
                 generated_img.save(image_binary, 'PNG')
                 image_binary.seek(0)
-                img = discord.File(fp=image_binary, filename='image.png')
+                img = discord.File(fp=image_binary, filename=f'image{self.__pageTurner.page}.png')
+        if img is not None and embed is not None:
+            embed.set_image(url=f"attachment://image{self.__pageTurner.page}.png")
 
-        msg = await self.ctx.send(text, file=img, embed=embed)
-        if self.previousmsg is not None:
-            await self.previousmsg.delete()
-        self.previousmsg = msg
+        if self.res is not None:
+            await self.res.edit_origin(f"```page {self.__pageTurner.page} of {self.__pageTurner.MAXPAGE}```\n",
+                                components=self.__buttons, file=img, embed=embed)
+        else:
+            self.previousmsg = await self.originmsg.edit(file=img, embed=embed, components=self.__buttons)
 
 
 class PageTurner:

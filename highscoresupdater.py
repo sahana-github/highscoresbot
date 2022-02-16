@@ -6,7 +6,6 @@ from ppowebsession import PpoWebSession
 import os
 import datetime
 from commands.utils.utils import getworldbosstime
-from highscores.mostgifts import MostGifts
 
 class HighscoresUpdater:
     def __init__(self, websession: PpoWebSession, debug=True, timeout=600):
