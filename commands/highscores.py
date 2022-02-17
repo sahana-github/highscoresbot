@@ -237,11 +237,6 @@ class Highscores(commands.Cog):
         for highscore in allhighscores:
             highscore = highscore()
             initializedhighscores[highscore.NAME] = highscore
-        initializedhighscores["a"] = "csjncj"
-        initializedhighscores["b"] = "sewf"
-        initializedhighscores["c"] = "csjcnsss"
-        initializedhighscores["d"] = "ijuid"
-
 
         async def action(highscorename):
             buttons = [Button(style=ButtonStyle.blue, label="<<"),

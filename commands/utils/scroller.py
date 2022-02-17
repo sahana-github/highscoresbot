@@ -21,7 +21,6 @@ class Scroller:
                  startpage: Union[str, None]=None):
         self.client = client
         self.timeout = timeout
-        self.res = None
         self.__pageTurner = PageTurner(resultmessages)
         self.__buttons = [[Button(style=ButtonStyle.blue, label="<<"),
                            Button(style=ButtonStyle.blue, label="<"),
@@ -36,7 +35,6 @@ class Scroller:
         self.startpage = startpage
         self.ctx = ctx
         self.previousmsg = None
-
     async def loop(self):
         self.originmsg = await self.ctx.send(f"```page {self.__pageTurner.page} of {self.__pageTurner.MAXPAGE}```\n",
                                         components=self.__buttons)
@@ -57,8 +55,7 @@ class Scroller:
                     page = self.__pageTurner.changePage(self.__pageTurner.MAXPAGE, True)
                 else:
                     page = self.__pageTurner.changePage(0)
-                self.res = res
-                # await res.edit_origin(f"```page {self.__pageTurner.page} of {self.__pageTurner.MAXPAGE}```", embed=embed)
+                await res.edit_origin(f"```page {self.__pageTurner.page} of {self.__pageTurner.MAXPAGE}```")
                 await self.edit_source(page)
             except asyncio.TimeoutError:
                 for buttonrow in self.__buttons:
@@ -67,12 +64,10 @@ class Scroller:
                 await self.originmsg.edit(f"```page {self.__pageTurner.page} of {self.__pageTurner.MAXPAGE}```\n",
                                           components=self.__buttons)
                 break
-
     async def edit_source(self, page: Union[ImgWithText, str]):
         img = None
         text = page if type(page) == str else ""
         embed = page.text if type(page) == ImgWithText and type(page.text) == discord.Embed else None
-
         if type(page) == ImgWithText and page.img is not None:
             if callable(page.img):
                 generated_img = page.img()
@@ -81,15 +76,12 @@ class Scroller:
             with io.BytesIO() as image_binary:
                 generated_img.save(image_binary, 'PNG')
                 image_binary.seek(0)
-                img = discord.File(fp=image_binary, filename=f'image{self.__pageTurner.page}.png')
-        if img is not None and embed is not None:
-            embed.set_image(url=f"attachment://image{self.__pageTurner.page}.png")
+                img = discord.File(fp=image_binary, filename='image.png')
 
-        if self.res is not None:
-            await self.res.edit_origin(f"```page {self.__pageTurner.page} of {self.__pageTurner.MAXPAGE}```\n",
-                                components=self.__buttons, file=img, embed=embed)
-        else:
-            self.previousmsg = await self.originmsg.edit(file=img, embed=embed, components=self.__buttons)
+        msg = await self.ctx.send(text, file=img, embed=embed)
+        if self.previousmsg is not None:
+            await self.previousmsg.delete()
+        self.previousmsg = msg
 
 
 class PageTurner:
