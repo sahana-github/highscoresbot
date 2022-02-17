@@ -140,56 +140,34 @@ class Highscores(commands.Cog):
         """
         if clanname is None:
             clanname = await self.getdefaultclanname(ctx, comment=False)
-        highscorenames = []
+        highscoresdict = {}
         for highscore in allhighscores:
             highscore = highscore()
-            highscorenames.append(highscore.NAME)
+            highscoresdict[highscore.NAME] = highscore
+        async def action(highscorename):
+            highscore = highscoresdict[highscorename]
+            if highscorename == "btwins" or highscorename == "btwinstreak":
+                values = []
+                clanlist = getClanList(clanname.lower()) if clanname is not None else []
+                highscore = Btwinstreak() if highscorename == "btwinstreak" else Btwins()
+                for row in highscore.getDbValues():
+                    if row[1] in clanlist or row[0] < 10:
+                        values.append(row)
+            else:
+                try:
+                    values = highscore.getDbValues(query="SELECT * FROM {0} WHERE clan=? OR rank<10".format(highscore.NAME),
+                                                   params=[(clanname.lower() if clanname is not None else None)])
+                except Exception as e:
+                    print(e)
+                    values = highscore.getDbValues(query="SELECT * FROM {0} WHERE rank<10".format(highscore.NAME))
+            messages = tablify(highscore.LAYOUT, values, maxlength=1930)
 
-        selects = [
-            Select(placeholder="Select the highscore you want to see.",
-                   options=[SelectOption(label=highscore,
-                                         value=highscore)
-                            for highscore in highscorenames], )
-        ]
-        selectids = [selection.id for selection in selects]
-        originalmsg = await ctx.send("Select the highscore you want to see.", components=selects)
-        try:
-            event: Interaction = await self.client.wait_for("select_option",
-                                                            check=lambda selection:
-                                                            ctx.channel == selection.channel
-                                                            and ctx.author == selection.author
-                                                            and selection.component.id in selectids,
-                                                            timeout=120)
-            await event.send(f"showing highscore {event.values[0]}")
-        except asyncio.TimeoutError:
-            await originalmsg.delete()
-            return
-        highscoretype = event.values[0]
-        if highscoretype == "btwins" or highscoretype == "btwinstreak":
-            values = []
-            clanlist = getClanList(clanname.lower()) if clanname is not None else []
-            highscore = Btwinstreak() if highscoretype == "btwinstreak" else Btwins()
-            for row in highscore.getDbValues():
-                if row[1] in clanlist or row[0] < 10:
-                    values.append(row)
-            resultmessages = tablify(highscore.LAYOUT, values)
-            for msg in resultmessages:
-                await ctx.send(msg)
-            return
-        for highscore in allhighscores:
-            highscore = highscore()
-            if highscore.NAME == highscoretype:
-                break
+            messageShower = ResultmessageShower(self.client, messages, ctx)
+            await messageShower.loop()
 
-        try:
-            values = highscore.getDbValues(query="SELECT * FROM {0} WHERE clan=? OR rank<10".format(highscore.NAME),
-                                           params=[(clanname.lower() if clanname is not None else None)])
-        except Exception as e:
-            print(e)
-            values = highscore.getDbValues(query="SELECT * FROM {0} WHERE rank<10".format(highscore.NAME))
-        messages = tablify(highscore.LAYOUT, values)
-        for i in messages:
-            await ctx.send(i)
+        d = DropdownScroller(list(highscoresdict.keys()), ctx, action=action, client=self.client,
+                             selectiontext="please select the highscore you want to see.")
+        await d.mainloop()
 
     @commands.command(name="getclan")
     async def getclan(self, ctx, clanname: str):

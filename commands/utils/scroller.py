@@ -179,7 +179,6 @@ class DropdownScroller:
             await self.__processResponse(res)
 
     async def __processResponse(self, res):
-        print(res)
         if res.component.id in self.__buttonids:
             if res.component.label == "<" and self.page > 1:
                 self.page -= 1
