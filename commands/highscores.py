@@ -6,7 +6,7 @@ from discord.ext.commands import Command, Context
 from discord_components import Select, SelectOption, Interaction, ButtonStyle, Button
 
 from commands.utils.scroller import DropdownScroller
-from commands.utils.utils import tablify, joinmessages
+from commands.utils.utils import tablify, joinmessages, ResultmessageShower
 from discord.ext import commands
 from highscores import *
 from highscores.highscore import Highscore
@@ -239,65 +239,13 @@ class Highscores(commands.Cog):
             initializedhighscores[highscore.NAME] = highscore
 
         async def action(highscorename):
-            buttons = [Button(style=ButtonStyle.blue, label="<<"),
-                       Button(style=ButtonStyle.blue, label="<"),
-                       Button(style=ButtonStyle.red, label=">"),
-                       Button(style=ButtonStyle.red, label=">>")]
-            loopedHighscore = LoopedHighscore(initializedhighscores[highscorename])
-
-            def check(res):
-                return res.channel == ctx.channel and res.author == ctx.author and \
-                       res.component.id in [button.id for button in buttons]
-
-            msg = await ctx.send(loopedHighscore.change_page(0), components=[buttons], )
-            while True:
-                try:
-                    res = await self.client.wait_for("button_click", check=check, timeout=60)
-                    if res.component.label == "<":
-                        await res.edit_origin(loopedHighscore.change_page(0 - loopedHighscore.size))
-                    elif res.component.label == ">":
-                        await res.edit_origin(loopedHighscore.change_page(loopedHighscore.size))
-                    elif res.component.label == "<<":
-                        await res.edit_origin(loopedHighscore.change_page(loopedHighscore.MINRANK, True))
-                    elif res.component.label == ">>":
-                        await res.edit_origin(loopedHighscore.change_page(loopedHighscore.MAXRANK - loopedHighscore.size,
-                                                                          True))
-                except asyncio.TimeoutError:
-                    for button in buttons:
-                        button.set_disabled(True)
-                    await msg.edit(loopedHighscore.change_page(0), components=[buttons])
-                    break
+            highscore = initializedhighscores[highscorename]
+            messages = tablify(highscore.LAYOUT, highscore.getDbValues(), maxlength=1300)
+            messageShower = ResultmessageShower(self.client, messages, ctx)
+            await messageShower.loop()
         d = DropdownScroller(list(initializedhighscores.keys()), ctx, action=action, client=self.client,
-                             selectiontext="hello")
+                             selectiontext="please select the highscore you want to see.")
         await d.mainloop()
-
-class LoopedHighscore:
-    def __init__(self, highscore: Highscore):
-        self.min = 1
-        self.size = 20
-        self.highscore = highscore
-        self.MAXRANK = highscore.getDbValues(f"SELECT rank FROM {highscore.NAME} ORDER BY rank DESC LIMIT 1")[0][0]
-        self.MINRANK = 1
-
-    def change_page(self, movement, absolute=False):
-
-        if absolute:
-            self.min = movement
-        else:
-            newmin = self.min + movement
-            if newmin + movement > self.MAXRANK:
-                self.min = self.MAXRANK - self.size
-            elif newmin < self.MINRANK:
-                self.min = self.MINRANK
-            else:
-                self.min += movement
-        msg = self.getmsg()
-        return msg
-
-    def getmsg(self):
-        values = self.highscore.getDbValues(query=f"SELECT * FROM {self.highscore.NAME} WHERE rank >= ? AND rank <= ?",
-                                            params=[self.min, self.min + self.size])
-        return tablify(self.highscore.LAYOUT, values)[0]
 
 
 def setup(client):
