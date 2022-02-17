@@ -5,6 +5,7 @@ from typing import Union
 from discord.ext.commands import Command, Context
 from discord_components import Select, SelectOption, Interaction, ButtonStyle, Button
 
+from commands.utils.scroller import DropdownScroller
 from commands.utils.utils import tablify, joinmessages
 from discord.ext import commands
 from highscores import *
@@ -236,57 +237,44 @@ class Highscores(commands.Cog):
         for highscore in allhighscores:
             highscore = highscore()
             initializedhighscores[highscore.NAME] = highscore
+        initializedhighscores["a"] = "csjncj"
+        initializedhighscores["b"] = "sewf"
+        initializedhighscores["c"] = "csjcnsss"
+        initializedhighscores["d"] = "ijuid"
 
-        selects = [
-            Select(placeholder="Select the highscore you want to see.",
-                   options=[SelectOption(label=highscore,
-                                         value=highscore)
-                            for highscore in initializedhighscores.keys()], )
-        ]
-        selectids = [selection.id for selection in selects]
-        originalmsg = await ctx.send("Select the highscore you want to see.", components=selects)
-        try:
-            event: Interaction = await self.client.wait_for("select_option",
-                                                            check=lambda selection:
-                                                            ctx.channel == selection.channel
-                                                            and ctx.author == selection.author
-                                                            and selection.component.id in selectids,
-                                                            timeout=30)
-            await event.send(f"showing highscore {event.values[0]}")
-        except asyncio.TimeoutError:
-            await originalmsg.delete()
-            return
 
-        buttons = [Button(style=ButtonStyle.blue, label="<<"),
-                   Button(style=ButtonStyle.blue, label="<"),
-                   Button(style=ButtonStyle.red, label=">"),
-                   Button(style=ButtonStyle.red, label=">>")]
-        loopedHighscore = LoopedHighscore(initializedhighscores[event.values[0]])
+        async def action(highscorename):
+            buttons = [Button(style=ButtonStyle.blue, label="<<"),
+                       Button(style=ButtonStyle.blue, label="<"),
+                       Button(style=ButtonStyle.red, label=">"),
+                       Button(style=ButtonStyle.red, label=">>")]
+            loopedHighscore = LoopedHighscore(initializedhighscores[highscorename])
 
-        def check(res):
-            return res.channel == ctx.channel and res.author == ctx.author and \
-                   res.component.id in [button.id for button in buttons]
+            def check(res):
+                return res.channel == ctx.channel and res.author == ctx.author and \
+                       res.component.id in [button.id for button in buttons]
 
-        msg = await ctx.send(loopedHighscore.change_page(0), components=[buttons], )
-        await originalmsg.delete()
-        while True:
-            try:
-                res = await self.client.wait_for("button_click", check=check, timeout=60)
-                if res.component.label == "<":
-                    await res.edit_origin(loopedHighscore.change_page(0 - loopedHighscore.size))
-                elif res.component.label == ">":
-                    await res.edit_origin(loopedHighscore.change_page(loopedHighscore.size))
-                elif res.component.label == "<<":
-                    await res.edit_origin(loopedHighscore.change_page(loopedHighscore.MINRANK, True))
-                elif res.component.label == ">>":
-                    await res.edit_origin(loopedHighscore.change_page(loopedHighscore.MAXRANK - loopedHighscore.size,
-                                                                      True))
-            except asyncio.TimeoutError:
-                for button in buttons:
-                    button.set_disabled(True)
-                await msg.edit(loopedHighscore.change_page(0), components=[buttons])
-                break
-
+            msg = await ctx.send(loopedHighscore.change_page(0), components=[buttons], )
+            while True:
+                try:
+                    res = await self.client.wait_for("button_click", check=check, timeout=60)
+                    if res.component.label == "<":
+                        await res.edit_origin(loopedHighscore.change_page(0 - loopedHighscore.size))
+                    elif res.component.label == ">":
+                        await res.edit_origin(loopedHighscore.change_page(loopedHighscore.size))
+                    elif res.component.label == "<<":
+                        await res.edit_origin(loopedHighscore.change_page(loopedHighscore.MINRANK, True))
+                    elif res.component.label == ">>":
+                        await res.edit_origin(loopedHighscore.change_page(loopedHighscore.MAXRANK - loopedHighscore.size,
+                                                                          True))
+                except asyncio.TimeoutError:
+                    for button in buttons:
+                        button.set_disabled(True)
+                    await msg.edit(loopedHighscore.change_page(0), components=[buttons])
+                    break
+        d = DropdownScroller(list(initializedhighscores.keys()), ctx, action=action, client=self.client,
+                             selectiontext="hello")
+        await d.mainloop()
 
 class LoopedHighscore:
     def __init__(self, highscore: Highscore):

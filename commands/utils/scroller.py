@@ -1,12 +1,13 @@
 import asyncio
 import io
-from typing import Union, List
+from threading import Thread
+from typing import Union, List, Callable
 
 import discord
 import discord_components
 from PIL import Image
 from discord.ext.commands import Context
-from discord_components import Button, ButtonStyle
+from discord_components import Button, ButtonStyle, Select, SelectOption
 
 
 class ImgWithText:
@@ -118,3 +119,89 @@ class PageTurner:
         self.MAXPAGE = len(self.pages)
         if self.page > self.MAXPAGE:
             self.page = self.MAXPAGE
+
+
+class DropdownScroller:
+    def __init__(self, options: List[str], ctx, action: Callable, client, selectiontext="Select below:"):
+        self.client = client
+        self.ctx = ctx
+        self.action = action
+        self.selectiontext = selectiontext
+        self.__buttonids = []
+        self.__selectids = []
+        self.selects = {}
+        self.buttons = []
+        self.buildSelectPages(options)
+        self.buildbuttons()
+        self.page = 1
+
+    def buildSelectPages(self, options):
+        temp = []
+        page = 1
+        for option in options:
+            temp.append(option)
+            if len(temp) == 25:
+                self.selects[page] = Select(placeholder=self.selectiontext,
+                                            options=[SelectOption(label=option,
+                                                                  value=option)
+                                                     for option in temp], )
+                temp = []
+                page += 1
+        if len(temp) != 0:
+            self.selects[page] = Select(placeholder=self.selectiontext,
+                                        options=[SelectOption(label=option,
+                                                              value=option)
+                                                 for option in temp], )
+        for select in self.selects.values():
+            self.__selectids.append(select.id)
+
+    def buildbuttons(self):
+        self.buttons = [Button(style=ButtonStyle.blue, label="<<"),
+                        Button(style=ButtonStyle.blue, label="<"),
+                        Button(style=ButtonStyle.red, label=">"),
+                        Button(style=ButtonStyle.red, label=">>")]
+
+        for button in self.buttons:
+            self.__buttonids.append(button.id)
+
+    async def mainloop(self):
+        self.originmsg = await self.ctx.send(f"```page {self.page} of {max(self.selects.keys())}```\n",
+                                             components=[self.selects[self.page], self.buttons])
+        asyncio.create_task(self.__buttonClickResponseHandler())
+        asyncio.create_task(self.__selectOptionResponseHandler())
+
+    async def __buttonClickResponseHandler(self):
+        while True:
+            res = await self.client.wait_for("button_click",
+                                                 check=lambda response:
+                                                 response.component.id in self.__buttonids,
+                                                 timeout=1000)
+            await self.__processResponse(res)
+
+    async def __selectOptionResponseHandler(self):
+        while True:
+            res = await self.client.wait_for("select_option",
+                                         check=lambda response:
+                                         response.component.id in self.__selectids,
+                                         timeout=1000)
+            await self.__processResponse(res)
+
+    async def __processResponse(self, res):
+        print(res)
+        if res.component.id in self.__buttonids:
+            if res.component.label == "<" and self.page > 1:
+                self.page -= 1
+            elif res.component.label == ">" and self.page < max(self.selects.keys()):
+                self.page += 1
+            elif res.component.label == "<<":
+                self.page = 1
+            elif res.component.label == ">>":
+                self.page = max(self.selects.keys())
+            await res.edit_origin(f"```page {self.page} of {max(self.selects.keys())}```\n",
+                                  components=[self.selects[self.page], self.buttons])
+        elif res.component.id in self.__selectids:
+            await self.originmsg.delete()
+            await self.action(res.values[0])
+
+        else:
+            print("ok")
