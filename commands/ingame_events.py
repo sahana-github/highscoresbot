@@ -15,6 +15,20 @@ class IngameEvents(commands.Cog):
     def __init__(self, client: commands.bot):
         self.client: commands.bot = client
 
+    @commands.command(name="lastonline")
+    async def lastonline(self, ctx, playername):
+        playername = playername.lower()
+        with sqlite3.connect("ingame_data.db") as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT timestamp FROM activity WHERE playername=?", (playername,))
+            try:
+                timestamp = cur.fetchall()[0][0]
+            except IndexError:
+                await ctx.send(f"no information about last online of {playername}")
+                return
+            online = datetime.datetime.fromtimestamp(timestamp, datetime.timezone.utc)
+            await ctx.send(f"{playername} was last online at {str(online).split(' ')[0]}")
+
     @commands.command(name="getencounters")
     async def getencounters(self, ctx: Context, name: str):
         """
