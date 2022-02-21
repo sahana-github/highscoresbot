@@ -1,3 +1,4 @@
+import datetime
 import re
 from typing import Tuple, Union
 
@@ -25,6 +26,18 @@ class EventDeterminer:
 
         if "`xt`sr`-1`" in self.message:
             return "serverrestart", {}
+        if "`xt`b116`-1`" in self.message:
+            matches = re.findall(r"(?<=\[)(.*?,.*?)(?=\])", self.message)
+            if matches:
+                allusernames = []
+                try:
+                    for i in matches[1:]:
+                        allusernames.append(i.split(",")[0].lower())
+                except Exception as e:
+                    print(e)
+                    print("warning! exception when getting online list!!!")
+                return "onlinelist", {"timestamp": int(datetime.datetime.now(datetime.timezone.utc).timestamp()),
+                                      "online": allusernames}
         if "`xt`r27`-1`" in self.message:
             d = self.message.replace("\n", "")
             gmsearch = d.split("`")[4:]

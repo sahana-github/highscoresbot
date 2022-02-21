@@ -4,6 +4,7 @@ from ppobyter.events.elite4 import Elite4
 from ppobyter.events.gmsearch import GMSearch
 from ppobyter.events.goldrush import Goldrush
 from ppobyter.events.kyogrealtar import KyogreAltar
+from ppobyter.events.onlinelist import OnlineList
 from ppobyter.events.serverrestart import ServerRestart
 from ppobyter.events.swarm import Swarm
 from ppobyter.events.event import Event
@@ -33,6 +34,8 @@ class EventMaker:
         event = None
         if eventname == "swarm":
             event = Swarm(kwargs["location"], kwargs["pokemon1"], kwargs["pokemon2"])
+        elif eventname == "onlinelist":
+            event = OnlineList(kwargs["timestamp"], kwargs["online"])
         elif eventname == "gmsearch":
             event = GMSearch(kwargs["searcheditems"])
         elif eventname == "worldboss":

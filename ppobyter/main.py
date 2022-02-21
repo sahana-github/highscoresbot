@@ -33,6 +33,7 @@ class Main:
             #print(EventDeterminer(message).determineEvent())
             if event := EventDeterminer(message).determineEvent():
                 print(event)
+
                 # if event[0] == "gmsearch":
                 #     print("gm searched.")
                 #     continue
