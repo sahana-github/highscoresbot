@@ -5,7 +5,6 @@ from typing import List
 
 from discord.ext import commands
 from discord.ext.commands.context import Context
-from discord_components import Button, ButtonStyle
 
 from commands.utils.utils import tablify, datehandler, ResultmessageShower
 from highscores import getClanList

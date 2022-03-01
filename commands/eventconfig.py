@@ -2,13 +2,11 @@ import asyncio
 import re
 
 import discord
-import discord_components
 from discord import NotFound, Forbidden
 from discord.ext import commands
 import sqlite3
 
-from discord_components import ButtonStyle, Button, Select, SelectOption, Interaction
-
+from commands.interractions.removememberconfig import RemoveMemberConfigView
 from commands.utils.utils import haspermissions, tablify
 from discord.utils import escape_mentions
 from typing import Union
@@ -22,7 +20,10 @@ class Eventconfigurations(commands.Cog):
     def __init__(self, client: commands.bot.Bot):
         self.client = client
         self.databasepath = "./eventconfigurations.db"
-
+    @commands.command(name="test")
+    async def test(self, ctx):
+        view = RemoveMemberConfigView()
+        await ctx.send('Pick your favourite colour:', view=view)
     @commands.guild_only()
     @commands.command(name="setperms")
     async def setperms(self, ctx: Context, role: Union[int, str]):
@@ -479,7 +480,7 @@ class Eventconfigurations(commands.Cog):
         def check(res):
             return res.channel == ctx.channel and res.author == ctx.author and res.component.id in \
                    [button.id for button in buttons]
-        res: discord_components.interaction.Interaction = await self.client.wait_for("button_click", check=check)
+        res = await self.client.wait_for("button_click", check=check)
 
         if res.component.label == "show playerconfigurations":
             await res.send("players configured for this server:")

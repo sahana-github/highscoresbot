@@ -1,10 +1,8 @@
 import asyncio
 from typing import Callable, Union, Iterable, Tuple, List
 import enchant
-import discord_components
 from discord.ext import commands
 import sqlite3
-from discord_components import DiscordComponents, Button, ButtonStyle
 from commands.utils.utils import tablify, isswarmpokemon, isswarmlocation, isgoldrushlocation, getgoldrushlocations, \
     ishoneylocation, gethoneylocations, istournamentprize
 from discord.ext.commands.context import Context
@@ -442,5 +440,3 @@ class Pmconfig(commands.Cog):
 def setup(client):
     client.add_cog(Pmconfig(client))
     #help(Button)
-if __name__ == "__main__":
-    print(help(discord_components.interaction.Interaction))

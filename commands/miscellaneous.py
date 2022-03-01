@@ -10,8 +10,6 @@ from discord import ClientUser
 from discord.ext import commands
 import datetime
 import asyncio
-
-from discord_components import ButtonStyle, Button
 from commands.utils.utils import getworldbosstime, tablify, ResultmessageShower
 
 from discord.ext.commands.context import Context

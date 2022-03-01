@@ -3,7 +3,6 @@ import sqlite3
 from typing import Union
 
 from discord.ext.commands import Command, Context
-from discord_components import Select, SelectOption, Interaction, ButtonStyle, Button
 
 from commands.utils.scroller import DropdownScroller
 from commands.utils.utils import tablify, joinmessages, ResultmessageShower

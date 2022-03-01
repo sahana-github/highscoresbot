@@ -7,7 +7,6 @@ from typing import Union, List
 import discord
 from PIL import Image
 from discord.ext.commands import Context
-from discord_components import Button, ButtonStyle
 from numpy import isnan
 
 from pathmanager import PathManager

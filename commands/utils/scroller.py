@@ -4,10 +4,8 @@ from threading import Thread
 from typing import Union, List, Callable
 
 import discord
-import discord_components
 from PIL import Image
 from discord.ext.commands import Context
-from discord_components import Button, ButtonStyle, Select, SelectOption
 
 
 class ImgWithText:
