@@ -6,7 +6,8 @@ from discord import NotFound, Forbidden
 from discord.ext import commands
 import sqlite3
 
-from commands.interractions.removememberconfig import RemoveMemberConfigView
+from commands.interractions.playerconfig.memberconfig import PlayerConfig
+from commands.interractions.playerconfig.removememberconfig import BrowseSelection
 from commands.utils.utils import haspermissions, tablify
 from discord.utils import escape_mentions
 from typing import Union
@@ -22,8 +23,10 @@ class Eventconfigurations(commands.Cog):
         self.databasepath = "./eventconfigurations.db"
     @commands.command(name="test")
     async def test(self, ctx):
-        view = RemoveMemberConfigView()
+        view = BrowseSelection(["randomman32", "remastered151"], self.databasepath)
         await ctx.send('Pick your favourite colour:', view=view)
+        await view.wait()
+
     @commands.guild_only()
     @commands.command(name="setperms")
     async def setperms(self, ctx: Context, role: Union[int, str]):
@@ -331,59 +334,9 @@ class Eventconfigurations(commands.Cog):
             cur = conn.cursor()
             cur.execute("SELECT playername FROM memberconfig WHERE guildid=?", (ctx.guild.id,))
             members = [row[0] for row in cur.fetchall()]
-        if 25 >= len(members) > 0:
-            originalmsg = await ctx.send("please select the players you want to remove.", components=[
-                Select(placeholder="Select the players you want to remove.",
-                       options=[SelectOption(label=player,
-                                             value=player)
-                                for player in members], )
-            ])
-
-            while True:
-                try:
-                    event: Interaction = await self.client.wait_for("select_option",
-                                                                    check=lambda selection:
-                                                                    ctx.channel == selection.channel
-                                                                    and ctx.author == selection.author,
-                                                                    timeout=30)
-                except asyncio.TimeoutError:
-                    await originalmsg.delete()
-                    return
-                for player in event.values:
-                    cur.execute("DELETE FROM memberconfig WHERE guildid=? and playername=?", (ctx.guild.id, player))
-                    members.remove(player)
-                conn.commit()
-                if len(members) == 0:
-                    await event.send("No players left!")
-                    await originalmsg.delete()
-                    return
-                await event.edit_origin("Select players to remove:", components=[
-                    Select(placeholder="Select the players you want to remove from configuration for this server.",
-                           options=[SelectOption(label=player,
-                                                 value=player)
-                                    for player in members], )
-                ])
-        elif len(members) > 25:
-            await ctx.send("please enter the name of the player you want to remove from the configuration for this"
-                           " server.", delete_after=35)
-            try:
-                event: discord.message.Message = await self.client.wait_for("message",
-                                                                            check=lambda selection:
-                                                                            ctx.channel == selection.channel
-                                                                            and ctx.author == selection.author,
-                                                                            timeout=30)
-            except asyncio.TimeoutError:
-                await ctx.send("configurating timed out. Please try again.", delete_after=30)
-                return
-            player = event.content
-            if type(player) == str:
-                player = player.lower()
-            if player not in members:
-                await ctx.send("That member is not in memberconfig!")
-            else:
-                cur.execute("DELETE FROM memberconfig WHERE guildid=? and playername=?", (ctx.guild.id, player))
-                conn.commit()
-                await ctx.send(f"{player} removed from playerconfig!")
+        if members:
+            view = BrowseSelection(members, self.databasepath)
+            await ctx.send('Pick your favourite colour:', view=view)
         else:
             await ctx.send("no members registered for playerconfig.")
 
@@ -472,26 +425,8 @@ class Eventconfigurations(commands.Cog):
         add players, remove players and show players that act as if a player is in a clan.
         :param ctx: discord context
         """
-        buttons = [Button(style=ButtonStyle.blue, label="add player"),
-                   Button(style=ButtonStyle.red, label="remove player"),
-                   Button(style=ButtonStyle.green, label="show playerconfigurations")]
-
-        msg = await ctx.send("what do you want to do?", components=[buttons], )
-        def check(res):
-            return res.channel == ctx.channel and res.author == ctx.author and res.component.id in \
-                   [button.id for button in buttons]
-        res = await self.client.wait_for("button_click", check=check)
-
-        if res.component.label == "show playerconfigurations":
-            await res.send("players configured for this server:")
-            await self.__show_members(ctx)
-            await msg.delete()
-        elif res.component.label == "add player":
-            await msg.delete()
-            await self.__add_member(ctx)
-        elif res.component.label == "remove player":
-            await msg.delete()
-            await self.__remove_member(ctx)
+        playerconfig = PlayerConfig(self.__add_member, self.__remove_member, self.__show_members, ctx)
+        await ctx.send("what do you want to do?", view=playerconfig)
 
     async def __add_member(self, ctx: Context):
         if not haspermissions([role.id for role in ctx.message.author.roles], ctx.guild.id) and not\
