@@ -335,7 +335,7 @@ class Eventconfigurations(commands.Cog):
             cur.execute("SELECT playername FROM memberconfig WHERE guildid=?", (ctx.guild.id,))
             members = [row[0] for row in cur.fetchall()]
         if members:
-            view = BrowseSelection(members, self.databasepath)
+            view = BrowseSelection(members, self.databasepath, ctx)
             await ctx.send('Pick your favourite colour:', view=view)
         else:
             await ctx.send("no members registered for playerconfig.")
