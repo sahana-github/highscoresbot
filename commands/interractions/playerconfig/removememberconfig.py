@@ -3,6 +3,8 @@ from typing import List
 
 import discord
 
+from commands.interractions.browseselection import BrowseSelection
+
 
 class RemoveMemberConfig(discord.ui.Select):
     def __init__(self, members: List[str], databasepath, ctx):
@@ -44,12 +46,9 @@ class RemoveMemberConfig(discord.ui.Select):
         return True
 
 
-class BrowseSelection(discord.ui.View):
+class RemoveMemberBrowseSelection(BrowseSelection):
     def __init__(self, members, databasepath, ctx):
-        self.ctx = ctx
         self.databasepath = databasepath
-        super().__init__()
-        self.currentpage = 1
         self.pages = []
         page = []
         for member in members:
@@ -59,37 +58,10 @@ class BrowseSelection(discord.ui.View):
                 page = []
         if page:
             self.pages.append(page)
-        self.maxpage = len(self.pages)
-
+        super().__init__(ctx=ctx, pagesamount=len(self.pages))
         # keep track of selects, else we get multiple.
         self.previous = RemoveMemberConfig(self.pages[self.currentpage - 1], self.databasepath, self.ctx)
         self.add_item(self.previous)
-
-    @discord.ui.button(label='<<', style=discord.ButtonStyle.green)
-    async def minpage(self, button: discord.ui.Button, interaction: discord.Interaction):
-        if not await self.isOwner(interaction): return
-        self.currentpage = 1
-        await self.__sendPage(interaction)
-
-    @discord.ui.button(label='<', style=discord.ButtonStyle.green)
-    async def previouspage(self, button: discord.ui.Button, interaction: discord.Interaction):
-        if not await self.isOwner(interaction): return
-        if self.currentpage - 1 >= 1:
-            self.currentpage -= 1
-        await self.__sendPage(interaction)
-
-    @discord.ui.button(label='>', style=discord.ButtonStyle.green)
-    async def nextpage(self, button: discord.ui.Button, interaction: discord.Interaction):
-        if not await self.isOwner(interaction): return
-        if self.currentpage + 1 <= self.maxpage:
-            self.currentpage += 1
-        await self.__sendPage(interaction)
-
-    @discord.ui.button(label='>>', style=discord.ButtonStyle.green)
-    async def maxpage(self, button: discord.ui.Button, interaction: discord.Interaction):
-        if not await self.isOwner(interaction): return
-        self.currentpage = self.maxpage
-        await self.__sendPage(interaction)
 
     async def __sendPage(self, interaction: discord.Interaction):
         if self.previous is not None:  # remove previous, else we get 2 select options.
@@ -97,9 +69,3 @@ class BrowseSelection(discord.ui.View):
         self.previous = RemoveMemberConfig(self.pages[self.currentpage-1], self.databasepath, self.ctx)
         self.add_item(self.previous)
         await interaction.response.edit_message(content=f"page {self.currentpage} of {self.maxpage}", view=self)
-
-    async def isOwner(self, interaction: discord.Interaction) -> bool:
-        if interaction.guild.id != self.ctx.guild.id or interaction.user.id != self.ctx.author.id:
-            await interaction.response.send_message("only the user who used the command can use these buttons!")
-            return False
-        return True
