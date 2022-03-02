@@ -31,28 +31,3 @@ class RemoveMemberConfig(SelectsUtility):
                                                     view=None)
         else:
             await interaction.response.edit_message(content=f"{self.values[0]} removed from memberconfig!", view=None)
-
-
-class RemoveMemberBrowseSelection(BrowseSelection):
-    def __init__(self, members, databasepath, ctx):
-        self.databasepath = databasepath
-        self.pages = []
-        page = []
-        for member in members:
-            page.append(member)
-            if len(page) == 25:
-                self.pages.append(page)
-                page = []
-        if page:
-            self.pages.append(page)
-        super().__init__(ctx=ctx, pagesamount=len(self.pages))
-        # keep track of selects, else we get multiple.
-        self.previous = RemoveMemberConfig(self.pages[self.currentpage - 1], self.databasepath, self.ctx)
-        self.add_item(self.previous)
-
-    async def __sendPage(self, interaction: discord.Interaction):
-        if self.previous is not None:  # remove previous, else we get 2 select options.
-            self.remove_item(self.previous)
-        self.previous = RemoveMemberConfig(self.pages[self.currentpage-1], self.databasepath, self.ctx)
-        self.add_item(self.previous)
-        await interaction.response.edit_message(content=f"page {self.currentpage} of {self.maxpage}", view=self)

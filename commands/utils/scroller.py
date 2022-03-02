@@ -33,6 +33,7 @@ class Scroller:
         self.startpage = startpage
         self.ctx = ctx
         self.previousmsg = None
+
     async def loop(self):
         self.originmsg = await self.ctx.send(f"```page {self.__pageTurner.page} of {self.__pageTurner.MAXPAGE}```\n",
                                         components=self.__buttons)

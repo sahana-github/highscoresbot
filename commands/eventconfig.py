@@ -7,7 +7,9 @@ from discord.ext import commands
 import sqlite3
 
 from commands.interractions.playerconfig.memberconfig import PlayerConfig
-from commands.interractions.playerconfig.removememberconfig import RemoveMemberBrowseSelection
+from commands.interractions.playerconfig.removememberconfig import RemoveMemberConfig
+from commands.interractions.resultmessageshower import ResultmessageShower
+from commands.interractions.selectsview import SelectsView
 from commands.utils.utils import haspermissions, tablify
 from discord.utils import escape_mentions
 from typing import Union
@@ -23,9 +25,8 @@ class Eventconfigurations(commands.Cog):
         self.databasepath = "./eventconfigurations.db"
     @commands.command(name="test")
     async def test(self, ctx):
-        view = RemoveMemberBrowseSelection(["randomman32", "remastered151"], self.databasepath)
-        await ctx.send('Pick your favourite colour:', view=view)
-        await view.wait()
+        view = ResultmessageShower(ctx=ctx, messages=["hello", "world", "abcdef"])
+        await ctx.send("hello", view=view)
 
     @commands.guild_only()
     @commands.command(name="setperms")
@@ -335,8 +336,11 @@ class Eventconfigurations(commands.Cog):
             cur.execute("SELECT playername FROM memberconfig WHERE guildid=?", (ctx.guild.id,))
             members = [row[0] for row in cur.fetchall()]
         if members:
-            view = RemoveMemberBrowseSelection(members, self.databasepath, ctx)
-            await ctx.send('Pick your favourite colour:', view=view)
+            def removeMemberConfigMaker(memberlist):
+                return RemoveMemberConfig(memberlist, self.databasepath, ctx)
+            view = SelectsView(ctx, members, removeMemberConfigMaker)
+            await ctx.send(content=f"page {view.currentpage} of {view.maxpage}", view=view)
+
         else:
             await ctx.send("no members registered for playerconfig.")
 
