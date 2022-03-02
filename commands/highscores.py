@@ -4,11 +4,10 @@ from typing import Union
 
 from discord.ext.commands import Command, Context
 
+from commands.interractions.highscore_command import HighscoreCommand
 from commands.interractions.selectsview import SelectsView
 from commands.interractions.top_command import TopCommand
-from commands.utils.scroller import DropdownScroller
 from commands.utils.utils import tablify, joinmessages
-from commands.interractions.resultmessageshower import ResultmessageShower
 from discord.ext import commands
 from highscores import *
 from highscores.highscore import Highscore
@@ -200,14 +199,11 @@ class Highscores(commands.Cog):
             highscore = highscore()
             initializedhighscores[highscore.NAME] = highscore
 
-        async def action(highscorename):
-            highscore = initializedhighscores[highscorename]
-            messages = tablify(highscore.LAYOUT, highscore.getDbValues(), maxlength=1300)
-            messageShower = ResultmessageShower(self.client, messages, ctx)
-            await messageShower.loop()
-        d = DropdownScroller(list(initializedhighscores.keys()), ctx, action=action, client=self.client,
-                             selectiontext="please select the highscore you want to see.")
-        await d.mainloop()
+        def highscoreselectionmaker(highscores):
+            return HighscoreCommand(ctx, highscores)
+
+        view = SelectsView(ctx, initializedhighscores.keys(), highscoreselectionmaker)
+        await ctx.send(content=f"page {view.currentpage} of {view.maxpage}", view=view)
 
 
 def setup(client):
