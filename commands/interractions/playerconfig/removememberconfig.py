@@ -4,21 +4,15 @@ from typing import List
 import discord
 
 from commands.interractions.browseselection import BrowseSelection
+from commands.interractions.selectsutility import SelectsUtility
 
 
-class RemoveMemberConfig(discord.ui.Select):
+class RemoveMemberConfig(SelectsUtility):
     def __init__(self, members: List[str], databasepath, ctx):
-        self.ctx = ctx
         # Set the options that will be presented inside the dropdown
         self.databasepath = databasepath
-        if len(members) > 25:
-            raise ValueError("more than 25 members.")
-        options = []  # discord.SelectOption(label='Green', description='Your favourite colour is green', emoji='🟩'),
-        for member in members:
-            options.append(discord.SelectOption(label=member))
-        super().__init__(placeholder='Choose the members you want to remove from memberconfig', min_values=1,
-                         max_values=len(members),
-                         options=options)
+
+        super().__init__(ctx, members, len(members), placeholder="select the members you want to remove below:")
 
     async def callback(self, interaction: discord.Interaction):
         if not await self.isOwner(interaction): return
@@ -37,13 +31,6 @@ class RemoveMemberConfig(discord.ui.Select):
                                                     view=None)
         else:
             await interaction.response.edit_message(content=f"{self.values[0]} removed from memberconfig!", view=None)
-        #await interaction.delete_original_message()
-
-    async def isOwner(self, interaction: discord.Interaction) -> bool:
-        if interaction.guild.id != self.ctx.guild.id or interaction.user.id != self.ctx.author.id:
-            await interaction.response.send_message("only the user who used the command can use these buttons!")
-            return False
-        return True
 
 
 class RemoveMemberBrowseSelection(BrowseSelection):
