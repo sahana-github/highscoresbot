@@ -6,7 +6,8 @@ from typing import List
 from discord.ext import commands
 from discord.ext.commands.context import Context
 
-from commands.utils.utils import tablify, datehandler, ResultmessageShower
+from commands.interractions.ingame_events.getencounters import GetEncounters
+from commands.utils.utils import tablify, datehandler
 from highscores import getClanList
 
 
@@ -40,124 +41,16 @@ class IngameEvents(commands.Cog):
                 await ctx.send(f"{playername} was last online at {str(online)}")
 
     @commands.command(name="getencounters")
-    async def getencounters(self, ctx: Context, name: str):
+    async def getencounters(self, ctx: Context, *name: str):
         """
         gets the encounters
         :param ctx: message context
         :param name: either playername, pokemonname or a date
         """
-        rollids = []
-        buttons = [[Button(style=ButtonStyle.blue, label="Pokemon"),
-                   Button(style=ButtonStyle.blue, label="Date (yyyy-mm-dd)"),
-                   Button(style=ButtonStyle.blue, label="Player")],
-                   [Button(style=ButtonStyle.blue, label="Top encounter dates"),
-                    Button(style=ButtonStyle.blue, label="Top encounter players"),
-                    Button(style=ButtonStyle.blue, label="Top encounter pokemon")]
-                   ]
-        for buttonrow in buttons:
-            for button in buttonrow:
-                rollids.append(button.id)
-        msg = await ctx.send("is that a pokemon, date, or player? Press the button to get a response! ",
-                             components=buttons)
+        name = " ".join(name)
         name = name.lower()
-
-        def check(res):
-            return res.component.id in rollids
-
-        try:
-            res = await self.client.wait_for("button_click", check=check, timeout=600)
-            if res.component.label == "Pokemon":
-                resultmessages = self.__getpokemon(name)
-            elif res.component.label == "Date (yyyy-mm-dd)":
-                try:
-                    resultmessages = self.__getdate(name)
-                except ValueError:
-                    await res.send(f"{name} does not match date format 'yyyy-mm-dd'!")
-                    await msg.delete()
-                    await self.getencounters(ctx, name)
-                    return
-            elif res.component.label == "Player":
-                resultmessages = self.__getplayerencounters(name)
-            elif res.component.label == "Top encounter dates":
-                resultmessages = self.__getencountersamount()
-            elif res.component.label == "Top encounter players":
-                resultmessages = self.__getencountersamountplayers()
-            elif res.component.label == "Top encounter pokemon":
-                resultmessages = self.__getencounteramountpokemon()
-            else:
-                raise Exception("????????????????????????")
-        except asyncio.TimeoutError:
-            for buttonrow in buttons:
-                for button in buttonrow:
-                    button.set_disabled(True)
-            await msg.edit("responding has expired. Please try again.", components=buttons)
-            return
-        await msg.delete()
-        resultmessageshower = ResultmessageShower(self.client, resultmessages, ctx)
-        await resultmessageshower.loop()
-
-    def __getplayerencounters(self, playername: str) -> List[str]:
-        conn = sqlite3.connect(r"ingame_data.db")
-        cur = conn.cursor()
-        cur.execute("SELECT Name, Encounters, Date FROM Encounters WHERE Name = ?", (playername,))
-        resultmessages = tablify(["Name", "encounter", "date"], cur.fetchall(), maxlength=1000)
-        conn.close()
-        return resultmessages[::-1]
-
-    def __getpokemon(self, pokemonname: str) -> List[str]:
-        """
-        returns a list of encounters where that pokemon was encountered.
-        :param pokemonname: the name of the pokemon
-        """
-        conn = sqlite3.connect(r"ingame_data.db")
-        cur = conn.cursor()
-        cur.execute("SELECT Name, Encounters, Date FROM Encounters WHERE Encounters = ? ORDER BY Date DESC",
-                    (pokemonname,))
-        resultmessages = tablify(["Name", "encounter", "date"], cur.fetchall(), maxlength=1000)
-        conn.close()
-        return resultmessages
-
-    def __getdate(self, date: str) -> List[str]:
-        """
-        get all encounters on a specific date.
-        :param date: the date a encounter happened.
-        """
-        datetime.datetime.strptime(date, "%Y-%m-%d")
-
-        date = datehandler(date)
-        conn = sqlite3.connect(r"ingame_data.db")
-        cur = conn.cursor()
-        cur.execute("SELECT Name, Encounters, Date FROM Encounters WHERE Date = ?", (date,))
-        resultmessages = tablify(["Name", "encounter", "date"], cur.fetchall(), maxlength=1000)
-        conn.close()
-        return resultmessages
-
-    def __getencountersamount(self):
-        conn = sqlite3.connect(r"ingame_data.db")
-        cur = conn.cursor()
-        cur.execute("SELECT date, count(date) FROM encounters GROUP BY date ORDER BY count(date) DESC")
-        resultset = cur.fetchall()
-        resultmessages = tablify(("Date", "Amount of encounters"), resultset, maxlength=1000)
-        conn.close()
-        return resultmessages
-
-    def __getencountersamountplayers(self):
-        conn = sqlite3.connect(r"ingame_data.db")
-        cur = conn.cursor()
-        cur.execute("SELECT name, count(name) FROM encounters GROUP BY name ORDER BY count(name) DESC")
-        resultset = cur.fetchall()
-        resultmessages = tablify(("Player", "Amount of encounters"), resultset, maxlength=1000)
-        conn.close()
-        return resultmessages
-
-    def __getencounteramountpokemon(self):
-        conn = sqlite3.connect(r"ingame_data.db")
-        cur = conn.cursor()
-        cur.execute("SELECT encounters.encounters, count(encounters.encounters) FROM encounters GROUP BY encounters ORDER BY count(encounters.encounters) DESC")
-        resultset = cur.fetchall()
-        resultmessages = tablify(("Pokemon", "Amount of encounters"), resultset, maxlength=1000)
-        conn.close()
-        return resultmessages
+        await ctx.send("is that a pokemon, date, or player? Press the button to get a response!",
+                             view=GetEncounters(ctx, name))
 
     @commands.command(name="getpokemon")
     async def getpokemon(self, ctx: Context, *_):
