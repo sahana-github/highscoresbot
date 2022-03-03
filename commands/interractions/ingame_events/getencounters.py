@@ -77,8 +77,15 @@ class GetEncounters(discord.ui.View):
         await self.showMessages(resultmessages, interaction)
 
     async def showMessages(self, resultmessages, interaction: discord.Interaction):
+        if not await self.isOwner(interaction): return
         msgshower = ResultmessageShower(messages=resultmessages, ctx=self.ctx)
         await interaction.response.edit_message(view=msgshower,
                                                 content=f"page {msgshower.currentpage} of {msgshower.maxpage}\n" +
                                                         msgshower.messages[0])
         self.stop()
+
+    async def isOwner(self, interaction: discord.Interaction) -> bool:
+        if interaction.guild.id != self.ctx.guild.id or interaction.user.id != self.ctx.author.id:
+            await interaction.response.send_message("only the user who used the command can use these buttons!")
+            return False
+        return True
