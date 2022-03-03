@@ -10,7 +10,9 @@ from discord import ClientUser
 from discord.ext import commands
 import datetime
 import asyncio
-from commands.utils.utils import getworldbosstime, tablify, ResultmessageShower
+
+from commands.interractions.resultmessageshower import ResultmessageShower
+from commands.utils.utils import getworldbosstime, tablify
 
 from discord.ext.commands.context import Context
 
@@ -152,8 +154,9 @@ class Miscellaneous(commands.Cog):
         cur.execute("DROP VIEW participants")
         cur.execute("DROP VIEW rankings")
         messages = tablify(["worldboss", "damage", "date", "rank", "participants"], result)
-        messageshower = ResultmessageShower(self.client, messages[::-1], ctx, 600)
-        await messageshower.loop()
+        messageshower = ResultmessageShower(messages, ctx)
+        await ctx.send(f"page {messageshower.currentpage} of {messageshower.maxpage}" +
+                       messages[messageshower.currentpage-1], view=messageshower)
 
     @commands.command(name="servercount")
     async def servercount(self, ctx: Context):
@@ -884,6 +887,5 @@ class HelpCommand:
 
 
 def setup(client):
-
     client.remove_command('help')
     client.add_cog(Miscellaneous(client))
