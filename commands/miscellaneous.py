@@ -11,12 +11,11 @@ from discord.ext import commands
 import datetime
 import asyncio
 
+from commands.interractions.miscellaneous.gmsearch import ImgWithText, GMSearch
 from commands.interractions.resultmessageshower import ResultmessageShower
 from commands.utils.utils import getworldbosstime, tablify
 
 from discord.ext.commands.context import Context
-
-from commands.utils.scroller import ImgWithText, Scroller
 from highscores import getClanList
 from ppobyter.marketplace.item import Item
 from ppobyter.marketplace.pokemon import Pokemon
@@ -187,13 +186,16 @@ class Miscellaneous(commands.Cog):
         print(result.lastrowid)
         conn.commit()
 
-        while True:
+        for i in range(500):
             await asyncio.sleep(5)
             cur.execute("SELECT page, content FROM gmsearchresult WHERE responseid=?", (result.lastrowid,))
             #cur.execute("SELECT page, content FROM gmsearchresult WHERE responseid=?", (result.lastrowid,))
             if gmsearches := cur.fetchall():
                 print("results are in!")
                 break
+        else:
+            await ctx.send("something broke. This will be resolved soon.")
+            raise TimeoutError("Gmsearch failed! No results incomming.")
         pages = []
         if gmsearches[0][1] is None:
             await ctx.send("the search didn't return any items/pokemon!")
@@ -217,8 +219,10 @@ class Miscellaneous(commands.Cog):
                     print(f"failed to load img for item: {item.itemname}", e)
                     img = None
             pages.append(ImgWithText(img, embed))
-        c = Scroller(self.client, pages, ctx)
-        await c.loop()
+
+        view = GMSearch(ctx, messages=pages)
+        await view.initial_send()
+
 
 
 
