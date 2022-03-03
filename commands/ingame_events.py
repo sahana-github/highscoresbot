@@ -8,6 +8,8 @@ from discord.ext.commands.context import Context
 
 from commands.interractions.ingame_events.getchests import GetChests
 from commands.interractions.ingame_events.getencounters import GetEncounters
+from commands.interractions.ingame_events.getrolls import GetRolls
+from commands.interractions.resultmessageshower import ResultmessageShower
 from commands.utils.utils import tablify, datehandler
 from highscores import getClanList
 
@@ -71,48 +73,16 @@ class IngameEvents(commands.Cog):
                        view=GetChests(ctx, name))
 
     @commands.command(name="getrolls")
-    async def getrolls(self, ctx: Context, parameter: str):
+    async def getrolls(self, ctx: Context, *parameter: str):
         """
         Gets the rolls of a player, the rolls of a pokemon, or the rolls on a specific date.
         Timeout is 10 minutes, then the message gets deleted.
         :param ctx: discord context
         :param parameter: The pokemon, date or player
         """
-
-        buttons = [Button(style=ButtonStyle.blue, label="Pokemon"),
-                   Button(style=ButtonStyle.blue, label="Date (yyyy-mm-dd)"),
-                   Button(style=ButtonStyle.blue, label="Player")]
-        rollids = [button.id for button in buttons]
-        msg = await ctx.send("is that a pokemon, date, or player? Press the button to get a response! ",
-                             components=[buttons])
-
-        def check(res):
-            return res.component.id in rollids
-        try:
-            res = await self.client.wait_for("button_click", check=check, timeout=600)
-        except asyncio.TimeoutError:
-            for button in buttons:
-                button.set_disabled(True)
-            await msg.edit("responding has expired. Please try again.", components=[buttons])
-            return
-        query = "SELECT player, pokemon, date FROM rolls WHERE "
-        if res.component.label == "Pokemon":
-            query += "pokemon = ?"
-        elif res.component.label == "Date (yyyy-mm-dd)":
-            query += "date = ?"
-        elif res.component.label == "Player":
-            query += "player = ?"
-        else:
-            raise ValueError("error with getrolls. This should not happen.")
-        query += " ORDER BY date DESC"
-        await msg.delete()
-        conn = sqlite3.connect(r"ingame_data.db")
-        cur = conn.cursor()
-        cur.execute(query, (parameter,))
-        resultmessages = tablify(["player", "pokemon", "date"], cur.fetchall())
-        resultmessageshower = ResultmessageShower(self.client, resultmessages, ctx)
-        await resultmessageshower.loop()
-
+        parameter = " ".join(parameter)
+        await ctx.send("is that a pokemon, date, or player? Press the button to get a response! ",
+                       view=GetRolls(ctx, parameter))
 
     @commands.command(name="getclanencounters")
     async def getclanencounters(self, ctx: Context, clanname: str):
@@ -126,9 +96,10 @@ class IngameEvents(commands.Cog):
             [totalencounters.append(row) for row in cur.fetchall()]
         totalencounters.sort(key=lambda x: x[2])
         resultmessages = tablify(["name", "pokemon", "date"], totalencounters, maxlength=1200)
-
-        resultmessageshower = ResultmessageShower(self.client, resultmessages[::-1], ctx, startpage=resultmessages[-1])
-        await resultmessageshower.loop()
+        resultmessageshower = ResultmessageShower(resultmessages[::-1], ctx)
+        await ctx.send(content=f"page {resultmessageshower.currentpage} of {resultmessageshower.maxpage}\n" +
+                               resultmessages[-1],
+                       view=resultmessageshower)
 
     @commands.command(name="getchestsbydate", aliases=["topchestlocations", "topchestplayers"])
     async def getchestsbydate(self, ctx: Context, *_):
