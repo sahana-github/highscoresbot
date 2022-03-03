@@ -14,7 +14,8 @@ client = discord.ext.commands.Bot(command_prefix=[".", "?"])
 
 # cog_files = ['commands.eventconfig', 'commands.pmconfig', 'commands.highscores', 'commands.miscellaneous',
 #              'commands.ingame_events']
-cog_files = ['commands.eventconfig', 'commands.highscores', "commands.ingame_events", 'commands.miscellaneous']
+cog_files = ['commands.eventconfig', 'commands.highscores', "commands.ingame_events", 'commands.miscellaneous',
+             "commands.pmconfig"]
 
 @client.event
 async def on_command_error(ctx: Context, error: Exception):

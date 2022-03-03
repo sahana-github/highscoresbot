@@ -48,24 +48,29 @@ def tablify(layout, values, maxlength=2000):
     return messages
 
 
-def isswarmpokemon(pokemon: str) -> bool:
+def getswarmpokemons() -> List[str]:
     """
     checks if the provided pokemon is a pokemon that can be in a swarm.
-    :param pokemon: the provided pokemon.
     :return: boolean if the pokemon is in the list of pokemon that can be in swarms.
     """
     swarmpokemonlist = open("commands/data/swarmpokemon.csv").read().split(",")
-    return pokemon in swarmpokemonlist
+    swarmpokemonlist = [pokemon.lower() for pokemon in swarmpokemonlist]
+    swarmpokemonlist = list(set(swarmpokemonlist))
+    swarmpokemonlist.sort()
+    return swarmpokemonlist
 
 
-def isswarmlocation(location: str) -> bool:
+def getswarmlocations() -> List[str]:
     """
     checks if the provided location is a location where a swarm can happen.
     :param location: the provided location
     :return: boolean if location is in the list of locations where swarms can happen,
     """
     swarmlocationlist = open("commands/data/swarmlocations.csv").read().split(",")
-    return location in swarmlocationlist
+    swarmlocationlist = [location.lower() for location in swarmlocationlist]
+    swarmlocationlist = list(set(swarmlocationlist))  # remove duplicates just in case
+    swarmlocationlist.sort()
+    return swarmlocationlist
 
 
 def isgoldrushlocation(location: str) -> bool:
@@ -190,32 +195,3 @@ def joinmessages(messages, maxlength=2000):
     if newmsg != "":
         allmessages.append(newmsg)
     return allmessages
-
-
-class PageTurner:
-    def __init__(self, pages: List[str]):
-        self.pages: List[str] = pages
-        self.MINPAGE = 1 if self.pages else 0
-        self.MAXPAGE = len(self.pages)
-        self.page = self.MINPAGE
-
-    def changePage(self, movement, absolute=False):
-        if absolute:
-            newpage = movement
-        else:
-            newpage = self.page + movement
-        if newpage > self.MAXPAGE or newpage < self.MINPAGE:
-            return self.pages[self.page - 1]
-        self.page = newpage
-        return self.pages[self.page - 1]
-
-    def add_page(self, page: str):
-        self.pages.append(page)
-        self.MAXPAGE = len(self.pages)
-
-    def remove_page(self, index: int):
-        self.pages.pop(index)
-        self.MINPAGE = 1 if self.pages else 0
-        self.MAXPAGE = len(self.pages)
-        if self.page > self.MAXPAGE:
-            self.page = self.MAXPAGE

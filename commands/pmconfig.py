@@ -3,7 +3,9 @@ from typing import Callable, Union, Iterable, Tuple, List
 import enchant
 from discord.ext import commands
 import sqlite3
-from commands.utils.utils import tablify, isswarmpokemon, isswarmlocation, isgoldrushlocation, getgoldrushlocations, \
+
+from commands.interractions.pmconfig.pmswarm import PmSwarm
+from commands.utils.utils import tablify, isgoldrushlocation, getgoldrushlocations, \
     ishoneylocation, gethoneylocations, istournamentprize
 from discord.ext.commands.context import Context
 
@@ -86,40 +88,8 @@ class Pmconfig(commands.Cog):
         :param ctx: discord context
         There is inputvalidation for both the swarm location and the swarm pokemon.
         """
-        location, pokemon = await self.inputgetter(ctx, label1="location",
-                                             label2="pokemon",
-                                             msg1="Please pick the location at which the swarm must appear:",
-                                             msg2="Please pick what pokemon the swarm must contain:",
-                                             buttonresponse="See https://pokemon-planet.com/swarms for a list of swarm"
-                                                            " pokemon and locations.",
-                                                   inputvalidation1=isswarmlocation,
-                                                   inputvalidation2=isswarmpokemon,
-                                                   inputvalidationmsg1="that is not a swarm location!",
-                                                   inputvalidationmsg2="that is not a swarm pokemon!")
+        await ctx.send("ok", view=PmSwarm(ctx, self.databasepath))
 
-        if location is not None and pokemon is not None:
-            query = "INSERT INTO pmswarm(playerid, location, pokemon, comparator) VALUES(?, ?, ?, '&')"
-        elif location is not None or pokemon is not None:
-            query = "INSERT INTO pmswarm(playerid, location, pokemon, comparator) VALUES(?, ?, ?, '|')"
-        else:
-            await ctx.send("failed to setup. Please try again")
-            return
-        conn = sqlite3.connect(self.databasepath)
-        cur = conn.cursor()
-        try:
-            cur.execute(query, (ctx.author.id, location, pokemon))
-            conn.commit()
-        except sqlite3.IntegrityError:
-            await ctx.send("can not insert a duplicate configuration!")
-            return
-        finally:
-            conn.close()
-        if pokemon is not None and location is not None:
-            await ctx.send(f"you will now get a pm if a {pokemon} shows up at {location}.")
-        elif pokemon is not None:
-            await ctx.send(f"you will now get a pm if a {pokemon} shows up in a swarm.")
-        elif location is not None:
-            await ctx.send(f"you will now get a pm if a swarm shows up at {location}.")
 
     @commands.command(name="pmworldboss")
     async def pmworldboss(self, ctx):
