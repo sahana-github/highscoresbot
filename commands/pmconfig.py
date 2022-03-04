@@ -5,8 +5,9 @@ from discord.ext import commands
 import sqlite3
 
 from commands.interractions.pmconfig.pmswarm import PmSwarm
+from commands.interractions.pmconfig.pmtournament import PmTournament
 from commands.utils.utils import tablify, isgoldrushlocation, getgoldrushlocations, \
-    ishoneylocation, gethoneylocations, istournamentprize
+    ishoneylocation, gethoneylocations
 from discord.ext.commands.context import Context
 
 
@@ -157,46 +158,8 @@ class Pmconfig(commands.Cog):
         :param ctx: discord context
         :todo input validation for prize
         """
-        tournamenttypes = ["ubers", "self caught", "little cup", "monotype", "set level 100"]
-        buttonresponse = "You can pick the following tournament types:\n" + ", ".join(tournamenttypes) + "\n" + \
-                            "Mind that there is no spelling check present! So type the tournament prizes good. " \
-                            "For example: `latias egg`, the amount does not matter."
+        await ctx.send("ok", view=PmTournament(ctx, self.databasepath))
 
-        prize, tournament = await self.inputgetter(ctx,
-                                                   label1="prize",
-                                                   label2="tournament type",
-                                                   msg1="enter the name of the prize:",
-                                                   msg2="enter the name of the tournament:",
-                                                   buttonresponse=buttonresponse,
-                                                   inputvalidation1=istournamentprize,
-                                                   inputvalidationmsg1="that is not an existing tournament prize!",
-                                                   inputvalidation2=tournamenttypes,
-                                                   inputvalidationmsg2="that is not an existing tournament!")
-
-        if tournament is not None and prize is not None:
-            query = "INSERT INTO pmtournament(playerid, tournament, prize, comparator) VALUES(?, ?, ?, '&')"
-        elif tournament is not None or prize is not None:
-            query = "INSERT INTO pmtournament(playerid, tournament, prize, comparator) VALUES(?, ?, ?, '|')"
-        else:
-            await ctx.send("failed to setup. please try again.")
-            return
-        conn = sqlite3.connect(self.databasepath)
-        cur = conn.cursor()
-        try:
-            cur.execute(query, (ctx.author.id, tournament, prize))
-            conn.commit()
-        except sqlite3.IntegrityError:
-            await ctx.send("can not insert a duplicate configuration")
-            return
-        finally:
-            conn.close()
-
-        if prize is not None and tournament is not None:
-            await ctx.send(f"You will now get a pm if the {tournament} tournament with the prize {prize} shows up.")
-        elif prize is not None:
-            await ctx.send(f"You will now get a pm if a tournament with the prize {prize} shows up.")
-        elif tournament is not None:
-            await ctx.send(f"You will now get a pm for the {tournament} tournament.")
 
     async def inputgetter(self, ctx: Context, label1: str, label2: str, msg1: str, msg2: str,
                           buttonresponse: str="beginning setup! respond within 30 seconds, else retype command.",

@@ -110,12 +110,11 @@ def gethoneylocations() -> list:
         return [row[0] for row in cur.fetchall()]
 
 
-def istournamentprize(prize: str) -> list:
+def gettournamentprizes() -> List[str]:
     with sqlite3.connect("data.db") as conn:
         cur = conn.cursor()
-        cur.execute("SELECT prize FROM tournamentprizes WHERE prize=?", (prize,))
-        return bool(cur.fetchall())
-
+        cur.execute("SELECT prize FROM tournamentprizes")
+        return [row[0] for row in cur.fetchall()]
 
 def haspermissions(roles: list, guild: int) -> bool:
     """
