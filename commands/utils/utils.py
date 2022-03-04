@@ -88,8 +88,9 @@ def getgoldrushlocations() -> list:
     gets a list of locations where goldrushes can happen.
     :return:
     """
-    return open("commands/data/goldrushlocations.csv").read().split(",")
-
+    goldrushlocations = open("commands/data/goldrushlocations.csv").read().split(",")
+    goldrushlocations.sort()
+    return goldrushlocations
 
 def ishoneylocation(location: str) -> bool:
     """
@@ -107,14 +108,17 @@ def gethoneylocations() -> list:
     with sqlite3.connect("data.db") as conn:
         cur = conn.cursor()
         cur.execute("SELECT * FROM honeylocations")
-        return [row[0] for row in cur.fetchall()]
-
+        honeylocations = [row[0] for row in cur.fetchall()]
+    honeylocations.sort()
+    return honeylocations
 
 def gettournamentprizes() -> List[str]:
     with sqlite3.connect("data.db") as conn:
         cur = conn.cursor()
         cur.execute("SELECT prize FROM tournamentprizes")
-        return [row[0] for row in cur.fetchall()]
+        tournamentprizes = [row[0] for row in cur.fetchall()]
+    tournamentprizes.sort()
+    return tournamentprizes
 
 def haspermissions(roles: list, guild: int) -> bool:
     """

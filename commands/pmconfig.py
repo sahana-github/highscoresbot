@@ -4,12 +4,14 @@ import enchant
 from discord.ext import commands
 import sqlite3
 
+from commands.interractions.pmconfig.pmgoldrush import PmGoldrush
+from commands.interractions.pmconfig.pmhoney import PmHoney
 from commands.interractions.pmconfig.pmswarm import PmSwarm
 from commands.interractions.pmconfig.pmtournament import PmTournament
 from commands.interractions.pmconfig.pmworldboss import PmWorldboss
 from commands.interractions.pmconfig.removepmconfig import RemovePmConfig
-from commands.utils.utils import tablify, isgoldrushlocation, getgoldrushlocations, \
-    ishoneylocation, gethoneylocations
+from commands.interractions.selectsview import SelectsView
+from commands.utils.utils import getgoldrushlocations, gethoneylocations
 from discord.ext.commands.context import Context
 
 
@@ -22,29 +24,17 @@ class Pmconfig(commands.Cog):
         self.databasepath = "./eventconfigurations.db"
 
     @commands.command(name="pmgoldrush")
-    async def pmgoldrush(self, ctx: Context, *location: str):
+    async def pmgoldrush(self, ctx: Context):
         """
         The user will receive a pm if a goldrush happens at the provided location.
         It is checked if it is a valid location.
         :param ctx: discord context
         :param location: the location where the goldrush happens.
         """
-        location = " ".join(location)
-        location = location.lower()
-        if not isgoldrushlocation(location):
-            await ctx.send("a goldrush can not happen at that location! list of locations:"
-                           "```" + "\n".join(getgoldrushlocations()) + "```")
-            return
-        conn = sqlite3.connect(self.databasepath)
-        cur = conn.cursor()
-        try:
-            cur.execute("INSERT INTO pmgoldrush(playerid, location) VALUES(?,?)", (ctx.author.id, location))
-            conn.commit()
-            await ctx.send(f"You now get a pm when a gold rush shows up at {location}.")
-        except sqlite3.IntegrityError:
-            await ctx.send("can not insert the same location twice!")
-        finally:
-            conn.close()
+        view = SelectsView(ctx, options=getgoldrushlocations(),
+                           selectoption=lambda locations: PmGoldrush(ctx, locations, self.databasepath))
+        await ctx.send("for what locations do you want a pm when a goldrush pops up?", view=view)
+
 
     @commands.command(name="pmhoney")
     async def pmhoney(self, ctx: Context, *location: str):
@@ -54,28 +44,9 @@ class Pmconfig(commands.Cog):
         :param location: the location where the honey gets spread.
         :todo input validation for the location
         """
-        location = " ".join(location)
-        location = location.lower()
-        if not ishoneylocation(location):
-            spelling_data = enchant.PyPWL()
-            for honeylocation in gethoneylocations():
-                #print(location)
-
-                spelling_data.add(honeylocation)
-            suggestedlocations = spelling_data.suggest(location)
-            await ctx.send("that is not a valid honeylocation! Spelling suggestions:\n```" +
-                           "\n".join(suggestedlocations) + "```")
-            return
-        conn = sqlite3.connect(self.databasepath)
-        cur = conn.cursor()
-        try:
-            cur.execute("INSERT INTO pmhoney(playerid, location) VALUES(?,?)", (ctx.author.id, location))
-            conn.commit()
-            await ctx.send(f"You now get a pm when honey shows up at {location}.")
-        except sqlite3.IntegrityError:
-            await ctx.send("can not insert the same location twice!")
-        finally:
-            conn.close()
+        view = SelectsView(ctx, options=gethoneylocations(),
+                           selectoption=lambda locations: PmHoney(ctx, locations, self.databasepath))
+        await ctx.send("for what locations do you want a pm when a honey gets spread?", view=view)
 
     @commands.command(name='pmswarm')
     async def pmswarm(self, ctx: Context):
