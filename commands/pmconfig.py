@@ -6,6 +6,7 @@ import sqlite3
 
 from commands.interractions.pmconfig.pmswarm import PmSwarm
 from commands.interractions.pmconfig.pmtournament import PmTournament
+from commands.interractions.pmconfig.pmworldboss import PmWorldboss
 from commands.utils.utils import tablify, isgoldrushlocation, getgoldrushlocations, \
     ishoneylocation, gethoneylocations
 from discord.ext.commands.context import Context
@@ -106,42 +107,8 @@ class Pmconfig(commands.Cog):
         There is inputvalidation for the worldboss pokemon, but not for the location.
         :param ctx: discord context
         """
-        worldbosses = ['mew', 'articuno', 'suicune', 'darkrai', 'darkrai', 'mesprit', 'shaymin', 'latias', 'regigigas',
-                       'uxie', 'entei', 'azelf', 'suicune', 'zapdos', 'cresselia', 'moltres', 'latios', 'heatran',
-                       'heatran', 'azelf', 'raikou', "giratina", "yveltal"]
-        buttonresponse = "The possible worldbosses are:\n" + ", ".join(worldbosses) + "\nMind spelling the location " \
-                                                                                      "right since there is no check " \
-                                                                                      "if the location actually exists"
-        location, pokemon = await self.inputgetter(ctx, label1="location", label2="worldboss pokemon",
-                               msg1="Please enter the location where the worldboss should spawn:",
-                               msg2="Please enter the worldboss that should spawn:",
-                               buttonresponse=buttonresponse,
-                                                   inputvalidation2=worldbosses,
-                                                   inputvalidationmsg2="That is not a valid worldboss!")
+        await ctx.send("ok", view=PmWorldboss(ctx, self.databasepath))
 
-        if location is not None and pokemon is not None:
-            query = "INSERT INTO pmworldboss(playerid, location, boss, comparator) VALUES(?, ?, ?, '&')"
-        elif location is not None or pokemon is not None:
-            query = "INSERT INTO pmworldboss(playerid, location, boss, comparator) VALUES(?, ?, ?, '|')"
-        else:
-            await ctx.send("failed to setup. Please try again.")
-            return
-        conn = sqlite3.connect(self.databasepath)
-        cur = conn.cursor()
-        try:
-            cur.execute(query, (ctx.author.id, location, pokemon))
-            conn.commit()
-        except sqlite3.IntegrityError:
-            await ctx.send("can not insert a duplicate configuration!")
-            return
-        finally:
-            conn.close()
-        if pokemon is not None and location is not None:
-            await ctx.send(f"you will now get a pm if a {pokemon} worldboss shows up at {location}.")
-        elif pokemon is not None:
-            await ctx.send(f"you will now get a pm if a {pokemon} worldboss shows up.")
-        elif location is not None:
-            await ctx.send(f"you will now get a pm if a worldboss shows up at {location}.")
 
     @commands.command(name="pmtournament")
     async def pmtournament(self, ctx):
