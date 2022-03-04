@@ -94,7 +94,7 @@ class RemovePmConfig(discord.ui.View):
             if message not in messages:
                 messages.append(message)
                 indexes.append(row)
-        await self.ctx.send("ok",
+        await self.ctx.send("what event do you want to remove?",
                             view=SelectsView(self.ctx, messages,
                                              lambda options: self.selectoptionsbuilder(options, messages, event, indexes)))
 

@@ -1,9 +1,5 @@
-import asyncio
-from typing import Callable, Union, Iterable, Tuple, List
-import enchant
-from discord.ext import commands
-import sqlite3
 
+from discord.ext import commands
 from commands.interractions.pmconfig.pmgoldrush import PmGoldrush
 from commands.interractions.pmconfig.pmhoney import PmHoney
 from commands.interractions.pmconfig.pmswarm import PmSwarm
@@ -62,7 +58,7 @@ class Pmconfig(commands.Cog):
         :param ctx: discord context
         There is inputvalidation for both the swarm location and the swarm pokemon.
         """
-        await ctx.send("ok", view=PmSwarm(ctx, self.databasepath))
+        await ctx.send("what specific swarm do you want a pm for?", view=PmSwarm(ctx, self.databasepath))
 
 
     @commands.command(name="pmworldboss")
@@ -79,7 +75,7 @@ class Pmconfig(commands.Cog):
         There is inputvalidation for the worldboss pokemon, but not for the location.
         :param ctx: discord context
         """
-        await ctx.send("ok", view=PmWorldboss(ctx, self.databasepath))
+        await ctx.send("what specific worldboss do you want a pm for?", view=PmWorldboss(ctx, self.databasepath))
 
 
     @commands.command(name="pmtournament")
@@ -97,7 +93,7 @@ class Pmconfig(commands.Cog):
         :param ctx: discord context
         :todo input validation for prize
         """
-        await ctx.send("ok", view=PmTournament(ctx, self.databasepath))
+        await ctx.send("what specific tournament do you want a pm for?", view=PmTournament(ctx, self.databasepath))
 
 
 
@@ -110,9 +106,7 @@ class Pmconfig(commands.Cog):
         gets the values at those list indexes to delete the configurations.
         :param ctx: discord context.
         """
-        await ctx.send("ok", view=RemovePmConfig(ctx, self.databasepath))
-
-
+        await ctx.send("what event do you want to remove pmconfig of?", view=RemovePmConfig(ctx, self.databasepath))
 
 
 def setup(client):
