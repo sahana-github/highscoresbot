@@ -45,7 +45,7 @@ class BrowseSelection(discord.ui.View):
     async def isOwner(self, interaction: discord.Interaction) -> bool:
         if not self.ownerOnly:
             return True
-        if interaction.guild.id != self.ctx.guild.id or interaction.user.id != self.ctx.author.id:
+        if interaction.guild != self.ctx.guild or interaction.user.id != self.ctx.author.id:
             await interaction.response.send_message("only the user who used the command can use these buttons!")
             return False
         return True

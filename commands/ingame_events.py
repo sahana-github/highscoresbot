@@ -3,6 +3,7 @@ import sqlite3
 import datetime
 from typing import List
 
+import discord
 from discord.ext import commands
 from discord.ext.commands.context import Context
 
@@ -10,7 +11,7 @@ from commands.interractions.ingame_events.getchests import GetChests
 from commands.interractions.ingame_events.getencounters import GetEncounters
 from commands.interractions.ingame_events.getrolls import GetRolls
 from commands.interractions.resultmessageshower import ResultmessageShower
-from commands.utils.utils import tablify, datehandler
+from commands.utils.utils import tablify, datehandler, getworldbosstime
 from highscores import getClanList
 
 
@@ -105,6 +106,26 @@ class IngameEvents(commands.Cog):
     async def getchestsbydate(self, ctx: Context, *_):
         await ctx.send("please use .getchests instead!")
 
+    @commands.command(name="worldbosstime")
+    async def worldbosstime(self, ctx: Context):
+        """
+        gives the time untill the start of the worldboss.
+        :param ctx: discord context
+        """
+        try:
+            worldboss_datetime = getworldbosstime()
+            timedifference = worldboss_datetime - datetime.datetime.now()
+            embed = discord.Embed(title="worldboss",
+                                  description=f"The worldboss will start at <t:{str(int(worldboss_datetime.timestamp()))}>")
+            embed.add_field(name="relative",
+                            value=f"that is in {(timedifference.days * 86400 + timedifference.seconds) // 3600} hours "
+                                  f"and {(timedifference.seconds // 60) % 60} minutes\n")
+            await ctx.send(embed=embed)
+        except IndexError:
+            await ctx.send("something went wrong!")
+        except Exception as e:
+            await ctx.send("uncaught exception.")
+            print(e)
 
 def setup(client):
     client.add_cog(IngameEvents(client))

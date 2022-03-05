@@ -25,7 +25,6 @@ class Pmconfig(commands.Cog):
         The user will receive a pm if a goldrush happens at the provided location.
         It is checked if it is a valid location.
         :param ctx: discord context
-        :param location: the location where the goldrush happens.
         """
         view = SelectsView(ctx, options=getgoldrushlocations(),
                            selectoption=lambda locations: PmGoldrush(ctx, locations, self.databasepath))

@@ -28,27 +28,6 @@ class Miscellaneous(commands.Cog):
                           "%3Dhttps%253A%252F%252Fdiscordapp.com%252Foauth2%252Fauthorize%253F%2526" \
                           "permissions%253D141312%2526client_id%253D733434249771745401%2526scope%253Dbot%26scope%3Dbot"
 
-    @commands.command(name="worldbosstime")
-    async def worldbosstime(self, ctx: Context):
-        """
-        gives the time untill the start of the worldboss.
-        :param ctx: discord context
-        """
-        try:
-            worldboss_datetime = getworldbosstime()
-            timedifference = worldboss_datetime - datetime.datetime.now()
-            embed = discord.Embed(title="worldboss",
-                                  description=f"The worldboss will start at <t:{str(int(worldboss_datetime.timestamp()))}>")
-            embed.add_field(name="relative",
-                            value=f"that is in {(timedifference.days * 86400 + timedifference.seconds) // 3600} hours "
-                                  f"and {(timedifference.seconds // 60) % 60} minutes\n")
-            await ctx.send(embed=embed)
-        except IndexError:
-            await ctx.send("something went wrong!")
-        except Exception as e:
-            await ctx.send("uncaught exception.")
-            print(e)
-
 
     @commands.command(name="clanlist")
     async def clanlist(self, ctx: Context, clanname: str):

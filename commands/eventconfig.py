@@ -23,10 +23,6 @@ class Eventconfigurations(commands.Cog):
     def __init__(self, client: commands.bot.Bot):
         self.client = client
         self.databasepath = "./eventconfigurations.db"
-    @commands.command(name="test")
-    async def test(self, ctx):
-        view = ResultmessageShower(ctx=ctx, messages=["hello", "world", "abcdef"])
-        await ctx.send("hello", view=view)
 
     @commands.guild_only()
     @commands.command(name="setperms")
