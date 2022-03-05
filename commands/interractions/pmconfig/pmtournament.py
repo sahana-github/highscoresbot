@@ -1,7 +1,8 @@
 import sqlite3
-from typing import Callable
+from typing import Callable, Awaitable, List
 
 import discord
+from discord.ext.commands import Context
 
 from commands.interractions.selectsutility import SelectsUtility
 from commands.interractions.selectsview import SelectsView
@@ -9,7 +10,10 @@ from commands.utils.utils import gettournamentprizes
 
 
 class GetTournament(SelectsUtility):
-    def __init__(self, ctx, oncallback: Callable[[str], None], options):
+    """
+    class for selecting a tournament type. Class calls oncallback when a selection is made.
+    """
+    def __init__(self, ctx: Context, oncallback: Callable[[str], Awaitable[None]], options: List[str]):
         super().__init__(ctx=ctx, options=options, max_selectable=1, min_selectable=1,
                         placeholder="select the tournament type you want a message for:")
         self.oncallback = oncallback
@@ -22,7 +26,10 @@ class GetTournament(SelectsUtility):
 
 
 class GetPrize(SelectsUtility):
-    def __init__(self, ctx, oncallback: Callable[[str], None], options):
+    """
+    class for selecting a prize. Class calls oncallback when a selection is made.
+    """
+    def __init__(self, ctx: Context, oncallback: Callable[[str], Awaitable[None]], options: List[str]):
         super().__init__(ctx=ctx, options=options, max_selectable=1, min_selectable=1,
                          placeholder="select the prize you want a message for:")
         self.oncallback = oncallback
@@ -35,7 +42,15 @@ class GetPrize(SelectsUtility):
 
 
 class PmTournament(discord.ui.View):
-    def __init__(self, ctx, databasepath):
+    """
+    view for pmtournament
+    """
+    def __init__(self, ctx: Context, databasepath: str):
+        """
+
+        :param ctx:
+        :param databasepath: path to the eventconfig database.
+        """
         super(PmTournament, self).__init__()
         self.ctx = ctx
         self.databasepath = databasepath
@@ -44,10 +59,22 @@ class PmTournament(discord.ui.View):
         self.both = False
 
     @discord.ui.button(label='tournamenttype', style=discord.ButtonStyle.green)
-    async def tournamenttype(self, button, interaction: discord.Interaction):
+    async def tournamenttype(self, button: discord.Button, interaction: discord.Interaction):
+        """
+        user registers for a specific tournament type showing up.
+        :param button:
+        :param interaction:
+        :return:
+        """
         await self._tournamenttype(button, interaction)
 
-    async def _tournamenttype(self, button, interaction):
+    async def _tournamenttype(self, button: discord.Button, interaction):
+        """
+        so it can be called inside the class without it being affected by the decorator.
+        :param button:
+        :param interaction:
+        :return:
+        """
         if not await self.isOwner(interaction): return
         tournamenttypes = ["ubers", "self caught", "little cup", "monotype", "set level 100"]
         await self.ctx.send("please select the tournament type: ",
@@ -55,9 +82,21 @@ class PmTournament(discord.ui.View):
 
     @discord.ui.button(label="prize", style=discord.ButtonStyle.green)
     async def prize(self, button, interaction: discord.Interaction):
+        """
+        user registers for a specific tournament prize showing up.
+        :param button:
+        :param interaction:
+        :return:
+        """
         await self._prize(button=button, interaction=interaction)
 
     async def _prize(self, button, interaction):
+        """
+        so it can be called inside the class without it being affected by the decorator.
+        :param button:
+        :param interaction:
+        :return:
+        """
         if not await self.isOwner(interaction): return
         await self.ctx.send("please select the prize: ",
                             view=SelectsView(self.ctx, gettournamentprizes(), self.tournamentprizemaker))
@@ -68,10 +107,10 @@ class PmTournament(discord.ui.View):
         self.both = True
         await self._tournamenttype(button, interaction)
 
-    def tournamentmaker(self, options):
+    def tournamentmaker(self, options: List[str]):
         return GetTournament(self.ctx, oncallback=self.__ontournamenttypecallback, options=options)
 
-    def tournamentprizemaker(self, options):
+    def tournamentprizemaker(self, options: List[str]):
         return GetPrize(self.ctx, oncallback=self.__onprizecallback, options=options)
 
     async def __ontournamenttypecallback(self, tournamenttype):

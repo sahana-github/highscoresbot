@@ -9,6 +9,9 @@ from commands.utils.utils import tablify, datehandler
 
 
 class GetEncounters(discord.ui.View):
+    """
+    the view of the getencounters command.
+    """
     def __init__(self, ctx: Context, parameter):
         super().__init__()
         self.parameter = parameter
@@ -85,7 +88,12 @@ class GetEncounters(discord.ui.View):
         self.stop()
 
     async def isOwner(self, interaction: discord.Interaction) -> bool:
-        if interaction.guild.id != self.ctx.guild.id or interaction.user.id != self.ctx.author.id:
+        """
+        check if the user initiating the interaction is the same user initiating the command.
+        :param interaction:
+        :return:boolean
+        """
+        if interaction.guild != self.ctx.guild or interaction.user.id != self.ctx.author.id:
             await interaction.response.send_message("only the user who used the command can use these buttons!")
             return False
         return True

@@ -18,7 +18,6 @@ class Highscores(commands.Cog):
         self.client: commands.bot.Bot = client
         self.databasepath = "highscores.db"
         self.makeClanCommands()
-        self.makeTop10Commands()
 
     def makeClanCommands(self):
         for highscore in clanhighscores:

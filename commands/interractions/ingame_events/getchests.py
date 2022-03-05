@@ -9,7 +9,10 @@ from commands.utils.utils import tablify, datehandler
 
 
 class GetChests(discord.ui.View):
-    def __init__(self, ctx: Context, parameter):
+    """
+    the view of the getchests command.
+    """
+    def __init__(self, ctx: Context, parameter: str):
         super().__init__()
         self.parameter = parameter
         self.ctx = ctx
@@ -65,6 +68,12 @@ class GetChests(discord.ui.View):
         await self.showMessages(resultmessages, interaction)
 
     async def showMessages(self, resultmessages, interaction: discord.Interaction):
+        """
+        show the provided resultmessages inside a ResultmessageShower. also stop receiving input for buttons.
+        :param resultmessages:
+        :param interaction:
+        :return:
+        """
         if not await self.isOwner(interaction): return
         msgshower = ResultmessageShower(messages=resultmessages, ctx=self.ctx)
         await interaction.response.edit_message(view=msgshower,
@@ -73,7 +82,7 @@ class GetChests(discord.ui.View):
         self.stop()
 
     async def isOwner(self, interaction: discord.Interaction) -> bool:
-        if interaction.guild.id != self.ctx.guild.id or interaction.user.id != self.ctx.author.id:
+        if interaction.guild != self.ctx.guild or interaction.user.id != self.ctx.author.id:
             await interaction.response.send_message("only the user who used the command can use these buttons!")
             return False
         return True

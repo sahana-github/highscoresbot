@@ -8,6 +8,9 @@ from commands.interractions.selectsutility import SelectsUtility
 
 
 class RemoveMemberConfig(SelectsUtility):
+    """
+    for removing a player of the playerconfig command.
+    """
     def __init__(self, members: List[str], databasepath, ctx):
         # Set the options that will be presented inside the dropdown
         self.databasepath = databasepath

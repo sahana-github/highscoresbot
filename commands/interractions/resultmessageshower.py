@@ -16,6 +16,11 @@ class ResultmessageShower(BrowseSelection, ABC):
         self.messages = messages
 
     async def _sendPage(self, interaction: discord.Interaction):
+        """
+        send the currentpage -1
+        :param interaction:
+        :return:
+        """
         msg = self.messages[self.currentpage-1]
         if type(msg) == Embed:
             await interaction.response.edit_message(content=f"page {self.currentpage} of {self.maxpage}",

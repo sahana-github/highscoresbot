@@ -10,13 +10,14 @@ from highscores import Btwinstreak, Btwins, getClanList, allhighscores
 
 
 class TopCommand(SelectsUtility):
-    def __init__(self, ctx: Context, highscores: List[str], clanname):
+    def __init__(self, ctx: Context, highscores: List[str], clanname: str):
         super().__init__(ctx=ctx, options=highscores, max_selectable=1, min_selectable=1,
                          placeholder="select the highscore you want to see")
         self.clanname = clanname
         self.highscores = highscores
 
     async def callback(self, interaction: discord.Interaction):
+        if not await self.isOwner(interaction): return
         highscorename = self.values[0]
         for highscore in allhighscores:
             highscore = highscore()

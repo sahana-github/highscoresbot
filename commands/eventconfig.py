@@ -6,7 +6,7 @@ from discord import NotFound, Forbidden
 from discord.ext import commands
 import sqlite3
 
-from commands.interractions.playerconfig.memberconfig import PlayerConfig
+from commands.interractions.playerconfig.playerconfig import PlayerConfig
 from commands.interractions.playerconfig.removememberconfig import RemoveMemberConfig
 from commands.interractions.resultmessageshower import ResultmessageShower
 from commands.interractions.selectsview import SelectsView

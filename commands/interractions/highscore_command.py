@@ -10,11 +10,21 @@ from highscores import allhighscores
 
 class HighscoreCommand(SelectsUtility):
     def __init__(self, ctx: Context, highscores: List[str]):
+        """
+        creates a selectsutility for the highscore command.
+        :param ctx:
+        :param highscores: the options. max 25.
+        """
         super().__init__(ctx=ctx, options=highscores, max_selectable=1, min_selectable=1,
                          placeholder="select the highscore you want to see")
         self.highscores = highscores
 
     async def callback(self, interaction: discord.Interaction):
+        """
+        what happens on select.
+        :param interaction:
+        :return:
+        """
         highscorename = self.values[0]
         for highscore in allhighscores:
             highscore = highscore()

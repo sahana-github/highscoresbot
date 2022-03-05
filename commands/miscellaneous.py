@@ -291,7 +291,13 @@ class Miscellaneous(commands.Cog):
         result = cur.fetchall()
         conn.close()
 
-        view = SelectsView(ctx, [row[1] for row in result], lambda options: HelpCmd(ctx, options))
+        labels = []
+        for row in result:
+            label = row[1]
+            if row[0] is not None:
+                label += f" ({row[0]})"
+            labels.append(label)
+        view = SelectsView(ctx, labels, lambda options: HelpCmd(ctx, options))
         await ctx.send("Select the command(s) you need help with! Commands are sorted by category.", view=view)
 
     async def status_task(self):

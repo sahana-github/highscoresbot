@@ -7,12 +7,18 @@ from commands.interractions.browseselection import BrowseSelection
 
 
 class ImgWithText:
+    """
+    text or an embed with an image.
+    """
     def __init__(self, img: Image, text: Union[str, discord.Embed]):
         self.img = img
         self.text = text
 
 
 class GMSearch(BrowseSelection):
+    """
+    browse through all the received global marketplace messages.
+    """
     def __init__(self, ctx, messages: List):
         super().__init__(ctx, len(messages))
         self.messages = messages
@@ -22,6 +28,11 @@ class GMSearch(BrowseSelection):
         await self._sendPage(None)
 
     async def _sendPage(self, interaction: discord.Interaction):
+        """
+        send the page, remove previous send. Also make the image from a lambda/callable.
+        :param interaction:
+        :return:
+        """
         page = self.messages[self.currentpage-1]
         img = None
         text = page if type(page) == str else ""

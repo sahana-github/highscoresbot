@@ -1,10 +1,22 @@
-from typing import Callable
+from typing import Callable, Coroutine, Awaitable
 
 import discord
+from discord.ext.commands import Context
 
 
 class PlayerConfig(discord.ui.View):
-    def __init__(self, add: Callable, remove: Callable, show: Callable, ctx):
+    """
+    view for the playerconfig command.
+    """
+    def __init__(self, add: Callable[[Context], Awaitable[None]], remove: Callable[[Context], Awaitable[None]],
+                 show: Callable[[Context], Awaitable[None]], ctx: Context):
+        """
+
+        :param add: callable for adding a player to playerconfig
+        :param remove: callable for removing a player from playerconfig
+        :param show: callable for showing playerconfig
+        :param ctx:
+        """
         super().__init__()
         self.add = add
         self.remove = remove
