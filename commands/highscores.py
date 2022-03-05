@@ -3,10 +3,11 @@ import sqlite3
 from typing import Union
 
 from discord.ext.commands import Command, Context
-from discord_components import Select, SelectOption, Interaction, ButtonStyle, Button
 
-from commands.utils.scroller import DropdownScroller
-from commands.utils.utils import tablify, joinmessages, ResultmessageShower
+from commands.interractions.highscore_command import HighscoreCommand
+from commands.interractions.selectsview import SelectsView
+from commands.interractions.top_command import TopCommand
+from commands.utils.utils import tablify, joinmessages
 from discord.ext import commands
 from highscores import *
 from highscores.highscore import Highscore
@@ -17,7 +18,6 @@ class Highscores(commands.Cog):
         self.client: commands.bot.Bot = client
         self.databasepath = "highscores.db"
         self.makeClanCommands()
-        self.makeTop10Commands()
 
     def makeClanCommands(self):
         for highscore in clanhighscores:
@@ -33,24 +33,6 @@ class Highscores(commands.Cog):
                         await ctx.send(i)
                 return cmd
 
-            self.client.add_command(outer_cmd(highscore))
-
-    def makeTop10Commands(self):
-        somelist = [RichestClans, BestClans]
-        for highscore in somelist:
-            highscore = highscore()
-
-            def outer_cmd(score: Highscore) -> Command:
-                @commands.command(name=score.NAME)
-                async def cmd(ctx, clanname=None):
-                    if clanname is None and ((clanname := await self.getdefaultclanname(ctx, comment=False)) is None):
-                        clanname = ""
-                    values = score.getDbValues(query="SELECT * FROM {0} WHERE rank < 10 or name = ?".format(score.NAME),
-                                               clan=clanname.lower())
-                    resultmessages = tablify(score.LAYOUT, values)
-                    for i in resultmessages:
-                        await ctx.send(i)
-                return cmd
             self.client.add_command(outer_cmd(highscore))
 
     @commands.command(name="getplayer")
@@ -144,30 +126,12 @@ class Highscores(commands.Cog):
         for highscore in allhighscores:
             highscore = highscore()
             highscoresdict[highscore.NAME] = highscore
-        async def action(highscorename):
-            highscore = highscoresdict[highscorename]
-            if highscorename == "btwins" or highscorename == "btwinstreak":
-                values = []
-                clanlist = getClanList(clanname.lower()) if clanname is not None else []
-                highscore = Btwinstreak() if highscorename == "btwinstreak" else Btwins()
-                for row in highscore.getDbValues():
-                    if row[1] in clanlist or row[0] < 10:
-                        values.append(row)
-            else:
-                try:
-                    values = highscore.getDbValues(query="SELECT * FROM {0} WHERE clan=? OR rank<10".format(highscore.NAME),
-                                                   params=[(clanname.lower() if clanname is not None else None)])
-                except Exception as e:
-                    print(e)
-                    values = highscore.getDbValues(query="SELECT * FROM {0} WHERE rank<10".format(highscore.NAME))
-            messages = tablify(highscore.LAYOUT, values, maxlength=1930)
 
-            messageShower = ResultmessageShower(self.client, messages, ctx)
-            await messageShower.loop()
+        def highscoreselectionmaker(highscores):
+            return TopCommand(ctx, highscores, clanname)
 
-        d = DropdownScroller(list(highscoresdict.keys()), ctx, action=action, client=self.client,
-                             selectiontext="please select the highscore you want to see.")
-        await d.mainloop()
+        view = SelectsView(ctx, highscoresdict, highscoreselectionmaker)
+        await ctx.send(content=f"page {view.currentpage} of {view.maxpage}", view=view)
 
     @commands.command(name="getclan")
     async def getclan(self, ctx, clanname: str):
@@ -216,14 +180,11 @@ class Highscores(commands.Cog):
             highscore = highscore()
             initializedhighscores[highscore.NAME] = highscore
 
-        async def action(highscorename):
-            highscore = initializedhighscores[highscorename]
-            messages = tablify(highscore.LAYOUT, highscore.getDbValues(), maxlength=1300)
-            messageShower = ResultmessageShower(self.client, messages, ctx)
-            await messageShower.loop()
-        d = DropdownScroller(list(initializedhighscores.keys()), ctx, action=action, client=self.client,
-                             selectiontext="please select the highscore you want to see.")
-        await d.mainloop()
+        def highscoreselectionmaker(highscores):
+            return HighscoreCommand(ctx, highscores)
+
+        view = SelectsView(ctx, initializedhighscores.keys(), highscoreselectionmaker)
+        await ctx.send(content=f"page {view.currentpage} of {view.maxpage}", view=view)
 
 
 def setup(client):

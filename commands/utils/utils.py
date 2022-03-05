@@ -7,7 +7,6 @@ from typing import Union, List
 import discord
 from PIL import Image
 from discord.ext.commands import Context
-from discord_components import Button, ButtonStyle
 from numpy import isnan
 
 from pathmanager import PathManager
@@ -49,24 +48,29 @@ def tablify(layout, values, maxlength=2000):
     return messages
 
 
-def isswarmpokemon(pokemon: str) -> bool:
+def getswarmpokemons() -> List[str]:
     """
     checks if the provided pokemon is a pokemon that can be in a swarm.
-    :param pokemon: the provided pokemon.
     :return: boolean if the pokemon is in the list of pokemon that can be in swarms.
     """
     swarmpokemonlist = open("commands/data/swarmpokemon.csv").read().split(",")
-    return pokemon in swarmpokemonlist
+    swarmpokemonlist = [pokemon.lower() for pokemon in swarmpokemonlist]
+    swarmpokemonlist = list(set(swarmpokemonlist))
+    swarmpokemonlist.sort()
+    return swarmpokemonlist
 
 
-def isswarmlocation(location: str) -> bool:
+def getswarmlocations() -> List[str]:
     """
     checks if the provided location is a location where a swarm can happen.
     :param location: the provided location
     :return: boolean if location is in the list of locations where swarms can happen,
     """
     swarmlocationlist = open("commands/data/swarmlocations.csv").read().split(",")
-    return location in swarmlocationlist
+    swarmlocationlist = [location.lower() for location in swarmlocationlist]
+    swarmlocationlist = list(set(swarmlocationlist))  # remove duplicates just in case
+    swarmlocationlist.sort()
+    return swarmlocationlist
 
 
 def isgoldrushlocation(location: str) -> bool:
@@ -84,8 +88,9 @@ def getgoldrushlocations() -> list:
     gets a list of locations where goldrushes can happen.
     :return:
     """
-    return open("commands/data/goldrushlocations.csv").read().split(",")
-
+    goldrushlocations = open("commands/data/goldrushlocations.csv").read().split(",")
+    goldrushlocations.sort()
+    return goldrushlocations
 
 def ishoneylocation(location: str) -> bool:
     """
@@ -103,15 +108,17 @@ def gethoneylocations() -> list:
     with sqlite3.connect("data.db") as conn:
         cur = conn.cursor()
         cur.execute("SELECT * FROM honeylocations")
-        return [row[0] for row in cur.fetchall()]
+        honeylocations = [row[0] for row in cur.fetchall()]
+    honeylocations.sort()
+    return honeylocations
 
-
-def istournamentprize(prize: str) -> list:
+def gettournamentprizes() -> List[str]:
     with sqlite3.connect("data.db") as conn:
         cur = conn.cursor()
-        cur.execute("SELECT prize FROM tournamentprizes WHERE prize=?", (prize,))
-        return bool(cur.fetchall())
-
+        cur.execute("SELECT prize FROM tournamentprizes")
+        tournamentprizes = [row[0] for row in cur.fetchall()]
+    tournamentprizes.sort()
+    return tournamentprizes
 
 def haspermissions(roles: list, guild: int) -> bool:
     """
@@ -191,90 +198,3 @@ def joinmessages(messages, maxlength=2000):
     if newmsg != "":
         allmessages.append(newmsg)
     return allmessages
-
-
-class PageTurner:
-    def __init__(self, pages: List[str]):
-        self.pages: List[str] = pages
-        self.MINPAGE = 1 if self.pages else 0
-        self.MAXPAGE = len(self.pages)
-        self.page = self.MINPAGE
-
-    def changePage(self, movement, absolute=False):
-        if absolute:
-            newpage = movement
-        else:
-            newpage = self.page + movement
-        if newpage > self.MAXPAGE or newpage < self.MINPAGE:
-            return self.pages[self.page - 1]
-        self.page = newpage
-        return self.pages[self.page - 1]
-
-    def add_page(self, page: str):
-        self.pages.append(page)
-        self.MAXPAGE = len(self.pages)
-
-    def remove_page(self, index: int):
-        self.pages.pop(index)
-        self.MINPAGE = 1 if self.pages else 0
-        self.MAXPAGE = len(self.pages)
-        if self.page > self.MAXPAGE:
-            self.page = self.MAXPAGE
-
-
-class ResultmessageShower:
-    def __init__(self, client: discord.Client, resultmessages: List[str], ctx: Context, timeout: int=600,
-                 startpage: Union[str, None]=None):
-        self.client = client
-        self.timeout = timeout
-        self.__pageTurner = PageTurner(resultmessages)
-        self.__buttons = [[Button(style=ButtonStyle.blue, label="<<"),
-                           Button(style=ButtonStyle.blue, label="<"),
-                           Button(style=ButtonStyle.red, label=">"),
-                           Button(style=ButtonStyle.red, label=">>")]]
-        self.__buttonids = []
-        for row in self.__buttons:
-            for button in row:
-                self.__buttonids.append(button.id)
-        if startpage is None:
-            startpage = resultmessages[0]
-        self.startpage = startpage
-        self.ctx = ctx
-
-    async def loop(self):
-        self.originmsg = await self.ctx.send(f"```page {self.__pageTurner.page} of {self.__pageTurner.MAXPAGE}```\n" +
-                                        self.startpage,
-                                        components=self.__buttons)
-        while True:
-            try:
-                res = await self.client.wait_for("button_click",
-                                                 check=lambda response:
-                                                 response.component.id in self.__buttonids,
-                                                 timeout=self.timeout)
-                if res.component.label == "<":
-                    page = self.__pageTurner.changePage(-1)
-                elif res.component.label == ">":
-                    page = self.__pageTurner.changePage(1)
-                elif res.component.label == "<<":
-                    page = self.__pageTurner.changePage(self.__pageTurner.MINPAGE, True)
-                elif res.component.label == ">>":
-                    page = self.__pageTurner.changePage(self.__pageTurner.MAXPAGE, True)
-                else:
-                    page = self.__pageTurner.changePage(0)
-                await res.edit_origin(f"```page {self.__pageTurner.page} of {self.__pageTurner.MAXPAGE}```\n"
-                                      + page)
-            except asyncio.TimeoutError:
-                for buttonrow in self.__buttons:
-                    for button in buttonrow:
-                        button.set_disabled(True)
-                await self.originmsg.edit(f"```page {self.__pageTurner.page} of {self.__pageTurner.MAXPAGE}```\n" +
-                               self.__pageTurner.changePage(0), components=self.__buttons)
-                break
-
-
-
-
-
-
-if __name__ == "__main__":
-    PageTurner(["message1", "message2", "message3"])

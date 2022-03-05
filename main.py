@@ -1,10 +1,8 @@
 """
 This file runs the bot for processing commands and handles errors when those happen in commands.
 """
-import asyncio
 import os
 import discord.ext.commands
-from discord_components import DiscordComponents, Button, ButtonStyle
 from discord.ext.commands import CommandNotFound
 from discord.ext.commands.errors import MissingRequiredArgument, CommandInvokeError, NoPrivateMessage
 from discord.errors import Forbidden, NotFound
@@ -14,9 +12,10 @@ from discord.ext.commands.context import Context
 
 client = discord.ext.commands.Bot(command_prefix=[".", "?"])
 
-cog_files = ['commands.eventconfig', 'commands.pmconfig', 'commands.highscores', 'commands.miscellaneous',
-             'commands.ingame_events']
-
+# cog_files = ['commands.eventconfig', 'commands.pmconfig', 'commands.highscores', 'commands.miscellaneous',
+#              'commands.ingame_events']
+cog_files = ['commands.eventconfig', 'commands.highscores', "commands.ingame_events", 'commands.miscellaneous',
+             "commands.pmconfig"]
 
 @client.event
 async def on_command_error(ctx: Context, error: Exception):
@@ -87,7 +86,6 @@ async def on_ready():
     :return:
     """
     await client.wait_until_ready()
-    DiscordComponents(client)  # for the buttons.
 
 for cog_file in cog_files:  # load in all commands.
     client.load_extension(cog_file)
