@@ -6,6 +6,7 @@ from discord import NotFound, Forbidden
 from discord.ext import commands
 import sqlite3
 
+from commands.interractions.eventconfig.register import Register
 from commands.interractions.playerconfig.playerconfig import PlayerConfig
 from commands.interractions.playerconfig.removememberconfig import RemoveMemberConfig
 from commands.interractions.resultmessageshower import ResultmessageShower
@@ -101,31 +102,25 @@ class Eventconfigurations(commands.Cog):
 
     @commands.guild_only()
     @commands.command(name="register")
-    async def register(self, ctx: Context, eventname: str, channel: Union[str, None] = None):
+    async def register(self, ctx: Context, channel: Union[str, None] = None):
         """
         Registers an event at the specified channel. If the channel is not specified the channel is the channel the
         command is used from.
         :param ctx: discord context
-        :param eventname: The name of the event that should be announced in the provided channel. Default is ctx.channel
-        (the channel where the command was used)
-        :param channel: The channel to send the event to.
+        :param channel: The channel to send the event to. Default channel where command was used.
         """
-        eventname = eventname.lower()
         if not haspermissions([role.id for role in ctx.message.author.roles], ctx.guild.id) and not\
                 ctx.message.author.guild_permissions.administrator:
             await ctx.send("insufficient permissions to use this command!")
             return
-        if not await self.__eventnamecheck(ctx, eventname):
-            return
-        if channel is None:
-            channel = ctx.channel.id
+
+        if channel is None:  # check if channel is valid.
             chan = ctx.channel
         elif match := re.search(r"(?<=<#)([0-9]+)(?=>)", channel):
             try:
                 chan = await self.client.fetch_channel(int(match.group()))
                 if chan.guild.id != ctx.guild.id:
                     raise ValueError("user tries to register an event at another guild.")
-                channel = int(match.group())
             except ValueError:
                 await ctx.send("i have no access to that channel! are you sure that channel is in the current server?")
                 return
@@ -141,23 +136,13 @@ class Eventconfigurations(commands.Cog):
         else:
             await ctx.send("please provide a valid channel to register for that event.")
             return
+        with sqlite3.connect(self.databasepath) as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT eventname FROM eventnames")
+            eventnames = [row[0] for row in cur.fetchall()]
 
-        conn = sqlite3.connect(self.databasepath)
-        cur = conn.cursor()
-
-        try:
-            result = cur.execute("UPDATE eventconfig SET channel=? WHERE guildid=? AND eventname=?",
-                                 (channel, ctx.guild.id, eventname))
-            if not result.rowcount:  # no rows affected by previous statement.
-                cur.execute("INSERT INTO eventconfig(guildid, eventname, channel) VALUES(?, ?, ?)",
-                            (ctx.guild.id, eventname, channel))
-            conn.commit()
-            await chan.send(
-                f"This channel has been properly configured for sending the {eventname} event {ctx.author.mention}!")
-        except sqlite3.IntegrityError:
-            await ctx.send("event already registered in this channel!")
-        finally:
-            conn.close()
+        view = SelectsView(ctx, eventnames, lambda options: Register(ctx, options, chan, self.databasepath))
+        await ctx.send(f"Select events you want a message for in {chan.mention}", view=view)
 
     @commands.guild_only()
     @commands.command(name="settime")
