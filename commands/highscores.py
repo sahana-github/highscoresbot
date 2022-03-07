@@ -18,6 +18,7 @@ class Highscores(commands.Cog):
         self.client: commands.bot.Bot = client
         self.databasepath = "highscores.db"
         self.makeClanCommands()
+        self.makeTop10Commands()
 
     def makeClanCommands(self):
         for highscore in clanhighscores:
@@ -31,6 +32,26 @@ class Highscores(commands.Cog):
                     messages = tablify(score.LAYOUT, score.getDbValues(clan=clanname.lower()))
                     for i in messages:
                         await ctx.send(i)
+                return cmd
+
+            self.client.add_command(outer_cmd(highscore))
+
+    def makeTop10Commands(self):
+        somelist = [RichestClans, BestClans]
+        for highscore in somelist:
+            highscore = highscore()
+
+            def outer_cmd(score: Highscore) -> Command:
+                @commands.command(name=score.NAME)
+                async def cmd(ctx, clanname=None):
+                    if clanname is None and ((clanname := await self.getdefaultclanname(ctx, comment=False)) is None):
+                        clanname = ""
+                    values = score.getDbValues(query="SELECT * FROM {0} WHERE rank < 10 or name = ?".format(score.NAME),
+                                               clan=clanname.lower())
+                    resultmessages = tablify(score.LAYOUT, values)
+                    for i in resultmessages:
+                        await ctx.send(i)
+
                 return cmd
 
             self.client.add_command(outer_cmd(highscore))

@@ -140,7 +140,7 @@ class Eventconfigurations(commands.Cog):
             cur = conn.cursor()
             cur.execute("SELECT eventname FROM eventnames")
             eventnames = [row[0] for row in cur.fetchall()]
-
+        eventnames.sort()
         view = SelectsView(ctx, eventnames, lambda options: Register(ctx, options, chan, self.databasepath))
         await ctx.send(f"Select events you want a message for in {chan.mention}", view=view)
 
