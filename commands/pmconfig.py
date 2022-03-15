@@ -108,6 +108,6 @@ class Pmconfig(commands.Cog):
         await ctx.send("what event do you want to remove pmconfig of?", view=RemovePmConfig(ctx, self.databasepath))
 
 
-def setup(client):
-    client.add_cog(Pmconfig(client))
+async def setup(client):
+    await client.add_cog(Pmconfig(client))
     #help(Button)

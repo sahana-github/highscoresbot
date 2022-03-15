@@ -316,6 +316,6 @@ class Miscellaneous(commands.Cog):
 
 
 
-def setup(client):
+async def setup(client):
     client.remove_command('help')
-    client.add_cog(Miscellaneous(client))
+    await client.add_cog(Miscellaneous(client))

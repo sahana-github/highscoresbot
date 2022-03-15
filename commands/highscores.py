@@ -2,6 +2,7 @@ import asyncio
 import sqlite3
 from typing import Union
 
+import discord
 from discord.ext.commands import Command, Context
 
 from commands.interractions.highscore_command import HighscoreCommand
@@ -208,5 +209,5 @@ class Highscores(commands.Cog):
         await ctx.send(content=f"page {view.currentpage} of {view.maxpage}", view=view)
 
 
-def setup(client):
-    client.add_cog(Highscores(client))
+async def setup(client: commands.Bot):
+    await client.add_cog(Highscores(client))
