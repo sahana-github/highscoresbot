@@ -1,4 +1,5 @@
-
+import discord
+from discord import app_commands
 from discord.ext import commands
 from commands.interractions.pmconfig.pmgoldrush import PmGoldrush
 from commands.interractions.pmconfig.pmhoney import PmHoney
@@ -108,6 +109,8 @@ class Pmconfig(commands.Cog):
         await ctx.send("what event do you want to remove pmconfig of?", view=RemovePmConfig(ctx, self.databasepath))
 
 
+
 async def setup(client):
     await client.add_cog(Pmconfig(client))
+
     #help(Button)

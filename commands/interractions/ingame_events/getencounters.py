@@ -2,6 +2,7 @@ import sqlite3
 import datetime
 
 import discord
+from discord import Interaction
 from discord.ext.commands import Context
 
 from commands.interractions.resultmessageshower import ResultmessageShower
@@ -12,10 +13,10 @@ class GetEncounters(discord.ui.View):
     """
     the view of the getencounters command.
     """
-    def __init__(self, ctx: Context, parameter):
+    def __init__(self, interaction: Interaction, parameter):
         super().__init__()
         self.parameter = parameter
-        self.ctx = ctx
+        self.interaction = interaction
 
     @discord.ui.button(label='pokemon', style=discord.ButtonStyle.green)
     async def pokemon(self, button: discord.ui.Button, interaction: discord.Interaction):
@@ -93,7 +94,7 @@ class GetEncounters(discord.ui.View):
         :param interaction:
         :return:boolean
         """
-        if interaction.guild != self.ctx.guild or interaction.user.id != self.ctx.author.id:
+        if interaction.guild != self.interaction.guild or interaction.user.id != self.interaction.user.id:
             await interaction.response.send_message("only the user who used the command can use these buttons!")
             return False
         return True

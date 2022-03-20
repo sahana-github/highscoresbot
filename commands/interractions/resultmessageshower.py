@@ -1,7 +1,7 @@
 from abc import ABC
 from typing import List, Union
 import discord
-from discord import Embed, InteractionResponse
+from discord import Embed, InteractionResponse, Interaction
 from discord.ext.commands import Context
 
 from commands.interractions.browseselection import BrowseSelection
@@ -11,8 +11,8 @@ class ResultmessageShower(BrowseSelection, ABC):
     """
     shows the resultmessages with buttons.
     """
-    def __init__(self, messages: List[Union[str, Embed]], ctx: Context, ownerOnly=True):
-        super(ResultmessageShower, self).__init__(ctx, pagesamount=len(messages), ownerOnly=ownerOnly)
+    def __init__(self, messages: List[Union[str, Embed]], interaction: Interaction, ownerOnly=True):
+        super(ResultmessageShower, self).__init__(interaction, pagesamount=len(messages), ownerOnly=ownerOnly)
         self.messages = messages
 
     async def _sendPage(self, interaction: discord.Interaction):

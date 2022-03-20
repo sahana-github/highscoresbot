@@ -2,7 +2,7 @@ import asyncio
 import sqlite3
 import datetime
 from typing import List
-
+from discord import app_commands, Interaction, InteractionResponse
 import discord
 from discord.ext import commands
 from discord.ext.commands.context import Context
@@ -19,14 +19,16 @@ class IngameEvents(commands.Cog):
     def __init__(self, client: commands.bot):
         self.client: commands.bot = client
 
-    @commands.command(name="lastonline")
-    async def lastonline(self, ctx, playername=None):
+    ingameeventsgroup = app_commands.Group(name="ingame-events",
+                                           description="deals with stuff that has been acquired from inside the game itself")
+    @ingameeventsgroup.command(name="lastonline")
+    async def lastonline(self, interaction: Interaction, playername=None):
         if playername is None:
             with sqlite3.connect("ingame_data.db") as conn:
                 cur = conn.cursor()
                 cur.execute("SELECT max(timestamp) FROM activity")
                 online = datetime.datetime.fromtimestamp(cur.fetchall()[0][0], datetime.timezone.utc)
-                await ctx.send(f"last online check was at {online}. Give a playername with the command to see what"
+                await interaction.response.send_message(f"last online check was at {online}. Give a playername with the command to see what"
                                f"date the player was last online.")
             return
         playername = playername.lower()
@@ -36,57 +38,60 @@ class IngameEvents(commands.Cog):
             try:
                 timestamp = cur.fetchall()[0][0]
             except IndexError:
-                await ctx.send(f"no information about last online of {playername}")
+                await interaction.response.send_message(f"no information about last online of {playername}")
                 return
             online = datetime.datetime.fromtimestamp(timestamp, datetime.timezone.utc)
             if playername != "mishaal":
-                await ctx.send(f"{playername} was last online at {str(online).split(' ')[0]}")
+                await interaction.response.send_message(f"{playername} was last online at {str(online).split(' ')[0]}")
             else:
-                await ctx.send(f"{playername} was last online at {str(online)}")
+                await interaction.response.send_message(f"{playername} was last online at {str(online)}")
 
-    @commands.command(name="getencounters")
-    async def getencounters(self, ctx: Context, *name: str):
+
+    @ingameeventsgroup.command(name="getencounters")
+    async def getencounters(self, interaction: Interaction, name: str):
         """
         gets the encounters
         :param ctx: message context
         :param name: either playername, pokemonname or a date
         """
-        name = " ".join(name)
+        interaction.u
+        # name = " ".join(name)  @todo check if this is needed
         name = name.lower()
-        await ctx.send("is that a pokemon, date, or player? Press the button to get a response!",
-                             view=GetEncounters(ctx, name))
+        await interaction.response.send_message(content="is that a pokemon, date, or player? Press the button to get a response!",
+                             view=GetEncounters(interaction, name))
 
-    @commands.command(name="getpokemon")
-    async def getpokemon(self, ctx: Context, *_):
+    @ingameeventsgroup.command(name="getpokemon")
+    async def getpokemon(self, interaction: Interaction, *_):
         """
         @deprecated
         :param ctx:
         :param _:
         :return:
         """
-        await ctx.send("please use .getencounters instead!")
+        await interaction.response.send_message("please use .getencounters instead!")
 
-    @commands.command(name="getchests")
-    async def getchests(self, ctx, *argument):
-        name = " ".join(argument).lower().strip()
-        name = name.lower()
-        await ctx.send("is that a location, date, or player? Press the button to get a response! ",
-                       view=GetChests(ctx, name))
+    @ingameeventsgroup.command(name="getchests")
+    async def getchests(self, interaction: Interaction, argument):
+        #name = " ".join(argument).lower().strip()  @todo check if needed
+        name = argument.lower()
+        await interaction.response.send_message("is that a location, date, or player? Press the button to get a response! ",
+                       view=GetChests(interaction, name))
 
-    @commands.command(name="getrolls")
-    async def getrolls(self, ctx: Context, *parameter: str):
+    @ingameeventsgroup.command(name="getrolls")
+    async def getrolls(self, interaction: Interaction, parameter: str):
         """
         Gets the rolls of a player, the rolls of a pokemon, or the rolls on a specific date.
         Timeout is 10 minutes, then the message gets deleted.
         :param ctx: discord context
         :param parameter: The pokemon, date or player
         """
-        parameter = " ".join(parameter)
-        await ctx.send("is that a pokemon, date, or player? Press the button to get a response! ",
-                       view=GetRolls(ctx, parameter))
+        #parameter = " ".join(parameter)
+        a: InteractionResponse = interaction.response
+        await interaction.response.send_message(content="is that a pokemon, date, or player? Press the button to get a response! ",
+                       view=GetRolls(interaction, parameter))
 
-    @commands.command(name="getclanencounters")
-    async def getclanencounters(self, ctx: Context, clanname: str):
+    @ingameeventsgroup.command(name="getclanencounters")
+    async def getclanencounters(self, interaction: Interaction, clanname: str):
         conn = sqlite3.connect(r"ingame_data.db")
         cur = conn.cursor()
 
@@ -97,17 +102,13 @@ class IngameEvents(commands.Cog):
             [totalencounters.append(row) for row in cur.fetchall()]
         totalencounters.sort(key=lambda x: x[2])
         resultmessages = tablify(["name", "pokemon", "date"], totalencounters, maxlength=1200)
-        resultmessageshower = ResultmessageShower(resultmessages[::-1], ctx)
-        await ctx.send(content=f"page {resultmessageshower.currentpage} of {resultmessageshower.maxpage}\n" +
+        resultmessageshower = ResultmessageShower(resultmessages[::-1], interaction)
+        await interaction.response.send_message(content=f"page {resultmessageshower.currentpage} of {resultmessageshower.maxpage}\n" +
                                resultmessages[-1],
                        view=resultmessageshower)
 
-    @commands.command(name="getchestsbydate", aliases=["topchestlocations", "topchestplayers"])
-    async def getchestsbydate(self, ctx: Context, *_):
-        await ctx.send("please use .getchests instead!")
-
     @commands.command(name="worldbosstime")
-    async def worldbosstime(self, ctx: Context):
+    async def worldbosstime(self, interaction: Interaction):
         """
         gives the time untill the start of the worldboss.
         :param ctx: discord context
@@ -120,12 +121,12 @@ class IngameEvents(commands.Cog):
             embed.add_field(name="relative",
                             value=f"that is in {(timedifference.days * 86400 + timedifference.seconds) // 3600} hours "
                                   f"and {(timedifference.seconds // 60) % 60} minutes\n")
-            await ctx.send(embed=embed)
+            await Interaction.response.send_message(embed=embed)
         except IndexError:
-            await ctx.send("something went wrong!")
+            await Interaction.response.send_message("something went wrong!")
         except Exception as e:
-            await ctx.send("uncaught exception.")
-            print(e)
+            await Interaction.response.send_message.send("uncaught exception.")
+            raise e
 
 async def setup(client):
     await client.add_cog(IngameEvents(client))

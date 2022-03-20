@@ -1,21 +1,21 @@
 import discord
-from discord.ext.commands import Context
+from discord import Interaction
 
 
 class BrowseSelection(discord.ui.View):
     """
     handles the buttons to browse through something.
     """
-    def __init__(self, ctx: Context, pagesamount: int, ownerOnly=True):
+    def __init__(self, interaction: Interaction, pagesamount: int, ownerOnly=True):
         """
         constructor
-        :param ctx: discord context.
+        :param interaction: interaction context.
         :param pagesamount: amount of pages.
         :param ownerOnly: if only the owner/initiator may press the buttons.
         """
         super().__init__()
         self.ownerOnly = ownerOnly
-        self.ctx = ctx
+        self.interaction = interaction
         self.currentpage = 1
         self.maxpage = pagesamount
 
@@ -85,7 +85,7 @@ class BrowseSelection(discord.ui.View):
         """
         if not self.ownerOnly:
             return True
-        if interaction.guild != self.ctx.guild or interaction.user.id != self.ctx.author.id:
+        if interaction.guild != self.interaction.guild or interaction.user.id != self.interaction.user.id:
             await interaction.response.send_message("only the user who used the command can use these buttons!")
             return False
         return True

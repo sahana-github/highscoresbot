@@ -9,10 +9,10 @@ from discord.ext.commands import Context, CommandNotFound, CommandInvokeError, N
 
 class Main(commands.Bot):
     def __init__(self):
-        super().__init__([".", "?"])
+
+        super().__init__([".", "?"], intents=discord.Intents.all())
         #self.intents.message_content = True
-        self.cog_files = ['commands.eventconfig', 'commands.highscores', "commands.ingame_events",
-                          'commands.miscellaneous', "commands.pmconfig"]
+        self.cog_files = ["commands.testcog"]
 
 
     async def on_ready(self):
@@ -24,7 +24,11 @@ class Main(commands.Bot):
         for cog_file in self.cog_files:  # load in all commands
             await self.load_extension(cog_file)
             print("%s has loaded." % cog_file)
-
+        # for command in self.tree.get_commands():
+        #     print(command)
+        await self.tree.sync()
+        for a in await self.tree.fetch_commands():
+            print(a)
     async def on_command_error(self, ctx: Context, error: Exception):
         """
         handles errors, and sends those to the error channel if the exception is not handled in another way.

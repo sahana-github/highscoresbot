@@ -1,6 +1,7 @@
 from typing import Callable, List
 
 import discord
+from discord import Interaction
 from discord.ext.commands import Context
 
 from commands.interractions.browseselection import BrowseSelection
@@ -8,7 +9,7 @@ from commands.interractions.selectsutility import SelectsUtility
 
 
 class SelectsView(BrowseSelection):
-    def __init__(self, ctx: Context, options: List[str], selectoption: Callable[[List[str]], SelectsUtility],
+    def __init__(self, interaction: Interaction, options: List[str], selectoption: Callable[[List[str]], SelectsUtility],
                  ownerOnly: bool = True):
         """
         combines the browseselection with selects, to bypass the limitation of 25 selects.
@@ -27,7 +28,7 @@ class SelectsView(BrowseSelection):
                 page = []
         if page:
             self.pages.append(page)
-        super(SelectsView, self).__init__(ctx, pagesamount=len(self.pages), ownerOnly=ownerOnly)
+        super(SelectsView, self).__init__(interaction, pagesamount=len(self.pages), ownerOnly=ownerOnly)
         self.previous: SelectsUtility = self.selectoptionmaker(self.pages[0])
         self.add_item(self.previous)
         #await ctx.send(content=f"page {self.currentpage} of {self.maxpage}", view=self)
