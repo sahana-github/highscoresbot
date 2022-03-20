@@ -12,7 +12,7 @@ class Main(commands.Bot):
 
         super().__init__([".", "?"], intents=discord.Intents.all())
         #self.intents.message_content = True
-        self.cog_files = ["commands.testcog"]
+        self.cog_files = ["commands.testcog", "commands.ingame_events"]
 
 
     async def on_ready(self):
@@ -29,6 +29,7 @@ class Main(commands.Bot):
         await self.tree.sync()
         for a in await self.tree.fetch_commands():
             print(a)
+
     async def on_command_error(self, ctx: Context, error: Exception):
         """
         handles errors, and sends those to the error channel if the exception is not handled in another way.

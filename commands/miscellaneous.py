@@ -11,12 +11,13 @@ from commands.interractions.miscellaneous.gmsearch import ImgWithText, GMSearch
 from commands.interractions.miscellaneous.help_cmd import HelpCmd
 from commands.interractions.resultmessageshower import ResultmessageShower
 from commands.interractions.selectsview import SelectsView
-from commands.utils.utils import getworldbosstime, tablify
+from commands.utils.utils import tablify
 
 from discord.ext.commands.context import Context
 from highscores import getClanList
 from ppobyter.marketplace.item import Item
 from ppobyter.marketplace.pokemon import Pokemon
+from discord import app_commands, Interaction, InteractionResponse
 
 
 class Miscellaneous(commands.Cog):
@@ -28,9 +29,11 @@ class Miscellaneous(commands.Cog):
                           "%3Dhttps%253A%252F%252Fdiscordapp.com%252Foauth2%252Fauthorize%253F%2526" \
                           "permissions%253D141312%2526client_id%253D733434249771745401%2526scope%253Dbot%26scope%3Dbot"
 
+    miscellaneousgroup = app_commands.Group(name="miscellaneous", description="random commands that don't have a category")
 
-    @commands.command(name="clanlist")
-    async def clanlist(self, ctx: Context, clanname: str):
+
+    @miscellaneousgroup.command(name="clanlist")
+    async def clanlist(self, interaction: Interaction, clanname: str):
         """
         gives a list of players that are in the provided clan.
         :param ctx: discord context
@@ -40,12 +43,12 @@ class Miscellaneous(commands.Cog):
         result = getClanList(clanname)
         result.sort()
         if result:
-            await ctx.send(f"clanlist of {clanname}: \n" + ", ".join(result))
+            await interaction.response.send_message(f"clanlist of {clanname}: \n" + ", ".join(result))
         else:
-            await ctx.send("no results found for that clanname.")
+            await interaction.response.send_message("no results found for that clanname.")
 
-    @commands.command(name="invite")
-    async def invite(self, ctx: Context):
+    @miscellaneousgroup.command(name="invite")
+    async def invite(self, interaction: Interaction):
         """
         gives the invitelink to the support server and of the bot.
         :param ctx: discord context
@@ -54,23 +57,23 @@ class Miscellaneous(commands.Cog):
         embed.description = "this is the [invite link]" \
                             "({})"  \
                             "\n also join the [support server](https://discord.gg/PmXY35aqgH)".format(self.invitelink)
-        await ctx.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
-    @commands.command(name="setdefault")
-    async def setdefault(self, ctx: Context, clanname: str = None):
+    @miscellaneousgroup.command(name="setdefault")
+    async def setdefault(self, interaction: Interaction, clanname: str = None):
         """
         sets a default for the highscores commands. If the clanname is not provided the default will be removed.
         :param ctx: discord context
         :param clanname: the clan you want to set as default for the highscores commands.
         """
         clanname = clanname.lower()
-        if ctx.guild is None:
-            await ctx.send("this command can't be used in pm.")
+        if interaction.guild is None:
+            await interaction.response.send_message("this command can't be used in pm.")
             return
-        if not ctx.author.guild_permissions.administrator:
-            await ctx.send("insufficient permissions to use this command. Ask a server administrator!")
+        if not interaction.user.guild_permissions.administrator:
+            await interaction.response.send_message("insufficient permissions to use this command. Ask a server administrator!")
             return
-        id = ctx.guild.id
+        id = interaction.guild.id
         conn = sqlite3.connect("highscores.db")
         cur = conn.cursor()
         if clanname is not None:
@@ -78,20 +81,20 @@ class Miscellaneous(commands.Cog):
                 cur.execute("INSERT INTO clannames(id, name) VALUES(?,?)", (id, clanname))
             except sqlite3.IntegrityError:
                 cur.execute("UPDATE clannames SET name=? WHERE id=?", (clanname, id))
-            msg = await ctx.send(f"{clanname} registered as default!")
+            msg = await interaction.response.send_message(f"{clanname} registered as default!")
         else:
             cur.execute("UPDATE clannames SET name = NULL WHERE id=?", (id,))
-            msg = await ctx.send("default has been removed!")
+            msg = await interaction.response.send_message("default has been removed!")
         try:
             conn.commit()
         except Exception as e:
             print(e)
             await msg.delete()
-            await ctx.send("Something went wrong. Developer is informed.")
+            await interaction.response.send_message("Something went wrong. Developer is informed.")
             raise e
 
-    @commands.command(name="worldboss")
-    async def worldboss(self, ctx: Context, playername: str):
+    @miscellaneousgroup.command(name="worldboss")
+    async def worldboss(self, interaction: Interaction, playername: str):
         """
         shows a list of worldbosses a player participated in.
         :param ctx: discord context
@@ -130,37 +133,36 @@ class Miscellaneous(commands.Cog):
         cur.execute("DROP VIEW participants")
         cur.execute("DROP VIEW rankings")
         messages = tablify(["worldboss", "damage", "date", "rank", "participants"], result)
-        messageshower = ResultmessageShower(messages, ctx)
-        await ctx.send(f"page {messageshower.currentpage} of {messageshower.maxpage}" +
+        messageshower = ResultmessageShower(messages, interaction)
+        await interaction.response.send_message(f"page {messageshower.currentpage} of {messageshower.maxpage}" +
                        messages[messageshower.currentpage-1], view=messageshower)
 
     @commands.command(name="servercount")
     async def servercount(self, ctx: Context):
         await ctx.send("i'm in {0} servers.".format(str(len(self.client.guilds))))
 
-    @commands.command(name="gmsearch")
-    async def gmsearch(self, ctx: Context, *searchstring):
+    @miscellaneousgroup.command(name="gmsearch")
+    async def gmsearch(self, interaction: Interaction, searchstring: str):
         searchstring = " ".join(searchstring)
         if len(searchstring) > 80:
-            await ctx.send("the max length for the item to search for is 80 characters!")
+            await interaction.response.send_message("the max length for the item to search for is 80 characters!")
             return
         if not searchstring:
-            await ctx.send("use .gmsearch manaphy for example, where manaphy is the pokemon you search for.")
+            await interaction.response.send_message("use .gmsearch manaphy for example, where manaphy is the pokemon you search for.")
             return
-        msg = await ctx.send("queued up for gm search.")
-        if ctx.guild is None:
+        msg = await interaction.response.send_message("queued up for gm search.")
+        if interaction.guild is None:
             # is pm
             ispm = 1
-            fetchid = ctx.author.id
+            fetchid = interaction.user.id
         else:
             ispm = 0
             # is guild
-            fetchid = ctx.channel.id
+            fetchid = interaction.channel.id
         conn = sqlite3.connect("eventconfigurations.db")
         cur = conn.cursor()
         result = cur.execute("INSERT INTO gmsearch(msgid, fetchid, isdm, searchstring, timestamp) VALUES(?,?,?,?,?)",
                     (msg.id, fetchid, ispm, searchstring, int(datetime.datetime.now().timestamp())))
-        print(result.lastrowid)
         conn.commit()
 
         for i in range(500):
@@ -171,11 +173,11 @@ class Miscellaneous(commands.Cog):
                 print("results are in!")
                 break
         else:
-            await ctx.send("something broke. This will be resolved soon.")
+            await interaction.response.send_message("something broke. This will be resolved soon.")
             raise TimeoutError("Gmsearch failed! No results incomming.")
         pages = []
         if gmsearches[0][1] is None:
-            await ctx.send("the search didn't return any items/pokemon!")
+            await interaction.response.send_message("the search didn't return any items/pokemon!")
             return
         for row in gmsearches:
             item = Item.from_dict(dict(json.loads(row[1].replace("'", '"'))))
@@ -197,7 +199,7 @@ class Miscellaneous(commands.Cog):
                     img = None
             pages.append(ImgWithText(img, embed))
 
-        view = GMSearch(ctx, messages=pages)
+        view = GMSearch(interaction, messages=pages)
         await view.initial_send()
 
 
@@ -277,8 +279,8 @@ class Miscellaneous(commands.Cog):
         embed.add_field(name="Source", value="The sourcecode is available at https://github.com/graatje/highscoresbot")
         await ctx.send(embed=embed)
 
-    @commands.command(name="help")
-    async def help(self, ctx: Context, command: str = None):
+    @miscellaneousgroup.command(name="help")
+    async def help(self, interaction: Interaction):
         """
         This shows help on the commands.
         :param ctx: discord context
@@ -297,8 +299,8 @@ class Miscellaneous(commands.Cog):
             if row[0] is not None:
                 label += f" ({row[0]})"
             labels.append(label)
-        view = SelectsView(ctx, labels, lambda options: HelpCmd(ctx, options))
-        await ctx.send("Select the command(s) you need help with! Commands are sorted by category.", view=view)
+        view = SelectsView(interaction, labels, lambda options: HelpCmd(interaction, options))
+        await interaction.response.send_message("Select the command(s) you need help with! Commands are sorted by category.", view=view)
 
     async def status_task(self):
         await self.client.wait_until_ready()
@@ -310,10 +312,6 @@ class Miscellaneous(commands.Cog):
             await self.client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching,
                                                                         name=".help"))
             await asyncio.sleep(60)
-
-
-
-
 
 
 async def setup(client):

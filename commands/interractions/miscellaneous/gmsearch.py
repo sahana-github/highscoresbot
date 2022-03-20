@@ -19,8 +19,8 @@ class GMSearch(BrowseSelection):
     """
     browse through all the received global marketplace messages.
     """
-    def __init__(self, ctx, messages: List):
-        super().__init__(ctx, len(messages))
+    def __init__(self, interaction, messages: List):
+        super().__init__(interaction, len(messages))
         self.messages = messages
         self.previousmsg = None
 
@@ -47,7 +47,7 @@ class GMSearch(BrowseSelection):
                 image_binary.seek(0)
                 img = discord.File(fp=image_binary, filename='image.png')
 
-        msg = await self.ctx.send(f"page {self.currentpage} of {self.maxpage}\n" + text,
+        msg = await self.interaction.response.send_message.send(f"page {self.currentpage} of {self.maxpage}\n" + text,
                                   file=img, embed=embed, view=self)
         if self.previousmsg is not None:
             await self.previousmsg.delete()

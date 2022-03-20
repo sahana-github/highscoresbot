@@ -22,7 +22,7 @@ class IngameEvents(commands.Cog):
     ingameeventsgroup = app_commands.Group(name="ingame-events",
                                            description="deals with stuff that has been acquired from inside the game itself")
     @ingameeventsgroup.command(name="lastonline")
-    async def lastonline(self, interaction: Interaction, playername=None):
+    async def lastonline(self, interaction: Interaction, playername: str=None):
         if playername is None:
             with sqlite3.connect("ingame_data.db") as conn:
                 cur = conn.cursor()
@@ -61,7 +61,7 @@ class IngameEvents(commands.Cog):
                              view=GetEncounters(interaction, name))
 
     @ingameeventsgroup.command(name="getpokemon")
-    async def getpokemon(self, interaction: Interaction, *_):
+    async def getpokemon(self, interaction: Interaction):
         """
         @deprecated
         :param ctx:
@@ -71,7 +71,7 @@ class IngameEvents(commands.Cog):
         await interaction.response.send_message("please use .getencounters instead!")
 
     @ingameeventsgroup.command(name="getchests")
-    async def getchests(self, interaction: Interaction, argument):
+    async def getchests(self, interaction: Interaction, argument: str):
         #name = " ".join(argument).lower().strip()  @todo check if needed
         name = argument.lower()
         await interaction.response.send_message("is that a location, date, or player? Press the button to get a response! ",

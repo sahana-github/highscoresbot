@@ -82,7 +82,7 @@ class GetEncounters(discord.ui.View):
 
     async def showMessages(self, resultmessages, interaction: discord.Interaction):
         if not await self.isOwner(interaction): return
-        msgshower = ResultmessageShower(messages=resultmessages, ctx=self.ctx)
+        msgshower = ResultmessageShower(messages=resultmessages, interaction=self.interaction)
         await interaction.response.edit_message(view=msgshower,
                                                 content=f"page {msgshower.currentpage} of {msgshower.maxpage}\n" +
                                                         msgshower.messages[0])

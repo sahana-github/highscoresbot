@@ -2,6 +2,7 @@ import sqlite3
 import datetime
 
 import discord
+from discord import Interaction
 from discord.ext.commands import Context
 
 from commands.interractions.resultmessageshower import ResultmessageShower
@@ -12,10 +13,10 @@ class GetChests(discord.ui.View):
     """
     the view of the getchests command.
     """
-    def __init__(self, ctx: Context, parameter: str):
+    def __init__(self, interaction: Interaction, parameter: str):
         super().__init__()
         self.parameter = parameter
-        self.ctx = ctx
+        self.interaction = interaction
 
     @discord.ui.button(label='Location', style=discord.ButtonStyle.green)
     async def location(self, button: discord.ui.Button, interaction: discord.Interaction):
@@ -75,14 +76,14 @@ class GetChests(discord.ui.View):
         :return:
         """
         if not await self.isOwner(interaction): return
-        msgshower = ResultmessageShower(messages=resultmessages, ctx=self.ctx)
+        msgshower = ResultmessageShower(messages=resultmessages, interaction=self.interaction)
         await interaction.response.edit_message(view=msgshower,
                                                 content=f"page {msgshower.currentpage} of {msgshower.maxpage}\n" +
                                                         msgshower.messages[0])
         self.stop()
 
     async def isOwner(self, interaction: discord.Interaction) -> bool:
-        if interaction.guild != self.ctx.guild or interaction.user.id != self.ctx.author.id:
+        if interaction.guild != self.interaction.guild or interaction.user.id != self.interaction.user.id:
             await interaction.response.send_message("only the user who used the command can use these buttons!")
             return False
         return True
