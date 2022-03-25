@@ -286,6 +286,7 @@ class Miscellaneous(commands.Cog):
         :param ctx: discord context
         :param command: the name of the command you want to see the help message from.
         """
+        a: InteractionResponse
         conn = sqlite3.connect("eventconfigurations.db")
         cur = conn.cursor()
         cur.execute("SELECT helpcategories.name, helpcommands.commandname, helpcommands.embed "

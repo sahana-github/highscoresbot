@@ -54,7 +54,6 @@ class IngameEvents(commands.Cog):
         :param ctx: message context
         :param name: either playername, pokemonname or a date
         """
-        interaction.u
         # name = " ".join(name)  @todo check if this is needed
         name = name.lower()
         await interaction.response.send_message(content="is that a pokemon, date, or player? Press the button to get a response!",
