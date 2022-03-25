@@ -14,7 +14,7 @@ class Clanwars(SettimeEvent):
     def __init__(self):
         self.EVENTNAME = "clanwars"
         self.currenttier = 1
-        super().__init__([6, 7], [datetime.time(hour=19, minute=0), datetime.time(hour=19, minute=40)],
+        super().__init__([6, 7], [datetime.time(hour=19, minute=0), datetime.time(hour=19, minute=50)],
                          datetime.timedelta(minutes=15))
 
     def generateActivationTimes(self):
