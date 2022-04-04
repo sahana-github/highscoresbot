@@ -5,3 +5,6 @@ pandas
 lxml
 requests
 bs4
+pyshark
+nest_asyncio
+pyautogui

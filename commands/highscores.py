@@ -201,14 +201,14 @@ class Highscores(commands.Cog):
         return clanname
 
     @highscoresgroup.command(name="highscore")
-    async def highscore(self, interaction: Interaction):
+    async def highscore(self, interaction: Interaction, clanname: str=None):
         initializedhighscores = {}
         for highscore in allhighscores:
             highscore = highscore()
             initializedhighscores[highscore.NAME] = highscore
 
         def highscoreselectionmaker(highscores):
-            return HighscoreCommand(interaction, highscores)
+            return HighscoreCommand(interaction, highscores, clanname=clanname)
 
         view = SelectsView(interaction, initializedhighscores.keys(), highscoreselectionmaker)
         await interaction.response.send_message(content=f"page {view.currentpage} of {view.maxpage}", view=view)

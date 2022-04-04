@@ -1,6 +1,7 @@
 import os
-from typing import List
+from typing import List, Any
 
+import discord
 import nest_asyncio  # this makes the discord client useable together with pyshark.
 
 from ppobyter.eventdeterminer import EventDeterminer
@@ -15,18 +16,22 @@ from discord import Client
 nest_asyncio.apply()
 
 
-class Main:
-    def __init__(self):
+class Main(discord.Client):
+    def __init__(self, **options: Any):
+        super().__init__(**options)
         self.__pysharkwrapper = PysharkWrapper()
-        self.__client = Client()
-        self.__scheduler = EventScheduler(self.__client)
+        #self.__client = Client()
+        self.__scheduler = EventScheduler(self)
         self.__tasks: List[TimedEvent] = []
         self.__tasks.append(WorldBlessing())
         self.__tasks.append(WorldbossSoon())
         self.__tasks.append(Clanwars())
+        self.__token = options["token"]
+    async def on_ready(self):
+        self.loop.create_task(self.mainloop())
 
     async def mainloop(self):
-        await self.__client.wait_until_ready()
+        await self.wait_until_ready()
         cap = self.__pysharkwrapper.cap()
         for message in cap:
             #print(message)
@@ -49,9 +54,8 @@ class Main:
                 self.__scheduler.addEvent(task)
 
     def run(self):
-        self.__client.loop.create_task(self.mainloop())
-        self.__client.run(os.environ.get("token"))
+        super(Main, self).run(token=self.__token)
 
 
 if __name__ == "__main__":
-    Main().run()
+    Main(token=os.environ.get("token")).run()

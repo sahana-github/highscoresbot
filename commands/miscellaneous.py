@@ -162,7 +162,7 @@ class Miscellaneous(commands.Cog):
         conn = sqlite3.connect("eventconfigurations.db")
         cur = conn.cursor()
         result = cur.execute("INSERT INTO gmsearch(msgid, fetchid, isdm, searchstring, timestamp) VALUES(?,?,?,?,?)",
-                    (msg.id, fetchid, ispm, searchstring, int(datetime.datetime.now().timestamp())))
+                    (None, fetchid, ispm, searchstring, int(datetime.datetime.now().timestamp())))
         conn.commit()
 
         for i in range(500):
@@ -173,11 +173,11 @@ class Miscellaneous(commands.Cog):
                 print("results are in!")
                 break
         else:
-            await interaction.response.send_message("something broke. This will be resolved soon.")
+            await interaction.followup.send_message("something broke. This will be resolved soon.")
             raise TimeoutError("Gmsearch failed! No results incomming.")
         pages = []
         if gmsearches[0][1] is None:
-            await interaction.response.send_message("the search didn't return any items/pokemon!")
+            await interaction.followup.send_message("the search didn't return any items/pokemon!")
             return
         for row in gmsearches:
             item = Item.from_dict(dict(json.loads(row[1].replace("'", '"'))))
@@ -185,7 +185,6 @@ class Miscellaneous(commands.Cog):
                                   description=f"amount: {item.amount}")
             embed.add_field(name="price", value=item.price)
             embed.add_field(name="seller", value=item.seller)
-
 
             if item.isPokemon():
                 def generate_img(pokemon):
