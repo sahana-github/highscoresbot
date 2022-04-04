@@ -1,5 +1,5 @@
 import discord
-from discord import app_commands
+from discord import app_commands, Interaction
 from discord.ext import commands
 from commands.interractions.pmconfig.pmgoldrush import PmGoldrush
 from commands.interractions.pmconfig.pmhoney import PmHoney
@@ -20,32 +20,34 @@ class Pmconfig(commands.Cog):
         self.client = client
         self.databasepath = "./eventconfigurations.db"
 
-    @commands.command(name="pmgoldrush")
-    async def pmgoldrush(self, ctx: Context):
+    pmconfiggroup = app_commands.Group(name="pmconfig", description="deals with sending ingame events to channels")
+
+    @pmconfiggroup.command(name="pmgoldrush")
+    async def pmgoldrush(self, interaction: Interaction):
         """
         The user will receive a pm if a goldrush happens at the provided location.
         It is checked if it is a valid location.
         :param ctx: discord context
         """
-        view = SelectsView(ctx, options=getgoldrushlocations(),
-                           selectoption=lambda locations: PmGoldrush(ctx, locations, self.databasepath))
-        await ctx.send("for what locations do you want a pm when a goldrush pops up?", view=view)
+        view = SelectsView(interaction, options=getgoldrushlocations(),
+                           selectoption=lambda locations: PmGoldrush(interaction, locations, self.databasepath))
+        await interaction.response.send_message("for what locations do you want a pm when a goldrush pops up?", view=view)
 
-
-    @commands.command(name="pmhoney")
-    async def pmhoney(self, ctx: Context, *location: str):
+    @pmconfiggroup.command(name="pmhoney")
+    async def pmhoney(self, interaction: Interaction, *location: str):
         """
         The user will receive a pm if honey gets spread at the provided location.
         :param ctx: discord context
         :param location: the location where the honey gets spread.
         :todo input validation for the location
         """
-        view = SelectsView(ctx, options=gethoneylocations(),
-                           selectoption=lambda locations: PmHoney(ctx, locations, self.databasepath))
-        await ctx.send("for what locations do you want a pm when a honey gets spread?", view=view)
+        view = SelectsView(interaction, options=gethoneylocations(),
+                           selectoption=lambda locations: PmHoney(interaction, locations, self.databasepath))
+        await interaction.response.send_message("for what locations do you want a pm when a honey gets spread?",
+                                                view=view)
 
-    @commands.command(name='pmswarm')
-    async def pmswarm(self, ctx: Context):
+    @pmconfiggroup.command(name='pmswarm')
+    async def pmswarm(self, interaction: Interaction):
         """
         starts the configuration of pming a swarm to the user.
         The user gets 3 options:
@@ -58,11 +60,12 @@ class Pmconfig(commands.Cog):
         :param ctx: discord context
         There is inputvalidation for both the swarm location and the swarm pokemon.
         """
-        await ctx.send("what specific swarm do you want a pm for?", view=PmSwarm(ctx, self.databasepath))
+        await interaction.response.send_message("what specific swarm do you want a pm for?",
+                                                view=PmSwarm(interaction, self.databasepath))
 
 
-    @commands.command(name="pmworldboss")
-    async def pmworldboss(self, ctx):
+    @pmconfiggroup.command(name="pmworldboss")
+    async def pmworldboss(self, interaction: Interaction):
         """
         starts the configuration of pming a worldboss to the user.
         The user gets 3 options:
@@ -75,11 +78,12 @@ class Pmconfig(commands.Cog):
         There is inputvalidation for the worldboss pokemon, but not for the location.
         :param ctx: discord context
         """
-        await ctx.send("what specific worldboss do you want a pm for?", view=PmWorldboss(ctx, self.databasepath))
+        await interaction.response.send_message("what specific worldboss do you want a pm for?",
+                                                view=PmWorldboss(interaction, self.databasepath))
 
 
-    @commands.command(name="pmtournament")
-    async def pmtournament(self, ctx):
+    @pmconfiggroup.command(name="pmtournament")
+    async def pmtournament(self, interaction: Interaction):
         """
         starts the configuration of pming a tournament to the user.
         The user gets 3 options:
@@ -93,12 +97,13 @@ class Pmconfig(commands.Cog):
         :param ctx: discord context
         :todo input validation for prize
         """
-        await ctx.send("what specific tournament do you want a pm for?", view=PmTournament(ctx, self.databasepath))
+        await interaction.response.send_message("what specific tournament do you want a pm for?",
+                                                view=PmTournament(interaction, self.databasepath))
 
 
 
-    @commands.command(name="removepmconfig")
-    async def removepmconfig(self, ctx: Context):
+    @pmconfiggroup.command(name="removepmconfig")
+    async def removepmconfig(self, interaction: Interaction):
         """
         Starts user interaction to remove pm configuration of certain events.
         Fails if the time limit of 30 seconds to respond has expired.
@@ -106,11 +111,9 @@ class Pmconfig(commands.Cog):
         gets the values at those list indexes to delete the configurations.
         :param ctx: discord context.
         """
-        await ctx.send("what event do you want to remove pmconfig of?", view=RemovePmConfig(ctx, self.databasepath))
-
+        await interaction.response.send_message("what event do you want to remove pmconfig of?",
+                                                view=RemovePmConfig(interaction, self.databasepath))
 
 
 async def setup(client):
     await client.add_cog(Pmconfig(client))
-
-    #help(Button)

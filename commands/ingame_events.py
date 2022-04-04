@@ -21,6 +21,7 @@ class IngameEvents(commands.Cog):
 
     ingameeventsgroup = app_commands.Group(name="ingame-events",
                                            description="deals with stuff that has been acquired from inside the game itself")
+
     @ingameeventsgroup.command(name="lastonline")
     async def lastonline(self, interaction: Interaction, playername: str=None):
         if playername is None:
@@ -84,8 +85,6 @@ class IngameEvents(commands.Cog):
         :param ctx: discord context
         :param parameter: The pokemon, date or player
         """
-        #parameter = " ".join(parameter)
-        a: InteractionResponse = interaction.response
         await interaction.response.send_message(content="is that a pokemon, date, or player? Press the button to get a response! ",
                        view=GetRolls(interaction, parameter))
 
@@ -106,7 +105,7 @@ class IngameEvents(commands.Cog):
                                resultmessages[-1],
                        view=resultmessageshower)
 
-    @commands.command(name="worldbosstime")
+    @ingameeventsgroup.command(name="worldbosstime")
     async def worldbosstime(self, interaction: Interaction):
         """
         gives the time untill the start of the worldboss.
@@ -120,11 +119,11 @@ class IngameEvents(commands.Cog):
             embed.add_field(name="relative",
                             value=f"that is in {(timedifference.days * 86400 + timedifference.seconds) // 3600} hours "
                                   f"and {(timedifference.seconds // 60) % 60} minutes\n")
-            await Interaction.response.send_message(embed=embed)
+            await interaction.response.send_message(embed=embed)
         except IndexError:
-            await Interaction.response.send_message("something went wrong!")
+            await interaction.response.send_message("something went wrong!")
         except Exception as e:
-            await Interaction.response.send_message.send("uncaught exception.")
+            await interaction.response.send_message.send("uncaught exception.")
             raise e
 
 async def setup(client):
