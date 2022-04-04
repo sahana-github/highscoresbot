@@ -12,8 +12,8 @@ class Main(commands.Bot):
 
         super().__init__([".", "?"], intents=discord.Intents.all())
         #self.intents.message_content = True
-        self.cog_files = ["commands.testcog", "commands.ingame_events"]
-
+        self.cog_files = ["commands.ingame_events", "commands.highscores", "commands.eventconfig",
+                          "commands.miscellaneous", "commands.pmconfig"]
 
     async def on_ready(self):
         """

@@ -19,7 +19,7 @@ class GetChests(discord.ui.View):
         self.interaction = interaction
 
     @discord.ui.button(label='Location', style=discord.ButtonStyle.green)
-    async def location(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def location(self, interaction: discord.Interaction, button: discord.ui.Button):
         conn = sqlite3.connect(r"ingame_data.db")
         cur = conn.cursor()
         cur.execute("SELECT player, location, date FROM chests WHERE location=?", (self.parameter,))
@@ -28,7 +28,7 @@ class GetChests(discord.ui.View):
         await self.showMessages(resultmessages, interaction)
 
     @discord.ui.button(label="Date (yyyy-mm-dd)", style=discord.ButtonStyle.green)
-    async def date(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def date(self, interaction: discord.Interaction, button: discord.ui.Button):
         if self.parameter == "":
             date = str(datetime.datetime.now()).split(" ")[0]
         else:
@@ -42,7 +42,7 @@ class GetChests(discord.ui.View):
         await self.showMessages(resultmessages, interaction)
 
     @discord.ui.button(label="player", style=discord.ButtonStyle.green)
-    async def player(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def player(self, interaction: discord.Interaction, button: discord.ui.Button):
         conn = sqlite3.connect(r"ingame_data.db")
         cur = conn.cursor()
         cur.execute("SELECT player, location, date FROM chests WHERE player=?", (self.parameter,))
@@ -51,7 +51,7 @@ class GetChests(discord.ui.View):
         await self.showMessages(resultmessages[::-1], interaction)
 
     @discord.ui.button(label="Top chest locations", style=discord.ButtonStyle.green, row=2)
-    async def topchestlocations(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def topchestlocations(self, interaction: discord.Interaction, button: discord.ui.Button):
         conn = sqlite3.connect(r"ingame_data.db")
         cur = conn.cursor()
         cur.execute("SELECT location, COUNT(*) FROM chests GROUP BY location ORDER BY COUNT(*) DESC")
@@ -60,7 +60,7 @@ class GetChests(discord.ui.View):
         await self.showMessages(resultmessages, interaction)
 
     @discord.ui.button(label="Top chest players", style=discord.ButtonStyle.green, row=2)
-    async def topchestplayers(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def topchestplayers(self, interaction: discord.Interaction, button: discord.ui.Button):
         conn = sqlite3.connect(r"ingame_data.db")
         cur = conn.cursor()
         cur.execute("SELECT player, COUNT(*) FROM chests GROUP BY player ORDER BY COUNT(*) DESC")

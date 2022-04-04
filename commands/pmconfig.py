@@ -34,7 +34,7 @@ class Pmconfig(commands.Cog):
         await interaction.response.send_message("for what locations do you want a pm when a goldrush pops up?", view=view)
 
     @pmconfiggroup.command(name="pmhoney")
-    async def pmhoney(self, interaction: Interaction, *location: str):
+    async def pmhoney(self, interaction: Interaction, location: str):
         """
         The user will receive a pm if honey gets spread at the provided location.
         :param ctx: discord context

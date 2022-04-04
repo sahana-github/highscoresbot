@@ -19,7 +19,8 @@ class GetEncounters(discord.ui.View):
         self.interaction = interaction
 
     @discord.ui.button(label='pokemon', style=discord.ButtonStyle.green)
-    async def pokemon(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def pokemon(self, interaction: discord.Interaction, button: discord.ui.Button):
+        print(type(button), type(interaction))
         conn = sqlite3.connect(r"ingame_data.db")
         cur = conn.cursor()
         cur.execute("SELECT Name, Encounters, Date FROM Encounters WHERE Encounters = ? ORDER BY Date DESC",
@@ -29,7 +30,7 @@ class GetEncounters(discord.ui.View):
         await self.showMessages(resultmessages, interaction)
 
     @discord.ui.button(label="Date (yyyy-mm-dd)", style=discord.ButtonStyle.green)
-    async def date(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def date(self, interaction: discord.Interaction, button: discord.ui.Button):
         datetime.datetime.strptime(self.parameter, "%Y-%m-%d")
 
         date = datehandler(self.parameter)
@@ -41,7 +42,7 @@ class GetEncounters(discord.ui.View):
         await self.showMessages(resultmessages, interaction)
 
     @discord.ui.button(label="player", style=discord.ButtonStyle.green)
-    async def player(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def player(self, interaction: discord.Interaction, button: discord.ui.Button):
         conn = sqlite3.connect(r"ingame_data.db")
         cur = conn.cursor()
         cur.execute("SELECT Name, Encounters, Date FROM Encounters WHERE Name = ?", (self.parameter,))
@@ -50,7 +51,7 @@ class GetEncounters(discord.ui.View):
         await self.showMessages(resultmessages[::-1], interaction)
 
     @discord.ui.button(label="Top encounter dates", style=discord.ButtonStyle.green, row=2)
-    async def topencounterdates(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def topencounterdates(self, interaction: discord.Interaction, button: discord.ui.Button):
         conn = sqlite3.connect(r"ingame_data.db")
         cur = conn.cursor()
         cur.execute("SELECT date, count(date) FROM encounters GROUP BY date ORDER BY count(date) DESC")
@@ -60,7 +61,7 @@ class GetEncounters(discord.ui.View):
         await self.showMessages(resultmessages, interaction)
 
     @discord.ui.button(label="Top encounter players", style=discord.ButtonStyle.green, row=2)
-    async def topencounterplayers(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def topencounterplayers(self, interaction: discord.Interaction, button: discord.ui.Button):
         conn = sqlite3.connect(r"ingame_data.db")
         cur = conn.cursor()
         cur.execute("SELECT name, count(name) FROM encounters GROUP BY name ORDER BY count(name) DESC")
@@ -70,7 +71,7 @@ class GetEncounters(discord.ui.View):
         await self.showMessages(resultmessages, interaction)
 
     @discord.ui.button(label="Top encounter pokemon", style=discord.ButtonStyle.green, row=2)
-    async def topencounterpokemon(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def topencounterpokemon(self, interaction: discord.Interaction, button: discord.ui.Button):
         conn = sqlite3.connect(r"ingame_data.db")
         cur = conn.cursor()
         cur.execute(
@@ -81,6 +82,7 @@ class GetEncounters(discord.ui.View):
         await self.showMessages(resultmessages, interaction)
 
     async def showMessages(self, resultmessages, interaction: discord.Interaction):
+        print(type(interaction))
         if not await self.isOwner(interaction): return
         msgshower = ResultmessageShower(messages=resultmessages, interaction=self.interaction)
         await interaction.response.edit_message(view=msgshower,

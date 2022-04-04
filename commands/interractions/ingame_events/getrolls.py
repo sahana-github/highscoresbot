@@ -16,12 +16,12 @@ class GetRolls(discord.ui.View):
         self.interaction = interaction
 
     @discord.ui.button(label='Pokemon', style=discord.ButtonStyle.green)
-    async def pokemon(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def pokemon(self, interaction: discord.Interaction, button: discord.ui.Button):
         query = "SELECT player, pokemon, date FROM rolls WHERE pokemon = ? ORDER BY date DESC"
         await self.showMessages(interaction, query)
 
     @discord.ui.button(label="Date (yyyy-mm-dd)", style=discord.ButtonStyle.green)
-    async def date(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def date(self, interaction: discord.Interaction, button: discord.ui.Button):
         if self.parameter == "":
             date = str(datetime.datetime.now()).split(" ")[0]
         else:
@@ -32,7 +32,7 @@ class GetRolls(discord.ui.View):
         await self.showMessages(interaction, query)
 
     @discord.ui.button(label="Player", style=discord.ButtonStyle.green)
-    async def player(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def player(self, interaction: discord.Interaction, button: discord.ui.Button):
         query = "SELECT player, pokemon, date FROM rolls WHERE player = ? ORDER BY date DESC"
         await self.showMessages(interaction, query)
 

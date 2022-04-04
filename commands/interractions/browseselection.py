@@ -20,7 +20,7 @@ class BrowseSelection(discord.ui.View):
         self.maxpage = pagesamount
 
     @discord.ui.button(label='<<', style=discord.ButtonStyle.green)
-    async def minpage(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def minpage(self, interaction: discord.Interaction, button: discord.ui.Button):
         """
         set current page to 1.
         :param button:
@@ -32,7 +32,7 @@ class BrowseSelection(discord.ui.View):
         await self._sendPage(interaction)
 
     @discord.ui.button(label='<', style=discord.ButtonStyle.green)
-    async def previouspage(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def previouspage(self, interaction: discord.Interaction, button: discord.ui.Button):
         """
         go 1 page back (if possible)
         :param button:
@@ -45,7 +45,7 @@ class BrowseSelection(discord.ui.View):
         await self._sendPage(interaction)
 
     @discord.ui.button(label='>', style=discord.ButtonStyle.danger)
-    async def nextpage(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def nextpage(self, interaction: discord.Interaction, button: discord.ui.Button):
         """
         go to the next page (if possible)
         :param button:
@@ -58,7 +58,7 @@ class BrowseSelection(discord.ui.View):
         await self._sendPage(interaction)
 
     @discord.ui.button(label='>>', style=discord.ButtonStyle.danger)
-    async def maxpage(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def maxpage(self, interaction: discord.Interaction, button: discord.ui.Button):
         """
         go to the max page.
         :param button:

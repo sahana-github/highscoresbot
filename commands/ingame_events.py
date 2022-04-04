@@ -60,16 +60,6 @@ class IngameEvents(commands.Cog):
         await interaction.response.send_message(content="is that a pokemon, date, or player? Press the button to get a response!",
                              view=GetEncounters(interaction, name))
 
-    @ingameeventsgroup.command(name="getpokemon")
-    async def getpokemon(self, interaction: Interaction):
-        """
-        @deprecated
-        :param ctx:
-        :param _:
-        :return:
-        """
-        await interaction.response.send_message("please use .getencounters instead!")
-
     @ingameeventsgroup.command(name="getchests")
     async def getchests(self, interaction: Interaction, argument: str):
         #name = " ".join(argument).lower().strip()  @todo check if needed
@@ -125,6 +115,7 @@ class IngameEvents(commands.Cog):
         except Exception as e:
             await interaction.response.send_message.send("uncaught exception.")
             raise e
+
 
 async def setup(client):
     await client.add_cog(IngameEvents(client))

@@ -28,12 +28,12 @@ class Eventconfigurations(commands.Cog):
                                           description="configurate ingame events to be sent in certain channels")
 
     @eventconfiggroup.command(name="setperms")
-    async def setperms(self, interaction: Interaction, role: Union[int, str]):
+    async def setperms(self, interaction: Interaction, role: int):
         """
         This command gives permission to the specified role to adjust eventconfigurations for this server.
         Only useable by administrators of the server.
         :param ctx: discord context
-        :param role: the role id or the role mention.
+        :param role: the role id or the role mention. Union[int, str]
         """
 
         if not interaction.user.guild_permissions.administrator:
@@ -54,12 +54,12 @@ class Eventconfigurations(commands.Cog):
         await interaction.response.send_message("role successfully given permissions.")
 
     @eventconfiggroup.command(name="removeperms")
-    async def removeperms(self, interaction: Interaction, role: Union[int, str]):
+    async def removeperms(self, interaction: Interaction, role: int):
         """
         Removes the permissions of a role to adjust eventconfigurations for this server.
         Only useable by administrators of the server.
         :param ctx: discord context
-        :param role: the role id or the role mention.
+        :param role: the role id or the role mention. Union[int, str]
         """
         try:
             if match := re.search(pattern=r"(?<=<@&)([0-9]+)(?=>)", string=role):
@@ -179,7 +179,7 @@ class Eventconfigurations(commands.Cog):
             await interaction.response.send_message(f"messages for the {eventname} event won't be removed after a certain time anymore.")
 
     @eventconfiggroup.command(name="setpingrole")
-    async def setpingrole(self, interaction: Interaction, eventname: str, pingrole: Union[str, int]):
+    async def setpingrole(self, interaction: Interaction, eventname: str, pingrole: int):
         """
         Adds a ping of the provided role to the event message.
         :param ctx: discord context
@@ -288,7 +288,7 @@ class Eventconfigurations(commands.Cog):
         finally:
             conn.close()
 
-    @eventconfiggroup.command(name="getclanregistrations", aliases=["showclanregistrations"])
+    @eventconfiggroup.command(name="getclanregistrations")
     async def getclanregistrations(self, interaction: Interaction):
         """
         shows the clans that are registered in the server where the command is used.
