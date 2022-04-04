@@ -1,3 +1,5 @@
+# @deprecated, not used at this moment but might be used at one point again.
+
 import sqlite3
 from typing import Callable
 

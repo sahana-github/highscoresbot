@@ -11,9 +11,8 @@ from commands.interractions.playerconfig.removememberconfig import RemoveMemberC
 from commands.interractions.resultmessageshower import ResultmessageShower
 from commands.interractions.selectsview import SelectsView
 from commands.utils.utils import haspermissions, tablify
-from discord.utils import escape_mentions
+from discord.utils import escape_mentions, MISSING
 from typing import Union
-from discord.ext.commands.context import Context
 
 
 class Eventconfigurations(commands.Cog):
@@ -28,50 +27,34 @@ class Eventconfigurations(commands.Cog):
                                           description="configurate ingame events to be sent in certain channels")
 
     @eventconfiggroup.command(name="setperms")
-    async def setperms(self, interaction: Interaction, role: int):
+    async def setperms(self, interaction: Interaction, role: discord.Role):
         """
         This command gives permission to the specified role to adjust eventconfigurations for this server.
         Only useable by administrators of the server.
         :param ctx: discord context
         :param role: the role id or the role mention. Union[int, str]
         """
-
         if not interaction.user.guild_permissions.administrator:
             await interaction.response.send_message("only administrators can use this command!")
-        try:
-            if match := re.search(pattern=r"(?<=<@&)([0-9]+)(?=>)", string=role):
-                role = match.group(name="eventconfig", description="")
-            if interaction.guild.get_role(int(role)) is None:
-                raise ValueError("is no role.")
-        except ValueError:
-            await interaction.response.send_message("please enter a valid role or role id!")
             return
         conn = sqlite3.connect(self.databasepath)
         cur = conn.cursor()
-        cur.execute("INSERT INTO permissions(guildid, roleid) VALUES(?,?)", (interaction.guild.id, role))
+        cur.execute("INSERT INTO permissions(guildid, roleid) VALUES(?,?)", (interaction.guild.id, role.id))
         conn.commit()
         conn.close()
         await interaction.response.send_message("role successfully given permissions.")
 
     @eventconfiggroup.command(name="removeperms")
-    async def removeperms(self, interaction: Interaction, role: int):
+    async def removeperms(self, interaction: Interaction, role: discord.Role):
         """
         Removes the permissions of a role to adjust eventconfigurations for this server.
         Only useable by administrators of the server.
         :param ctx: discord context
         :param role: the role id or the role mention. Union[int, str]
         """
-        try:
-            if match := re.search(pattern=r"(?<=<@&)([0-9]+)(?=>)", string=role):
-                role = match.group()
-            if interaction.guild.get_role(int(role)) is None:
-                raise ValueError("is no role.")
-        except ValueError:
-            await interaction.response.send_message("please enter a valid role or role id!")
-            return
         conn = sqlite3.connect(self.databasepath)
         cur = conn.cursor()
-        result = cur.execute("DELETE FROM permissions WHERE guildid=? AND roleid=?", (interaction.guild.id, role))
+        result = cur.execute("DELETE FROM permissions WHERE guildid=? AND roleid=?", (interaction.guild.id, role.id))
         conn.commit()
         conn.close()
         if result.rowcount:
@@ -101,7 +84,7 @@ class Eventconfigurations(commands.Cog):
             await interaction.response.send_message("no permissions set.")
 
     @eventconfiggroup.command(name="register")
-    async def register(self, interaction: Interaction, channel: Union[str, None] = None):
+    async def register(self, interaction: Interaction, channel: discord.TextChannel = None):
         """
         Registers an event at the specified channel. If the channel is not specified the channel is the channel the
         command is used from.
@@ -112,29 +95,7 @@ class Eventconfigurations(commands.Cog):
                 interaction.user.guild_permissions.administrator:
             await interaction.response.send_message("insufficient permissions to use this command!")
             return
-
-        if channel is None:  # check if channel is valid.
-            chan = interaction.channel
-        elif match := re.search(r"(?<=<#)([0-9]+)(?=>)", channel):
-            try:
-                chan = await self.client.fetch_channel(int(match.group()))
-                if chan.guild.id != interaction.guild.id:
-                    raise ValueError("user tries to register an event at another guild.")
-            except ValueError:
-                await interaction.response.send_message("i have no access to that channel! are you sure that channel is in the current server?")
-                return
-            except NotFound:
-                await interaction.response.send_message("channel not found!!")
-                return
-            except Forbidden:
-                await interaction.response.send_message("I can't access that channel. Please check permissions.")
-                return
-            except Exception as e:
-                await interaction.response.send_message("unknown error.")
-                raise e
-        else:
-            await interaction.response.send_message("please provide a valid channel to register for that event.")
-            return
+        chan = channel if channel is not None else interaction.channel
         with sqlite3.connect(self.databasepath) as conn:
             cur = conn.cursor()
             cur.execute("SELECT eventname FROM eventnames")
@@ -179,7 +140,7 @@ class Eventconfigurations(commands.Cog):
             await interaction.response.send_message(f"messages for the {eventname} event won't be removed after a certain time anymore.")
 
     @eventconfiggroup.command(name="setpingrole")
-    async def setpingrole(self, interaction: Interaction, eventname: str, pingrole: int):
+    async def setpingrole(self, interaction: Interaction, eventname: str, pingrole: discord.Role):
         """
         Adds a ping of the provided role to the event message.
         :param ctx: discord context
@@ -191,24 +152,15 @@ class Eventconfigurations(commands.Cog):
             await interaction.response.send_message("insufficient permissions to use this command!")
             return
         eventname = eventname.lower()
-        try:
-            if match := re.search(pattern=r"(?<=<@&)([0-9]+)(?=>)", string=pingrole):
-                pingrole = match.group()
-            role = interaction.guild.get_role(int(pingrole))
-            if role is None:
-                raise ValueError("is no role.")
-        except ValueError:
-            await interaction.response.send_message("please enter a valid role or role id!")
-            return
         if not await self.__eventnamecheck(interaction, eventname):
             return
         conn = sqlite3.connect(self.databasepath)
         cur = conn.cursor()
         result = cur.execute("UPDATE eventconfig SET pingrole=? WHERE guildid=? AND eventname=?",
-                             (pingrole, interaction.guild.id, eventname))
+                             (pingrole.id, interaction.guild.id, eventname))
         if not result.rowcount:
             cur.execute("INSERT INTO eventconfig(guildid, eventname, channel, pingrole) VALUES(?, ?, null, ?)",
-                        (interaction.guild.id, eventname, pingrole))
+                        (interaction.guild.id, eventname, pingrole.id))
         conn.commit()
         conn.close()
         await interaction.response.send_message("pingrole set!")
@@ -299,7 +251,8 @@ class Eventconfigurations(commands.Cog):
         cur.execute("SELECT clan FROM clanconfig WHERE guildid=?", (interaction.guild.id,))
         clans = list(set([row[0] for row in cur.fetchall()]))
         conn.close()
-        await interaction.response.send_message("The following clans have been registered for this server: \n" + ", ".join(clans))
+        await interaction.response.send_message("The following clans have been registered for this server: \n" +
+                                                ", ".join(clans))
 
     async def __remove_member(self, interaction: Interaction):
         if not haspermissions([role.id for role in interaction.user.roles], interaction.guild.id) and not \
@@ -341,12 +294,12 @@ class Eventconfigurations(commands.Cog):
         else:
             cur.execute("DELETE FROM clanconfig WHERE guildid=? AND clan=?", (interaction.guild.id, clanname))
         conn.commit()
-        await interaction.response.send_message(f"configuration for {clanname} removed!")
         conn.commit()
         cur.execute("SELECT clan FROM clanconfig WHERE guildid=?", (interaction.guild.id,))
         clans = [row[0] for row in cur.fetchall()]
         conn.close()
-        await interaction.response.send_message("remaining clans: ```\n" + "\n".join(clans) + "```")
+        await interaction.response.send_message(f"configuration for {clanname} removed!\n"
+                                                "remaining clans: ```\n" + "\n".join(clans) + "```")
 
     @eventconfiggroup.command(name="showregistrations")
     async def showregistrations(self, interaction: Interaction):
@@ -390,37 +343,29 @@ class Eventconfigurations(commands.Cog):
             else:
                 row[2] = "not available"
         messages = tablify(["eventname", "channel", "pingrole", "alivetime"], result)
-        for message in messages:
-            await interaction.response.send_message(message)
+        view = MISSING
+        if len(messages) > 1:
+            view = ResultmessageShower(messages, interaction=interaction)
+        await interaction.response.send_message(messages[0], view=view)
 
     # config for adding individual playernames, this way clanevents act as if the player is in a clan the discord server
     # is registered for.
     @eventconfiggroup.command(name="playerconfig")
-    async def playerconfig(self, interaction: Interaction):
+    async def playerconfig(self, interaction: Interaction, player: str=None):
         """
         add players, remove players and show players that act as if a player is in a clan.
         :param ctx: discord context
         """
-        playerconfig = PlayerConfig(self.__add_member, self.__remove_member, self.__show_members, interaction)
+        playerconfig = PlayerConfig(self.__add_member, self.__remove_member, self.__show_members, interaction,
+                                    player=player)
         await interaction.response.send_message("what do you want to do?", view=playerconfig)
 
-    async def __add_member(self, interaction: Interaction):
+    async def __add_member(self, interaction: Interaction, player: str):
         if not haspermissions([role.id for role in interaction.user.roles], interaction.guild.id) and not\
                 interaction.user.guild_permissions.administrator:
             await interaction.response.send_message("insufficient permissions to use this command!")
             return
-        await interaction.response.send_message("type the name of the player:")
-        try:
-            msg: discord.message.Message = await self.client.wait_for('message',
-                                                                      check=lambda newmsg:
-                                                                      interaction.user.id == newmsg.author.id
-                                                                      and interaction.channel.id == newmsg.channel.id,
-                                                                      timeout=30)
-        except asyncio.exceptions.TimeoutError:
-            await interaction.response.send_message("timed out. please try again.")
-            return
-        membername = msg.content
-        membername = membername.lower()
+        membername = player.lower()
         with sqlite3.connect(self.databasepath) as conn:
             cur = conn.cursor()
             try:

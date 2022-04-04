@@ -1,6 +1,6 @@
 from typing import List
 
-from discord.ext.commands import Context
+from discord import Interaction
 import discord
 
 from commands.interractions.resultmessageshower import ResultmessageShower
@@ -10,8 +10,8 @@ from highscores import Btwinstreak, Btwins, getClanList, allhighscores
 
 
 class TopCommand(SelectsUtility):
-    def __init__(self, ctx: Context, highscores: List[str], clanname: str):
-        super().__init__(ctx=ctx, options=highscores, max_selectable=1, min_selectable=1,
+    def __init__(self, interaction: Interaction, highscores: List[str], clanname: str):
+        super().__init__(interaction=interaction, options=highscores, max_selectable=1, min_selectable=1,
                          placeholder="select the highscore you want to see")
         self.clanname = clanname
         self.highscores = highscores
@@ -40,5 +40,6 @@ class TopCommand(SelectsUtility):
                 print(e)
                 values = highscore.getDbValues(query="SELECT * FROM {0} WHERE rank<10".format(highscore.NAME))
         messages = tablify(highscore.LAYOUT, values, maxlength=1930)
-        await self.ctx.send(content=messages[0], view=ResultmessageShower(messages, ctx=self.ctx))
+        await interaction.response.send_message(content=messages[0],
+                                                     view=ResultmessageShower(messages, interaction=interaction))
 

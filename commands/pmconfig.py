@@ -1,3 +1,5 @@
+import sqlite3
+
 import discord
 from discord import app_commands, Interaction
 from discord.ext import commands
@@ -34,12 +36,9 @@ class Pmconfig(commands.Cog):
         await interaction.response.send_message("for what locations do you want a pm when a goldrush pops up?", view=view)
 
     @pmconfiggroup.command(name="pmhoney")
-    async def pmhoney(self, interaction: Interaction, location: str):
+    async def pmhoney(self, interaction: Interaction):
         """
         The user will receive a pm if honey gets spread at the provided location.
-        :param ctx: discord context
-        :param location: the location where the honey gets spread.
-        :todo input validation for the location
         """
         view = SelectsView(interaction, options=gethoneylocations(),
                            selectoption=lambda locations: PmHoney(interaction, locations, self.databasepath))
@@ -47,43 +46,69 @@ class Pmconfig(commands.Cog):
                                                 view=view)
 
     @pmconfiggroup.command(name='pmswarm')
-    async def pmswarm(self, interaction: Interaction):
+    async def pmswarm(self, interaction: Interaction, pokemon: str=None, location: str=None):
         """
-        starts the configuration of pming a swarm to the user.
-        The user gets 3 options:
-        1. location
-        2. pokemon
-        3. both
-        With location the user gets a pm that a swarm appeared at that location.
-        With pokemon the user gets a pm if one of the 2 swarm pokemon is the pokemon the user provided.
-        With both the user only gets a pm if the provided pokemon shows up at the provided location.
-        :param ctx: discord context
-        There is inputvalidation for both the swarm location and the swarm pokemon.
+        @todo input validation once again
         """
-        await interaction.response.send_message("what specific swarm do you want a pm for?",
-                                                view=PmSwarm(interaction, self.databasepath))
+        if pokemon is None and location is None:
+            await interaction.response.send_message("select pokemon, location or both")
+            return
+        symbol = "|"
+        if pokemon is not None and location is not None:
+            symbol = "&"
+            # both not None, so we can start entering it in the database.
+        query = "INSERT INTO pmswarm(playerid, location, pokemon, comparator) VALUES(?, ?, ?, ?)"
 
+        conn = sqlite3.connect(self.databasepath)
+        cur = conn.cursor()
+        try:
+            cur.execute(query, (interaction.user.id, location, pokemon, symbol))
+            conn.commit()
+        except sqlite3.IntegrityError:
+            await interaction.response.send_message("can not insert a duplicate configuration!")
+            return
+        finally:
+            conn.close()
+
+        if pokemon is not None and location is not None:
+            await interaction.response.send_message(f"you will now get a pm if a {pokemon} shows up at {location}.")
+        elif pokemon is not None:
+            await interaction.response.send_message(f"you will now get a pm if a {pokemon} shows up in a swarm.")
+        elif location is not None:
+            await interaction.response.send_message(f"you will now get a pm if a swarm shows up at {location}.")
 
     @pmconfiggroup.command(name="pmworldboss")
-    async def pmworldboss(self, interaction: Interaction):
+    async def pmworldboss(self, interaction: Interaction, pokemon: str=None, location: str=None):
         """
-        starts the configuration of pming a worldboss to the user.
-        The user gets 3 options:
-        1. location
-        2. worldboss pokemon
-        3. both
-        With location the user gets a pm that a worldboss appeared at that location.
-        With worldboss pokemon the user gets a pm if the worldboss provided shows up at any location.
-        With both the user only gets a pm if the provided worldboss pokemon shows up at the provided location.
-        There is inputvalidation for the worldboss pokemon, but not for the location.
-        :param ctx: discord context
+        ????
         """
-        await interaction.response.send_message("what specific worldboss do you want a pm for?",
-                                                view=PmWorldboss(interaction, self.databasepath))
 
+        if pokemon is None and location is None:
+            await interaction.response.send_message("select pokemon, location or both")
+            return
+        symbol = "|"
+        if pokemon is not None and location is not None:
+            symbol = "&"
+        query = "INSERT INTO pmworldboss(playerid, location, boss, comparator) VALUES(?, ?, ?, ?)"
+        conn = sqlite3.connect(self.databasepath)
+        cur = conn.cursor()
+        try:
+            cur.execute(query, (interaction.user.id, location, pokemon, symbol))
+            conn.commit()
+        except sqlite3.IntegrityError:
+            await interaction.response.send_message("can not insert a duplicate configuration!")
+            return
+        finally:
+            conn.close()
+        if pokemon is not None and location is not None:
+            await interaction.response.send_message(f"you will now get a pm if a {pokemon} worldboss shows up at {location}.")
+        elif pokemon is not None:
+            await interaction.response.send_message(f"you will now get a pm if a {pokemon} worldboss shows up.")
+        elif location is not None:
+            await interaction.response.send_message(f"you will now get a pm if a worldboss shows up at {location}.")
 
     @pmconfiggroup.command(name="pmtournament")
-    async def pmtournament(self, interaction: Interaction):
+    async def pmtournament(self, interaction: Interaction, prize: str=None, tournament: str=None):
         """
         starts the configuration of pming a tournament to the user.
         The user gets 3 options:
@@ -97,8 +122,31 @@ class Pmconfig(commands.Cog):
         :param ctx: discord context
         :todo input validation for prize
         """
-        await interaction.response.send_message("what specific tournament do you want a pm for?",
-                                                view=PmTournament(interaction, self.databasepath))
+        if prize is None and tournament is None:
+            await interaction.response.send_message("select tournamenttype, prize or both!")
+        symbol = "|"
+        if prize is not None and tournament is not None:
+            symbol = "&"
+        query = "INSERT INTO pmtournament(playerid, tournament, prize, comparator) VALUES(?, ?, ?, ?)"
+        conn = sqlite3.connect(self.databasepath)
+        cur = conn.cursor()
+        try:
+            cur.execute(query, (interaction.user.id, tournament, prize, symbol))
+            conn.commit()
+        except sqlite3.IntegrityError:
+            await interaction.response.send_message("can not insert a duplicate configuration!")
+            return
+        finally:
+            conn.close()
+
+        if tournament is not None and prize is not None:
+            await interaction.response.send_message(f"you will now get a pm if a {tournament} shows up with prize "
+                                                    f"{prize}.")
+        elif tournament is not None:
+            await interaction.response.send_message(f"you will now get a pm if a {tournament} starts.")
+        elif prize is not None:
+            await interaction.response.send_message(f"you will now get a pm if a tournament with prize {prize} starts.")
+
 
 
 

@@ -1,0 +1,7 @@
+git+https://github.com/Rapptz/discord.py.git@b561024
+Pillow
+numpy
+pandas
+lxml
+requests
+bs4

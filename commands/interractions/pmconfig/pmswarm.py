@@ -1,7 +1,10 @@
+# @deprecated, not used at this moment but might be used at one point again.
+
 import sqlite3
 from typing import Callable, Awaitable, List
 
 import discord
+from discord import Interaction
 from discord.ext.commands import Context
 
 from commands.interractions.selectsutility import SelectsUtility
@@ -13,8 +16,8 @@ class GetPokemon(SelectsUtility):
     """
     class for selecting a pokemon. Class calls oncallback when a selection is made.
     """
-    def __init__(self, ctx, oncallback: Callable[[str], Awaitable[None]], options: List[str]):
-        super().__init__(ctx=ctx, options=options, max_selectable=1, min_selectable=1,
+    def __init__(self, interaction: Interaction, oncallback: Callable[[str], Awaitable[None]], options: List[str]):
+        super().__init__(interaction=interaction, options=options, max_selectable=1, min_selectable=1,
                         placeholder="select the pokemon you want a message for:")
         self.oncallback = oncallback
 
@@ -45,16 +48,16 @@ class PmSwarm(discord.ui.View):
     """
     view for pmswarm
     """
-    def __init__(self, ctx: Context, databasepath: str):
+    def __init__(self, interaction: Interaction, databasepath: str):
         super(PmSwarm, self).__init__()
-        self.ctx = ctx
+        self.interaction = interaction
         self.databasepath = databasepath
         self.pokemon = None
         self.location = None
         self.both = False
 
     @discord.ui.button(label='Location', style=discord.ButtonStyle.green)
-    async def location(self, button, interaction: discord.Interaction):
+    async def location(self, interaction: discord.Interaction, button):
         """
         user registers for a location showing up in a swarm
         :param button:
@@ -66,7 +69,7 @@ class PmSwarm(discord.ui.View):
                             view=SelectsView(self.ctx, getswarmlocations(), self.swarmlocationmaker))
 
     @discord.ui.button(label="Pokemon", style=discord.ButtonStyle.green)
-    async def pokemon(self, button, interaction: discord.Interaction):
+    async def pokemon(self, interaction: discord.Interaction, button):
         """
         user registers for a pokemon showing up in a swarm
         :param button:
@@ -78,7 +81,7 @@ class PmSwarm(discord.ui.View):
                             view=SelectsView(self.ctx, getswarmpokemons(), self.swarmpokemonmaker))
 
     @discord.ui.button(label="both", style=discord.ButtonStyle.green)
-    async def both(self, button, interaction: discord.Interaction):
+    async def both(self, interaction: discord.Interaction, button):
         """
         user registers for a combination of a pokemon and a location showing up in a swarm
         :param button:
@@ -87,7 +90,7 @@ class PmSwarm(discord.ui.View):
         """
         if not await self.isOwner(interaction): return
         self.both = True
-        await self.ctx.send("please select the pokemon: ",
+        await self.interaction.response.send_message("please select the pokemon: ",
                             view=SelectsView(self.ctx, getswarmpokemons(), self.swarmpokemonmaker))
 
     def swarmlocationmaker(self, options: List[str]) -> GetLocation:
@@ -96,7 +99,7 @@ class PmSwarm(discord.ui.View):
         :param options:
         :return:
         """
-        return GetLocation(self.ctx, oncallback=self.__onlocationcallback, options=options)
+        return GetLocation(self.interaction, oncallback=self.__onlocationcallback, options=options)
 
     def swarmpokemonmaker(self, options: List[str]) -> GetPokemon:
         """
@@ -104,7 +107,7 @@ class PmSwarm(discord.ui.View):
         :param options:
         :return:
         """
-        return GetPokemon(self.ctx, oncallback=self.__onpokemoncallback, options=options)
+        return GetPokemon(self.interaction, oncallback=self.__onpokemoncallback, options=options)
 
     async def __onpokemoncallback(self, pokemon: str) -> None:
         """
@@ -159,10 +162,10 @@ class PmSwarm(discord.ui.View):
         elif self.pokemon is not None:
             await self.ctx.send(f"you will now get a pm if a {self.pokemon} shows up in a swarm.")
         elif self.location is not None:
-            await self.ctx.send(f"you will now get a pm if a swarm shows up at {self.location}.")
+            await self.interaction.response.send_message(f"you will now get a pm if a swarm shows up at {self.location}.")
 
     async def isOwner(self, interaction: discord.Interaction) -> bool:
-        if interaction.guild != self.ctx.guild or interaction.user.id != self.ctx.author.id:
+        if interaction.guild != self.interaction.guild or interaction.user.id != self.interaction.user.id:
             await interaction.response.send_message("only the user who used the command can use these buttons!")
             return False
         return True
