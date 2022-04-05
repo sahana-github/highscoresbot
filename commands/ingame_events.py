@@ -127,5 +127,5 @@ class IngameEvents(commands.Cog):
             await ctx.send("uncaught exception.")
             print(e)
 
-def setup(client):
-    client.add_cog(IngameEvents(client))
+async def setup(client):
+    await client.add_cog(IngameEvents(client))

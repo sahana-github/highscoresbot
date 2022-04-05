@@ -208,5 +208,5 @@ class Highscores(commands.Cog):
         await ctx.send(content=f"page {view.currentpage} of {view.maxpage}", view=view)
 
 
-def setup(client):
-    client.add_cog(Highscores(client))
+async def setup(client):
+    await client.add_cog(Highscores(client))

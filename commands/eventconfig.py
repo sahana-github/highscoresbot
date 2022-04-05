@@ -471,5 +471,5 @@ class Eventconfigurations(commands.Cog):
         return True
 
 
-def setup(client):
-    client.add_cog(Eventconfigurations(client))
+async def setup(client):
+    await client.add_cog(Eventconfigurations(client))
