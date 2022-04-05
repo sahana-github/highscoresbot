@@ -2,6 +2,7 @@ import sqlite3
 
 import discord
 from discord import app_commands, Interaction
+from discord.app_commands import Choice
 from discord.ext import commands
 from commands.interractions.pmconfig.pmgoldrush import PmGoldrush
 from commands.interractions.pmconfig.pmhoney import PmHoney
@@ -10,7 +11,8 @@ from commands.interractions.pmconfig.pmtournament import PmTournament
 from commands.interractions.pmconfig.pmworldboss import PmWorldboss
 from commands.interractions.pmconfig.removepmconfig import RemovePmConfig
 from commands.interractions.selectsview import SelectsView
-from commands.utils.utils import getgoldrushlocations, gethoneylocations
+from commands.utils.utils import getgoldrushlocations, gethoneylocations, gettournamentprizes, getswarmpokemons, \
+    getswarmlocations
 from discord.ext.commands.context import Context
 
 
@@ -56,6 +58,17 @@ class Pmconfig(commands.Cog):
         symbol = "|"
         if pokemon is not None and location is not None:
             symbol = "&"
+        if pokemon is not None:
+            pokemon = pokemon.lower()
+            if pokemon not in getswarmpokemons():
+                await interaction.response.send_message("not an available swarm pokemon. See "
+                                                        "https://pokemon-planet.com/swarms for a list of available pokemon")
+                return
+        if location is not None:
+            location = location.lower()
+            if location not in getswarmlocations():
+                await interaction.response.send_message("not an available swarm location. See "
+                                                        "https://pokemon-planet.com/swarms for a list of available locations")
             # both not None, so we can start entering it in the database.
         query = "INSERT INTO pmswarm(playerid, location, pokemon, comparator) VALUES(?, ?, ?, ?)"
 
@@ -108,6 +121,9 @@ class Pmconfig(commands.Cog):
             await interaction.response.send_message(f"you will now get a pm if a worldboss shows up at {location}.")
 
     @pmconfiggroup.command(name="pmtournament")
+    @app_commands.choices(tournament=[Choice(name=i, value=i)
+                                      for i in ["ubers", "self caught", "little cup", "monotype", "set level 100"]]
+                          )
     async def pmtournament(self, interaction: Interaction, prize: str=None, tournament: str=None):
         """
         starts the configuration of pming a tournament to the user.
