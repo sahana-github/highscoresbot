@@ -1,19 +1,18 @@
 import sqlite3
+from typing import List
 
-import discord
 from discord import app_commands, Interaction
 from discord.app_commands import Choice
 from discord.ext import commands
 from commands.interractions.pmconfig.pmgoldrush import PmGoldrush
 from commands.interractions.pmconfig.pmhoney import PmHoney
-from commands.interractions.pmconfig.pmswarm import PmSwarm
-from commands.interractions.pmconfig.pmtournament import PmTournament
-from commands.interractions.pmconfig.pmworldboss import PmWorldboss
+from commands.interractions.pmconfig.pmswarm import swarmpokemonautocomplete, swarmlocationautocomplete
+from commands.interractions.pmconfig.pmtournament import tournamentprizeautocomplete, tournamenttypeautocomplete
+from commands.interractions.pmconfig.pmworldboss import worldbosspokemonautocomplete, worldbosslocationautocomplete
 from commands.interractions.pmconfig.removepmconfig import RemovePmConfig
 from commands.interractions.selectsview import SelectsView
 from commands.utils.utils import getgoldrushlocations, gethoneylocations, gettournamentprizes, getswarmpokemons, \
     getswarmlocations
-from discord.ext.commands.context import Context
 
 
 class Pmconfig(commands.Cog):
@@ -48,6 +47,8 @@ class Pmconfig(commands.Cog):
                                                 view=view)
 
     @pmconfiggroup.command(name='pmswarm')
+    @app_commands.autocomplete(pokemon=swarmpokemonautocomplete,
+                               location=swarmlocationautocomplete)
     async def pmswarm(self, interaction: Interaction, pokemon: str=None, location: str=None):
         """
         @todo input validation once again
@@ -91,9 +92,11 @@ class Pmconfig(commands.Cog):
             await interaction.response.send_message(f"you will now get a pm if a swarm shows up at {location}.")
 
     @pmconfiggroup.command(name="pmworldboss")
+    @app_commands.autocomplete(pokemon=worldbosspokemonautocomplete,
+                               location=worldbosslocationautocomplete)
     async def pmworldboss(self, interaction: Interaction, pokemon: str=None, location: str=None):
         """
-        ????
+        pm for when worldboss with specific requirements shows up.
         """
 
         if pokemon is None and location is None:
@@ -121,8 +124,8 @@ class Pmconfig(commands.Cog):
             await interaction.response.send_message(f"you will now get a pm if a worldboss shows up at {location}.")
 
     @pmconfiggroup.command(name="pmtournament")
-    @app_commands.choices(tournament=[Choice(name=i, value=i)
-                                      for i in ["ubers", "self caught", "little cup", "monotype", "set level 100"]]
+    @app_commands.autocomplete(tournament=tournamenttypeautocomplete,
+                               prize=tournamentprizeautocomplete
                           )
     async def pmtournament(self, interaction: Interaction, prize: str=None, tournament: str=None):
         """
@@ -177,6 +180,8 @@ class Pmconfig(commands.Cog):
         """
         await interaction.response.send_message("what event do you want to remove pmconfig of?",
                                                 view=RemovePmConfig(interaction, self.databasepath))
+
+
 
 
 async def setup(client):
