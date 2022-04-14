@@ -10,7 +10,7 @@ from discord.ext.commands import Context, CommandNotFound, CommandInvokeError, N
 class Main(commands.Bot):
     def __init__(self):
 
-        super().__init__([".", "?"], intents=discord.Intents.all())
+        super().__init__([".", "?"])
         #self.intents.message_content = True
         self.cog_files = ["commands.ingame_events", "commands.highscores", "commands.eventconfig",
                           "commands.miscellaneous", "commands.pmconfig"]

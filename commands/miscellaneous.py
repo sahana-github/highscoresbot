@@ -143,14 +143,13 @@ class Miscellaneous(commands.Cog):
 
     @miscellaneousgroup.command(name="gmsearch")
     async def gmsearch(self, interaction: Interaction, searchstring: str):
-        searchstring = " ".join(searchstring)
         if len(searchstring) > 80:
             await interaction.response.send_message("the max length for the item to search for is 80 characters!")
             return
         if not searchstring:
             await interaction.response.send_message("use .gmsearch manaphy for example, where manaphy is the pokemon you search for.")
             return
-        msg = await interaction.response.send_message("queued up for gm search.")
+        await interaction.response.send_message("queued up for gm search.")
         if interaction.guild is None:
             # is pm
             ispm = 1
@@ -168,16 +167,18 @@ class Miscellaneous(commands.Cog):
         for i in range(500):
             await asyncio.sleep(5)
             cur.execute("SELECT page, content FROM gmsearchresult WHERE responseid=?", (result.lastrowid,))
-            #cur.execute("SELECT page, content FROM gmsearchresult WHERE responseid=?", (result.lastrowid,))
             if gmsearches := cur.fetchall():
                 print("results are in!")
                 break
         else:
-            await interaction.followup.send_message("something broke. This will be resolved soon.")
+            await interaction.user.send("something broke. This will be resolved soon.")
             raise TimeoutError("Gmsearch failed! No results incomming.")
         pages = []
         if gmsearches[0][1] is None:
-            await interaction.followup.send_message("the search didn't return any items/pokemon!")
+            if interaction.channel is not None:
+                await interaction.channel.send("the search didn't return any items/pokemon!")
+            else:
+                await interaction.user.send("the search didn't return any items/pokemon!")
             return
         for row in gmsearches:
             item = Item.from_dict(dict(json.loads(row[1].replace("'", '"'))))

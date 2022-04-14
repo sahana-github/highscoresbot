@@ -82,7 +82,6 @@ class GetEncounters(discord.ui.View):
         await self.showMessages(resultmessages, interaction)
 
     async def showMessages(self, resultmessages, interaction: discord.Interaction):
-        print(type(interaction))
         if not await self.isOwner(interaction): return
         msgshower = ResultmessageShower(messages=resultmessages, interaction=self.interaction)
         await interaction.response.edit_message(view=msgshower,
