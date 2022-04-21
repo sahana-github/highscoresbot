@@ -11,7 +11,6 @@ class Main(commands.Bot):
     def __init__(self):
 
         super().__init__([".", "?"])
-        #self.intents.message_content = True
         self.cog_files = ["commands.ingame_events", "commands.highscores", "commands.eventconfig",
                           "commands.miscellaneous", "commands.pmconfig"]
 
@@ -20,6 +19,7 @@ class Main(commands.Bot):
         waits for the client to get ready and adds DiscordComponents.
         :return:
         """
+
         await self.wait_until_ready()
         for cog_file in self.cog_files:  # load in all commands
             await self.load_extension(cog_file)
@@ -90,7 +90,8 @@ class Main(commands.Bot):
         if temp != "```":
             await chan.send(temp + "```")
 
-
+            
 if __name__ == "__main__":
     client = Main()
     client.run(os.environ.get("token"))
+

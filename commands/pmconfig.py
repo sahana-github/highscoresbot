@@ -180,9 +180,7 @@ class Pmconfig(commands.Cog):
         """
         await interaction.response.send_message("what event do you want to remove pmconfig of?",
                                                 view=RemovePmConfig(interaction, self.databasepath))
-
-
-
-
+        
+        
 async def setup(client):
     await client.add_cog(Pmconfig(client))
