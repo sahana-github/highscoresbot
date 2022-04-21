@@ -2,18 +2,21 @@ import json
 import sqlite3
 from typing import List
 
+from discord import Interaction
+
+from commands.interractions.resultmessageshower import ResultmessageShower
 from commands.interractions.selectsutility import SelectsUtility
 import discord
 
 
 class HelpCmd(SelectsUtility):
-    def __init__(self, ctx, options: List[str]):
+    def __init__(self, interaction: Interaction, options: List[str]):
         """
         selectsutility of the help command.
         :param ctx:
         :param options:
         """
-        super(HelpCmd, self).__init__(ctx, options=options, max_selectable=len(options), ownerOnly=False,
+        super(HelpCmd, self).__init__(interaction, options=options, max_selectable=len(options), ownerOnly=False,
                                       placeholder="select the command you want help with:")
 
     async def callback(self, interaction: discord.Interaction):
@@ -24,7 +27,7 @@ class HelpCmd(SelectsUtility):
         """
         conn = sqlite3.connect("eventconfigurations.db")
         cur = conn.cursor()
-        count = 0
+        embeds = []
         for commandname in self.values:
             if len(commandname.split(" ")) > 1:  # remove category if it has one.
                 commandname = commandname.split(" ")[0]
@@ -39,9 +42,10 @@ class HelpCmd(SelectsUtility):
             embed = discord.Embed.from_dict(json.loads(embedjson))
             if categoryname is not None:
                 embed.add_field(name="category", value=categoryname)
-            if count > 5:
-                await self.ctx.author.send(embed=embed)
-            else:
-                await self.ctx.send(embed=embed)
-            count += 1
+            # if count > 5:
+            #     await interaction.user.send(embed=embed)
+            # else:
+            #     await interaction.response.send_message(embed=embed)
+            embeds.append(embed)
         conn.close()
+        await interaction.response.send_message(embed=embeds[0], view=ResultmessageShower(embeds, interaction))

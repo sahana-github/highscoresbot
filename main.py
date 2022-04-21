@@ -1,74 +1,34 @@
-"""
-This file runs the bot for processing commands and handles errors when those happen in commands.
-"""
 import os
-
-from discord import errors
-from discord.ext import commands
-import discord.ext.commands
-from discord.ext.commands import CommandNotFound, errors
-from discord.ext.commands._types import BotT
-from discord.ext.commands.errors import MissingRequiredArgument, CommandInvokeError, NoPrivateMessage
-from discord.errors import Forbidden, NotFound
 import traceback
-from discord.ext.commands.context import Context
 
-
-
-
-
-
+import discord
+from discord import Forbidden, NotFound
+from discord.ext import commands
+from discord.ext.commands import Context, CommandNotFound, CommandInvokeError, NoPrivateMessage, MissingRequiredArgument
 
 
 class Main(commands.Bot):
-    def __init__(self, token):
+    def __init__(self):
+
+        super().__init__([".", "?"])
         self.cog_files = ["commands.ingame_events", "commands.highscores", "commands.eventconfig",
                           "commands.miscellaneous", "commands.pmconfig"]
-        intents = discord.Intents.default()
-        intents.message_content = False
-        super().__init__([".", "?"], intents=intents)
-        self.__token = token
 
     async def on_ready(self):
         """
         waits for the client to get ready and adds DiscordComponents.
         :return:
         """
+
+        await self.wait_until_ready()
         for cog_file in self.cog_files:  # load in all commands
             await self.load_extension(cog_file)
             print("%s has loaded." % cog_file)
-        await self.wait_until_ready()
-
-    async def invoke(self, ctx: Context[BotT], /) -> None:
-        """|coro|
-
-        Invokes the command given under the invocation context and
-        handles all the internal event dispatch mechanisms.
-
-        .. versionchanged:: 2.0
-
-            ``ctx`` parameter is now positional-only.
-
-        Parameters
-        -----------
-        ctx: :class:`.Context`
-            The invocation context to invoke.
-        """
-        if ctx.command is not None:
-            self.dispatch('command', ctx)
-            try:
-                if await self.can_run(ctx, call_once=True):
-                    await ctx.send("warning: All commands will move to slash commands soon.")
-                    await ctx.command.invoke(ctx)
-                else:
-                    raise errors.CheckFailure('The global check once functions failed.')
-            except errors.CommandError as exc:
-                await ctx.command.dispatch_error(ctx, exc)
-            else:
-                self.dispatch('command_completion', ctx)
-        elif ctx.invoked_with:
-            exc = errors.CommandNotFound(f'Command "{ctx.invoked_with}" is not found')
-            self.dispatch('command_error', ctx, exc)
+        # for command in self.tree.get_commands():
+        #     print(command)
+        await self.tree.sync()
+        for a in await self.tree.fetch_commands():
+            print(a)
 
     async def on_command_error(self, ctx: Context, error: Exception):
         """
@@ -130,9 +90,8 @@ class Main(commands.Bot):
         if temp != "```":
             await chan.send(temp + "```")
 
-    def run(self, *args, **kwargs):
-        super(Main, self).run(token=self.__token, *args, **kwargs)
-
-
+            
 if __name__ == "__main__":
-    Main(os.environ.get("token")).run()
+    client = Main()
+    client.run(os.environ.get("token"))
+

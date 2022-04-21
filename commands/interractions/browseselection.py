@@ -1,26 +1,26 @@
 import discord
-from discord.ext.commands import Context
+from discord import Interaction
 
 
 class BrowseSelection(discord.ui.View):
     """
     handles the buttons to browse through something.
     """
-    def __init__(self, ctx: Context, pagesamount: int, ownerOnly=True):
+    def __init__(self, interaction: Interaction, pagesamount: int, ownerOnly=True):
         """
         constructor
-        :param ctx: discord context.
+        :param interaction: interaction context.
         :param pagesamount: amount of pages.
         :param ownerOnly: if only the owner/initiator may press the buttons.
         """
         super().__init__()
         self.ownerOnly = ownerOnly
-        self.ctx = ctx
+        self.interaction = interaction
         self.currentpage = 1
         self.maxpage = pagesamount
 
     @discord.ui.button(label='<<', style=discord.ButtonStyle.green)
-    async def minpage(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def minpage(self, interaction: discord.Interaction, button: discord.ui.Button):
         """
         set current page to 1.
         :param button:
@@ -32,7 +32,7 @@ class BrowseSelection(discord.ui.View):
         await self._sendPage(interaction)
 
     @discord.ui.button(label='<', style=discord.ButtonStyle.green)
-    async def previouspage(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def previouspage(self, interaction: discord.Interaction, button: discord.ui.Button):
         """
         go 1 page back (if possible)
         :param button:
@@ -45,7 +45,7 @@ class BrowseSelection(discord.ui.View):
         await self._sendPage(interaction)
 
     @discord.ui.button(label='>', style=discord.ButtonStyle.danger)
-    async def nextpage(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def nextpage(self, interaction: discord.Interaction, button: discord.ui.Button):
         """
         go to the next page (if possible)
         :param button:
@@ -58,7 +58,7 @@ class BrowseSelection(discord.ui.View):
         await self._sendPage(interaction)
 
     @discord.ui.button(label='>>', style=discord.ButtonStyle.danger)
-    async def maxpage(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def maxpage(self, interaction: discord.Interaction, button: discord.ui.Button):
         """
         go to the max page.
         :param button:
@@ -85,7 +85,7 @@ class BrowseSelection(discord.ui.View):
         """
         if not self.ownerOnly:
             return True
-        if interaction.guild != self.ctx.guild or interaction.user.id != self.ctx.author.id:
+        if interaction.guild != self.interaction.guild or interaction.user.id != self.interaction.user.id:
             await interaction.response.send_message("only the user who used the command can use these buttons!")
             return False
         return True

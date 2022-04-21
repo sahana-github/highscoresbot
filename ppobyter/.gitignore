@@ -3,3 +3,5 @@ eventconfigurations.db
 .idea/
 
 events/__pycache__/
+
+venv/*

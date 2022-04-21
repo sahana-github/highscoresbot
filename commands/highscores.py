@@ -2,9 +2,12 @@ import asyncio
 import sqlite3
 from typing import Union
 
+import discord
+from discord import app_commands, Interaction
 from discord.ext.commands import Command, Context
 
 from commands.interractions.highscore_command import HighscoreCommand
+from commands.interractions.resultmessageshower import ResultmessageShower
 from commands.interractions.selectsview import SelectsView
 from commands.interractions.top_command import TopCommand
 from commands.utils.utils import tablify, joinmessages
@@ -56,8 +59,11 @@ class Highscores(commands.Cog):
 
             self.client.add_command(outer_cmd(highscore))
 
-    @commands.command(name="getplayer")
-    async def getplayer(self, ctx: Context, username: str):
+    highscoresgroup = app_commands.Group(name="highscores",
+                                         description="all commands that have to do directly with all the highscores of pokemon planet.")
+
+    @highscoresgroup.command(name="getplayer")
+    async def getplayer(self, interaction: Interaction, username: str):
         """
         gets a collection of highscores a player is in.
         :param ctx: discord context
@@ -78,10 +84,10 @@ class Highscores(commands.Cog):
         allmessages = joinmessages(allmessages)
 
         if len(allmessages) == 0:
-            await ctx.send("or {0} is not in any highscore or he does not exist.".format(username))
+            await interaction.response.send_message("or {0} is not in any highscore or he does not exist.".format(username))
         else:
-            for i in allmessages:
-                await ctx.send(i)
+            view = ResultmessageShower(allmessages, interaction)
+            await interaction.response.send_message(allmessages[0], view=view)
 
     @commands.command(name="btwins")
     async def btwins(self, ctx, clanname=None):
@@ -98,8 +104,8 @@ class Highscores(commands.Cog):
             await ctx.send(message)
 
     @commands.command(name="btwinstreak")
-    async def btwinstreak(self, ctx, clanname=None):
-        if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
+    async def btwinstreak(self, interaction, clanname=None):
+        if clanname is None and ((clanname := await self.getdefaultclanname(interaction)) is None):
             return
         values = []
         clanlist = getClanList(clanname.lower())
@@ -108,11 +114,10 @@ class Highscores(commands.Cog):
             if row[1] in clanlist:
                 values.append(row)
         resultmessages = tablify(btwinstreak.LAYOUT, values)
-        for message in resultmessages:
-            await ctx.send(message)
+        view = ResultmessageShower(resultmessages, interaction)
 
-    @commands.command(name="mapcontrol")
-    async def mapcontrol(self, ctx, clanname: str = None):
+    @highscoresgroup.command(name="mapcontrol")
+    async def mapcontrol(self, interaction, clanname: str = None):
         """
         shows the standings of all mapcontrol areas.
         :param ctx: discord context
@@ -120,7 +125,7 @@ class Highscores(commands.Cog):
         """
         mapcontrolhighscores = [(AncMapcontrol, "Ancient cave"), (BzMapcontrol, "Battle zone"),
                                 (SafariMapcontrol, "Safari zone")]
-        if clanname is None and ((clanname := await self.getdefaultclanname(ctx)) is None):
+        if clanname is None and ((clanname := await self.getdefaultclanname(interaction)) is None):
             clanname = ""
         messages = []
         for highscore, area in mapcontrolhighscores:
@@ -131,31 +136,31 @@ class Highscores(commands.Cog):
             messages.append(area)
             messages += values
         messages = joinmessages(messages)
-        for i in messages:
-            await ctx.send(i)
+        view = ResultmessageShower(messages, interaction)
+        await interaction.response.send_message(messages[0], view=view)
 
-    @commands.command(name="top")
-    async def top(self, ctx: Context, clanname=None):
+    @highscoresgroup.command(name="top")
+    async def top(self, interaction: Interaction, clanname: str=None):
         """
         shows top 9 + the provided clan if available.
         :param ctx: discord context
         :param clanname: the clanname, default none, clannamehandler gets clan from db if none.
         """
         if clanname is None:
-            clanname = await self.getdefaultclanname(ctx, comment=False)
+            clanname = await self.getdefaultclanname(interaction, comment=False)
         highscoresdict = {}
         for highscore in allhighscores:
             highscore = highscore()
             highscoresdict[highscore.NAME] = highscore
 
         def highscoreselectionmaker(highscores):
-            return TopCommand(ctx, highscores, clanname)
+            return TopCommand(interaction, highscores, clanname)
 
-        view = SelectsView(ctx, highscoresdict, highscoreselectionmaker)
-        await ctx.send(content=f"page {view.currentpage} of {view.maxpage}", view=view)
+        view = SelectsView(interaction, highscoresdict, highscoreselectionmaker)
+        await interaction.response.send_message(content=f"page {view.currentpage} of {view.maxpage}", view=view)
 
-    @commands.command(name="getclan")
-    async def getclan(self, ctx, clanname: str):
+    @highscoresgroup.command(name="getclan")
+    async def getclan(self, interaction: Interaction, clanname: str):
         clanname = clanname.lower()
         getclanhighscores = [(SafariMapcontrol, "Safari zone mapcontrol"),
                              (AncMapcontrol, "Ancient cave mapcontrol"),
@@ -173,40 +178,41 @@ class Highscores(commands.Cog):
                     break
         allmessages = joinmessages(allmessages)
         if not allmessages:
-            await ctx.send(f"The clan {clanname} is not in the highscores or does not exist.")
+            await interaction.response.send_message(f"The clan {clanname} is not in the highscores or does not exist.")
             return
-        for message in allmessages:
-            await ctx.send(message)
 
-    async def getdefaultclanname(self, ctx, comment=True) -> Union[str, None]:
-        if ctx.guild is None:
+        view = ResultmessageShower(allmessages, interaction)
+        await interaction.response.send_message(allmessages[0], view=view)
+
+    async def getdefaultclanname(self, interaction, comment=True) -> Union[str, None]:
+        if interaction.guild is None:
             return
         conn = sqlite3.connect(self.databasepath)
         cur = conn.cursor()
-        cur.execute("SELECT name FROM clannames WHERE id=?", (ctx.guild.id,))
+        cur.execute("SELECT name FROM clannames WHERE id=?", (interaction.guild.id,))
         try:
             clanname = cur.fetchall()[0][0]
         except IndexError:
             clanname = None
         if clanname is None and comment:
-            await ctx.send("Please register a default clanname or provide a clan in the command.")
+            await interaction.response.send_message("Please register a default clanname or provide a clan in the command.")
         elif clanname is not None:
             clanname = clanname.lower()
         return clanname
 
-    @commands.command(name="highscore")
-    async def highscore(self, ctx):
+    @highscoresgroup.command(name="highscore")
+    async def highscore(self, interaction: Interaction, clanname: str=None):
         initializedhighscores = {}
         for highscore in allhighscores:
             highscore = highscore()
             initializedhighscores[highscore.NAME] = highscore
 
         def highscoreselectionmaker(highscores):
-            return HighscoreCommand(ctx, highscores)
+            return HighscoreCommand(interaction, highscores, clanname=clanname)
 
-        view = SelectsView(ctx, initializedhighscores.keys(), highscoreselectionmaker)
-        await ctx.send(content=f"page {view.currentpage} of {view.maxpage}", view=view)
+        view = SelectsView(interaction, initializedhighscores.keys(), highscoreselectionmaker)
+        await interaction.response.send_message(content=f"page {view.currentpage} of {view.maxpage}", view=view)
 
 
-async def setup(client):
+async def setup(client: commands.Bot):
     await client.add_cog(Highscores(client))

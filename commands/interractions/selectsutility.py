@@ -1,13 +1,14 @@
 from typing import List
 
 import discord
+from discord import Interaction
 
 
 class SelectsUtility(discord.ui.Select):
-    def __init__(self, ctx, options: List[str], max_selectable: int, min_selectable=1, placeholder="select below:",
+    def __init__(self, interaction: Interaction, options: List[str], max_selectable: int, min_selectable=1, placeholder="select below:",
                  ownerOnly=True):
         self.ownerOnly = ownerOnly
-        self.ctx = ctx
+        self.interaction = interaction
         if len(options) > 25:
             raise ValueError("A select can't contain more than 25 items!")
         selectoptions = [discord.SelectOption(label=option) for option in options]
@@ -21,7 +22,7 @@ class SelectsUtility(discord.ui.Select):
     async def isOwner(self, interaction: discord.Interaction) -> bool:
         if not self.ownerOnly:
             return True
-        if interaction.guild != self.ctx.guild or interaction.user.id != self.ctx.author.id:
+        if interaction.guild != self.interaction.guild or interaction.user.id != self.interaction.user.id:
             await interaction.response.send_message("only the user who used the command can use these buttons!")
             return False
         return True
