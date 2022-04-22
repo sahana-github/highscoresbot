@@ -27,8 +27,12 @@ class Main(discord.Client):
         self.__tasks.append(WorldbossSoon())
         self.__tasks.append(Clanwars())
         self.__token = options["token"]
+        self.running = False
+
     async def on_ready(self):
-        self.loop.create_task(self.mainloop())
+        if not self.running:
+            self.loop.create_task(self.mainloop())
+            self.running = True
 
     async def mainloop(self):
         await self.wait_until_ready()
