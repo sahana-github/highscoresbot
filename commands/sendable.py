@@ -1,0 +1,35 @@
+from typing import Union
+
+from discord import Interaction
+from discord.abc import Messageable
+
+
+class Sendable:
+    def __init__(self, inputsrc: Union[Messageable, Interaction]):
+        self.inputsrc = inputsrc
+
+    async def send(self, *args, **kwargs):
+        if type(self.inputsrc) == Interaction:
+            if self.inputsrc.channel is not None:
+                send = self.inputsrc.channel.send
+            else:
+                send = self.inputsrc.user.send
+        else:
+            send = self.inputsrc.__getattribute__("send")
+
+        await send(*args, **kwargs)
+
+    def __getattribute__(self, item, get_from_sendable=False):
+        """
+
+        :param item:
+        :param get_from_sendable: explicitely request and attribute from the inputsource.
+        :return:
+        """
+        if get_from_sendable:
+            return self.inputsrc.__getattribute__(item)
+        try:
+            attr = super(Sendable, self).__getattribute__(item)  # isn't
+        except AttributeError:
+            attr = self.inputsrc.__getattribute__(item)
+        return attr
