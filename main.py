@@ -11,8 +11,9 @@ class Main(commands.Bot):
     def __init__(self):
 
         super().__init__([".", "?"])
-        self.cog_files = ["commands.ingame_events", "commands.highscores", "commands.eventconfig",
-                          "commands.miscellaneous", "commands.pmconfig"]
+        # self.cog_files = ["commands.ingame_events", "commands.highscores", "commands.eventconfig",
+        #                   "commands.miscellaneous", "commands.pmconfig"]
+        self.cog_files = ["commands.actual_commands.highscores"]
 
     async def on_ready(self):
         """

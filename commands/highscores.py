@@ -10,6 +10,7 @@ from commands.interractions.highscore_command import HighscoreCommand
 from commands.interractions.resultmessageshower import ResultmessageShower
 from commands.interractions.selectsview import SelectsView
 from commands.interractions.top_command import TopCommand
+from commands.sendable import Sendable
 from commands.utils.utils import tablify, joinmessages
 from discord.ext import commands
 from highscores import *
@@ -63,7 +64,7 @@ class Highscores(commands.Cog):
                                          description="all commands that have to do directly with all the highscores of pokemon planet.")
 
     @highscoresgroup.command(name="getplayer")
-    async def getplayer(self, interaction: Interaction, username: str):
+    async def getplayer(self, sendable: Sendable, username: str):
         """
         gets a collection of highscores a player is in.
         :param ctx: discord context
@@ -84,10 +85,10 @@ class Highscores(commands.Cog):
         allmessages = joinmessages(allmessages)
 
         if len(allmessages) == 0:
-            await interaction.response.send_message("or {0} is not in any highscore or he does not exist.".format(username))
+            await sendable.send("or {0} is not in any highscore or he does not exist.".format(username))
         else:
-            view = ResultmessageShower(allmessages, interaction)
-            await interaction.response.send_message(allmessages[0], view=view)
+            view = ResultmessageShower(allmessages, sendable)
+            await sendable.send(allmessages[0], view=view)
 
     @commands.command(name="btwins")
     async def btwins(self, ctx, clanname=None):

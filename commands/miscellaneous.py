@@ -11,6 +11,7 @@ from commands.interractions.miscellaneous.gmsearch import ImgWithText, GMSearch
 from commands.interractions.miscellaneous.help_cmd import HelpCmd
 from commands.interractions.resultmessageshower import ResultmessageShower
 from commands.interractions.selectsview import SelectsView
+from commands.sendable import Sendable
 from commands.utils.utils import tablify
 
 from discord.ext.commands.context import Context
@@ -139,7 +140,7 @@ class Miscellaneous(commands.Cog):
 
     @commands.command(name="servercount")
     async def servercount(self, ctx: Context):
-        await ctx.send("i'm in {0} servers.".format(str(len(self.client.guilds))))
+        await Sendable(ctx).send("i'm in {0} servers.".format(str(len(self.client.guilds))))
 
     @miscellaneousgroup.command(name="gmsearch")
     async def gmsearch(self, interaction: Interaction, searchstring: str):

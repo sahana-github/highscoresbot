@@ -10,7 +10,9 @@ class Sendable:
 
     async def send(self, *args, **kwargs):
         if type(self.inputsrc) == Interaction:
-            if self.inputsrc.channel is not None:
+            if not self.inputsrc.response.is_done():
+                send = self.inputsrc.response.send_message
+            elif self.inputsrc.channel is not None:
                 send = self.inputsrc.channel.send
             else:
                 send = self.inputsrc.user.send

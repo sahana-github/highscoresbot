@@ -24,6 +24,7 @@ class PlayerConfig(discord.ui.View):
         self.show = show
         self.interaction = interaction
         self.player = player
+
     @discord.ui.button(label='add player', style=discord.ButtonStyle.green)
     async def addplayer(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await self.isOwner(interaction):return
