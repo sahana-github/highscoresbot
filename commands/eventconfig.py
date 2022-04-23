@@ -385,27 +385,6 @@ class Eventconfigurations(commands.Cog):
         msg = "```\n" + "\n".join(members) + "```"
         await interaction.response.send_message(msg)
 
-    async def __eventnamecheck(self, interaction: Interaction, eventname: str) -> bool:
-        """
-        Checks if the provided eventname is a existing event, and shows what events are possible if the eventname is
-        invalid.
-        :param ctx: discord context
-        :param eventname: the eventname.
-        :return boolean, True if the eventname is valid.
-        """
-        conn = sqlite3.connect(self.databasepath)
-        cur = conn.cursor()
-        cur.execute("SELECT eventname FROM eventnames WHERE eventname=?", (eventname,))
-        result = cur.fetchall()
-        if len(result) == 0:
-            cur.execute("SELECT eventname FROM eventnames")
-            eventnames = [row[0] for row in cur.fetchall()]
-            conn.close()
-            await interaction.response.send_message(f"invalid eventname '{eventname}'! Possible events:\n" + ", ".join(eventnames))
-            return False
-        conn.close()
-        return True
-
 
 async def setup(client):
     await client.add_cog(Eventconfigurations(client))

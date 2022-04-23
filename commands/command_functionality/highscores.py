@@ -1,7 +1,5 @@
 import sqlite3
 
-from discord import Interaction
-
 from commands.interractions.highscore_command import HighscoreCommand
 from commands.interractions.resultmessageshower import ResultmessageShower
 from commands.interractions.selectsview import SelectsView
