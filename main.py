@@ -15,7 +15,8 @@ class Main(commands.Bot):
         #                   "commands.miscellaneous", "commands.pmconfig"]
         self.cog_files = ["commands.slash_commands.highscores", "commands.slash_commands.eventconfigurations",
                           "commands.slash_commands.ingame_events", "commands.slash_commands.miscellaneous",
-                          "commands.slash_commands.pmconfig"]
+                          "commands.slash_commands.pmconfig",
+                          "commands.msgcontent_commands.msgcontent_highscores"]
 
     async def on_ready(self):
         """
