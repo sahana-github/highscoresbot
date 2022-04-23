@@ -7,6 +7,12 @@ from discord.abc import Messageable
 class Sendable:
     def __init__(self, inputsrc: Union[Messageable, Interaction]):
         self.inputsrc = inputsrc
+        attributes = ["guild", "channel"]
+        for attribute in attributes:
+            try:
+                inputsrc.__getattribute__(attribute)
+            except AttributeError:
+                self.__setattr__(attribute, None)
 
     async def send(self, *args, **kwargs):
         if type(self.inputsrc) == Interaction:

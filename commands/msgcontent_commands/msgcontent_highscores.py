@@ -1,6 +1,7 @@
 import sqlite3
 from typing import Union
 
+from discord import User
 from discord.ext import commands
 from discord.ext.commands import Command
 
@@ -18,13 +19,20 @@ class MsgContentHighscores(commands.Cog):
         self.makeClanCommands()
         self.makeTop10Commands()
 
+    @commands.command(name="testcmd")
+    async def testcmd(self, ctx):
+        cmd = list(get_clancommands().values())[0]
+        print(cmd)
+        sendable = Sendable(ctx.author)
+        await cmd(sendable, "nightraiders")
+
     def makeClanCommands(self):
-        for cmd in get_clancommands():
-            self.client.add_command(cmd)
+        for name, cmd in get_clancommands().items():
+            self.client.add_command(commands.command(name=name)(cmd))
 
     def makeTop10Commands(self):
-        for cmd in get_top10cmds():
-            self.client.add_command(cmd)
+        for name, cmd in get_top10cmds().items():
+            self.client.add_command(commands.command(name=name)(cmd))
 
 
 async def setup(client: commands.Bot):
