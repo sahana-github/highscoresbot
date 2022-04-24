@@ -1,4 +1,5 @@
 import sqlite3
+from typing import List
 
 import discord
 from discord import User, Client
@@ -6,8 +7,7 @@ from discord import User, Client
 from commands.sendable import Sendable
 from commands.interractions.discord_binder import DiscordBinder
 from pathmanager import PathManager
-
-
+from ppobyter.ingame_commands.ingamecommandclient import IngamecommandClient
 
 
 async def bind(sendable: Sendable, accountname: str, userid: int):
@@ -86,3 +86,23 @@ async def unblockall(sendable: Sendable, userid: int):
         await sendable.send("you undid blocking everyone from binding with your account.")
     else:
         await sendable.send("You didn't block everyone from binding with your account.")
+
+
+async def ingamecmd_help(sendable: Sendable, ingamecommands: List[str]):
+    prefix = "."
+    embed = discord.Embed(title="ingame commands",
+                          description=f"prefix of ingame commands: `{prefix}`")
+    embed.add_field(name=f"{prefix}bind <discord_id>",
+                    value="binds the ppo account to the discord account, so you can use commands"
+                          f" like `{prefix}weeklyexp nightraiders` in any local chat in pokemon planet and receive "
+                          f"the result in discord. The user will have to accept it on discord before the account is bound.",
+                    inline=False)
+    embed.add_field(name=f"{prefix}unbind <discord_id>",
+                    value="unbinds the discord account from your ppo account. "
+                          "The discord account will get notified this happened.", inline=False)
+    embed.add_field(name=f"{prefix}unbindall",
+                    value="all discord accounts your ppo account has been bound to will be unbound.")
+    ingamecommands.sort()
+    embed.add_field(name="all available commands:",
+                    value="`" + "\n".join(ingamecommands) + "`", inline=False)
+    await sendable.send(embed=embed)

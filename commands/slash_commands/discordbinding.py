@@ -1,6 +1,7 @@
 from discord import Client, app_commands, Interaction
 from discord.ext import commands
 from commands.command_functionality import discordbinder
+from commands.command_functionality.discordbinder import ingamecmd_help
 from commands.sendable import Sendable
 
 
@@ -29,6 +30,13 @@ class DiscordBinding(commands.Cog):
         enables requesting account bindings if they got disabled. Individual blocked players will remain
         """
         await discordbinder.unblockall(Sendable(interaction), interaction.user.id)
+
+    @discordbindinggroup.command(name="help")
+    async def help(self, interaction: Interaction):
+        cmds = ['achievements', 'bind', 'cwplayers', 'cwwins', 'dex', 'evoboxes', 'exp', 'fishing', 'help', 'lle',
+         'mining', 'mysteryboxes', 'pokeboxes', 'pp', 'tmboxes', 'toprichest', 'unbind', 'unbindall', 'wbdmg',
+         'weeklyexp']
+        await ingamecmd_help(Sendable(interaction), cmds)
 
 
 async def setup(client):

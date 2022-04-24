@@ -9,6 +9,7 @@ from discord.ext import tasks
 
 from commands.ingame_commands.highscores import get_clancommands
 from commands.ingame_commands.discordbinding import bind, unbind, unbindall
+from commands.ingame_commands.miscellaneous import helpcmd
 from ppobyter.eventdeterminer import EventDeterminer
 from ppobyter.eventmaker import EventMaker
 from ppobyter.events.clanwars import Clanwars
@@ -47,6 +48,7 @@ class Main(discord.Client):
             self.ingamecommandclient.register_command(cmdname, cmd)
         self.ingamecommandclient.register_command("unbind", unbind, binding_not_required=True)
         self.ingamecommandclient.register_command("unbindall", unbindall)  # if user has no bindings, command will be useless anyway
+        self.ingamecommandclient.register_command("help", helpcmd)
 
     async def on_ready(self):
         await self.wait_until_ready()

@@ -40,6 +40,7 @@ class IngamecommandClient:
         if cmd is None:
             return
         ctx.setClient(self.discordclient)
+        ctx.setIngameCommandClient(self)
         if splittedcmd[0] in self.binding_not_required_commands:
             users = []
             user = await self._fetch_user(discord_id=int(splittedcmd[1]), requestinguser=ctx.user)
