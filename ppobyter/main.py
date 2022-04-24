@@ -1,8 +1,11 @@
+import asyncio
 import os
+import threading
 from typing import List, Any
 
 import discord
 import nest_asyncio  # this makes the discord client useable together with pyshark.
+from discord.ext import tasks
 
 from commands.command_functionality.highscores import get_clancommands
 from commands.ingame_commands.discordbinding import bind
@@ -17,6 +20,8 @@ from ppobyter.ingame_commands.ingamecommandclient import IngamecommandClient
 from ppobyter.ingame_commands.messageprocesser import MessageProcesser
 from pysharkwrapper import PysharkWrapper
 from discord import Client
+
+
 nest_asyncio.apply()
 
 
@@ -35,6 +40,7 @@ class Main(discord.Client):
         self.attachCommands()
         self.messageprocesser = MessageProcesser()
         self.running = False
+        self._messages = []
 
     def attachCommands(self):
         self.ingamecommandclient.register_command("bind", bind)
@@ -42,19 +48,28 @@ class Main(discord.Client):
         #     self.ingamecommandclient.register_command(cmdname, cmd)
 
     async def on_ready(self):
+        await self.wait_until_ready()
         if not self.running:
-            self.loop.create_task(self.mainloop())
+            #self.loop.create_task(self.messagegetter())
+            t = threading.Thread(target=self.messagegetter)
+            t.start()
+            await self.messageprocesser_.start()
+            #print("?")
+
             self.running = True
 
-    async def mainloop(self):
-        await self.wait_until_ready()
+    def messagegetter(self):
         cap = self.__pysharkwrapper.cap()
         for message in cap:
-            #print(message)
-            #print(EventDeterminer(message).determineEvent())
+            self._messages.append(message)
+
+    @tasks.loop(seconds=4)
+    async def messageprocesser_(self):
+        while len(self._messages) != 0:
+            message = self._messages[len(self._messages)-1]
+            self._messages.pop(len(self._messages)-1)
             if event := EventDeterminer(message).determineEvent():
                 print(event)
-
                 # if event[0] == "gmsearch":
                 #     print("gm searched.")
                 #     continue
@@ -65,7 +80,9 @@ class Main(discord.Client):
                     await self.ingamecommandclient.on_message(processedmessage)
             self.handleTimedEvents(message)
             await self.__scheduler.handleEvent()
-        print("end")
+            #print(message)
+            #print(EventDeterminer(message).determineEvent())
+
 
     def handleTimedEvents(self, message):
         for task in self.__tasks:
