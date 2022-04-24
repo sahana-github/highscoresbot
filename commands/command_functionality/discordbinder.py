@@ -1,13 +1,13 @@
 import sqlite3
 
 import discord
-from discord import User
+from discord import User, Client
 
 from commands.sendable import Sendable
 from commands.interractions.discord_binder import DiscordBinder
+from pathmanager import PathManager
 
 
-database = "eventconfigurations.db"
 
 
 async def bind(sendable: Sendable, accountname: str, userid: int):
@@ -28,8 +28,25 @@ async def bind(sendable: Sendable, accountname: str, userid: int):
     await sendable.send(embed=embed, view=view)
 
 
+async def unbindall(accountname: str, client: Client):
+    with sqlite3.connect(PathManager().getpath("eventconfigurations.db")) as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT discordid FROM discord_bindings WHERE pponame=?", (accountname,))
+        userids = [row[0] for row in cur.fetchall()]
+        cur.execute("DELETE FROM discord_bindings WHERE pponame=?", (accountname,))
+        conn.commit()
+    for userid in userids:
+        try:
+            user = await client.fetch_user(userid)
+            if user is None:
+                continue
+            await user.send(f"{accountname} has unbound with your discord account!")
+        except Exception as e:
+            pass
+
+
 async def showbindings(sendable: Sendable, userid: int):
-    with sqlite3.connect(database) as conn:
+    with sqlite3.connect(PathManager().getpath("eventconfigurations.db")) as conn:
         cur = conn.cursor()
         cur.execute("SELECT pponame FROM discord_bindings WHERE discordid=?", (userid,))
         pponames = [row[0] for row in cur.fetchall()]
@@ -38,7 +55,7 @@ async def showbindings(sendable: Sendable, userid: int):
 
 
 async def removebinding(sendable: Sendable, ppousername: str, userid: int):
-    with sqlite3.connect(database) as conn:
+    with sqlite3.connect(PathManager().getpath("eventconfigurations.db")) as conn:
         cur = conn.cursor()
         result = cur.execute("DELETE FROM discord_bindings WHERE discordid=? AND pponame=?", (userid, ppousername))
         conn.commit()
@@ -49,7 +66,7 @@ async def removebinding(sendable: Sendable, ppousername: str, userid: int):
 
 
 async def unblock(sendable: Sendable, ppousername: str, userid: int):
-    with sqlite3.connect(database) as conn:
+    with sqlite3.connect(PathManager().getpath("eventconfigurations.db")) as conn:
         cur = conn.cursor()
         result = cur.execute("DELETE FROM discord_blocked WHERE pponame=? AND discordid=?", (ppousername, userid))
         conn.commit()
@@ -60,7 +77,7 @@ async def unblock(sendable: Sendable, ppousername: str, userid: int):
 
 
 async def unblockall(sendable: Sendable, userid: int):
-    with sqlite3.connect(database) as conn:
+    with sqlite3.connect(PathManager().getpath("eventconfigurations.db")) as conn:
         cur = conn.cursor()
         result = cur.execute("DELETE FROM everything_discord_blocked WHERE discordid=?", (userid,))
         conn.commit()

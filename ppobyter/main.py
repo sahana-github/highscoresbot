@@ -8,7 +8,7 @@ import nest_asyncio  # this makes the discord client useable together with pysha
 from discord.ext import tasks
 
 from commands.ingame_commands.highscores import get_clancommands
-from commands.ingame_commands.discordbinding import bind
+from commands.ingame_commands.discordbinding import bind, unbind, unbindall
 from ppobyter.eventdeterminer import EventDeterminer
 from ppobyter.eventmaker import EventMaker
 from ppobyter.events.clanwars import Clanwars
@@ -19,8 +19,7 @@ from ppobyter.eventscheduler import EventScheduler
 from ppobyter.ingame_commands.ingamecommandclient import IngamecommandClient
 from ppobyter.ingame_commands.messageprocesser import MessageProcesser
 from pysharkwrapper import PysharkWrapper
-from discord import Client
-
+from discord import Client, User
 
 nest_asyncio.apply()
 
@@ -43,9 +42,11 @@ class Main(discord.Client):
         self._messages = []
 
     def attachCommands(self):
-        self.ingamecommandclient.register_command("bind", bind)
+        self.ingamecommandclient.register_command("bind", bind, binding_not_required=True)
         for cmdname, cmd in get_clancommands().items():
             self.ingamecommandclient.register_command(cmdname, cmd)
+        self.ingamecommandclient.register_command("unbind", unbind, binding_not_required=True)
+        self.ingamecommandclient.register_command("unbindall", unbindall)  # if user has no bindings, command will be useless anyway
 
     async def on_ready(self):
         await self.wait_until_ready()

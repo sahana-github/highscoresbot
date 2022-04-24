@@ -23,6 +23,7 @@ class IngamecommandClient:
         self.prefix = prefix
         self.scopes = scopes
         self.commands = {}
+        self.binding_not_required_commands = []
 
     async def on_message(self, ctx: Context):
         """
@@ -38,8 +39,8 @@ class IngamecommandClient:
         cmd = self.commands.get(splittedcmd[0], None)
         if cmd is None:
             return
-
-        if splittedcmd[0] == "bind":
+        ctx.setClient(self.discordclient)
+        if splittedcmd[0] in self.binding_not_required_commands:
             users = []
             user = await self._fetch_user(discord_id=int(splittedcmd[1]), requestinguser=ctx.user)
             if user is not None:
@@ -99,7 +100,9 @@ class IngamecommandClient:
                 pass
         return users
 
-    def register_command(self, commandname, action):
+    def register_command(self, commandname, action, binding_not_required=False):
         if self.commands.get(commandname) is not None:
             raise ValueError("command already registered!")
         self.commands[commandname] = action
+        if binding_not_required:
+            self.binding_not_required_commands.append(commandname)
