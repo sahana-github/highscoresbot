@@ -146,7 +146,6 @@ def get_clancommands():
 
         def outer_cmd(score: Highscore) -> Command:
             async def cmd(sendable: Sendable, clanname=None):
-                print("???")
                 if clanname is None and ((clanname := await getdefaultclanname(sendable)) is None):
                     return
                 messages = tablify(score.LAYOUT, score.getDbValues(clan=clanname.lower()))

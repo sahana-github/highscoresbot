@@ -1,6 +1,6 @@
 import inspect
 import sqlite3
-from typing import List
+from typing import List, Callable, Any, Optional, Union, Coroutine, Awaitable
 
 from discord import Client, User
 
@@ -25,6 +25,11 @@ class IngamecommandClient:
         self.commands = {}
 
     async def on_message(self, ctx: Context):
+        """
+        checks if the message context contains a command, and executes that command if it is a command.
+        :param ctx: message context
+        :return:
+        """
         if ctx.chat not in self.scopes:
             return
         if ctx.message[0] != self.prefix:
@@ -40,13 +45,26 @@ class IngamecommandClient:
             users = await self._fetch_discord_users(ctx.user)
         await self.invoke_command(ctx, cmd, users, splittedcmd[1:])
 
-    async def invoke_command(self, ctx, command, users, args, requirepermissions=True):
+    async def invoke_command(self, ctx: Context,
+                             command: Callable[[Context, Sendable, Optional[Any]], Union[None, Awaitable[Any]]],
+                             users: List[User],
+                             args: List[Any]):
+        """
+        executes the given command on the users.
+        :param ctx: the command context.
+        :param command: the command to be executed.
+        :param users: list of users to send the command to.
+        :param args: arguments to pass to the function
+        :return:
+        """
         for user in users:
-            print(type(command))
-            if inspect.iscoroutinefunction(command):
-                await command(ctx, Sendable(user), *args)
-            else:
-                command(ctx, Sendable(user), *args)
+            try:
+                if inspect.iscoroutinefunction(command):
+                    await command(ctx, Sendable(user), *args)
+                else:
+                    command(ctx, Sendable(user), *args)
+            except Exception as e:
+                print(e)
 
     async def _fetch_user(self, discord_id: int, requestinguser: str):
         with sqlite3.connect(r"../eventconfigurations.db") as conn:

@@ -50,21 +50,25 @@ class Main(discord.Client):
     async def on_ready(self):
         await self.wait_until_ready()
         if not self.running:
-            #self.loop.create_task(self.messagegetter())
             t = threading.Thread(target=self.messagegetter)
             t.start()
             await self.messageprocesser_.start()
-            #print("?")
 
             self.running = True
 
     def messagegetter(self):
+        """
+        constantly adds messages to the message list.
+        """
         cap = self.__pysharkwrapper.cap()
         for message in cap:
             self._messages.append(message)
 
     @tasks.loop(seconds=4)
     async def messageprocesser_(self):
+        """
+        gets through all messages in the messagelist and processes them. Also clears the list.
+        """
         while len(self._messages) != 0:
             message = self._messages[len(self._messages)-1]
             self._messages.pop(len(self._messages)-1)
@@ -80,7 +84,6 @@ class Main(discord.Client):
                     await self.ingamecommandclient.on_message(processedmessage)
             self.handleTimedEvents(message)
             await self.__scheduler.handleEvent()
-
 
     def handleTimedEvents(self, message):
         for task in self.__tasks:
