@@ -15,6 +15,7 @@ class MessageProcesser:
         if match := re.search(regex, message):
 
             groupdict = match.groupdict()
+            print("user:", groupdict['username'])
             return Context(user=groupdict["username"],
                     message=groupdict["message"],
                     chat=self.chatmapping.get(groupdict["chat"]),

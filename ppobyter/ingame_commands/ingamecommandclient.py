@@ -32,12 +32,31 @@ class IngamecommandClient:
         cmd = self.commands.get(splittedcmd[0], None)
         if cmd is None:
             return
-        users = await self._fetch_discord_users(ctx.user)
+
+        if splittedcmd[0] == "bind":
+            users = [await self._fetch_user(discord_id=int(splittedcmd[1]), requestinguser=ctx.user)]
+        else:
+            users = await self._fetch_discord_users(ctx.user)
         await self.invoke_command(ctx, cmd, users, splittedcmd[1:])
 
-    async def invoke_command(self, ctx, command, users, args):
+    async def invoke_command(self, ctx, command, users, args, requirepermissions=True):
         for user in users:
-            await command(Sendable(user), *args)
+            await command(ctx, Sendable(user), *args)
+
+    async def _fetch_user(self, discord_id: int, requestinguser: str):
+        with sqlite3.connect(r"../eventconfigurations.db") as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM everything_discord_blocked WHERE discordid=?", (discord_id,))
+            if cur.fetchall():
+                return
+            cur.execute("SELECT * FROM discord_blocked WHERE discordid=? AND pponame=?",
+                        (discord_id, requestinguser))
+            if cur.fetchall():
+                return
+        try:
+            return await self.discordclient.fetch_user(discord_id)
+        except Exception as e:
+            pass
 
     async def _fetch_discord_users(self, ppo_username) -> List[User]:
         with sqlite3.connect(r"../eventconfigurations.db") as conn:

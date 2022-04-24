@@ -5,6 +5,7 @@ import discord
 import nest_asyncio  # this makes the discord client useable together with pyshark.
 
 from commands.command_functionality.highscores import get_clancommands
+from commands.ingame_commands.discordbinding import bind
 from ppobyter.eventdeterminer import EventDeterminer
 from ppobyter.eventmaker import EventMaker
 from ppobyter.events.clanwars import Clanwars
@@ -36,8 +37,9 @@ class Main(discord.Client):
         self.running = False
 
     def attachCommands(self):
-        for cmdname, cmd in get_clancommands().items():
-            self.ingamecommandclient.register_command(cmdname, cmd)
+        self.ingamecommandclient.register_command("bind", bind)
+        # for cmdname, cmd in get_clancommands().items():
+        #     self.ingamecommandclient.register_command(cmdname, cmd)
 
     async def on_ready(self):
         if not self.running:
