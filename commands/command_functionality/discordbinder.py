@@ -40,7 +40,7 @@ async def showbindings(sendable: Sendable, userid: int):
 async def removebinding(sendable: Sendable, ppousername: str, userid: int):
     with sqlite3.connect(database) as conn:
         cur = conn.cursor()
-        result = cur.execute("DELETE FROM discord_bindings WHERE userid=? AND pponame=?", (userid, ppousername))
+        result = cur.execute("DELETE FROM discord_bindings WHERE discordid=? AND pponame=?", (userid, ppousername))
         conn.commit()
     if result.rowcount:
         await sendable.send(f"Binding with player {ppousername} removed!")

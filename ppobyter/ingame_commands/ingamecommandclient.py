@@ -40,7 +40,10 @@ class IngamecommandClient:
             return
 
         if splittedcmd[0] == "bind":
-            users = [await self._fetch_user(discord_id=int(splittedcmd[1]), requestinguser=ctx.user)]
+            users = []
+            user = await self._fetch_user(discord_id=int(splittedcmd[1]), requestinguser=ctx.user)
+            if user is not None:
+                users.append(user)
         else:
             users = await self._fetch_discord_users(ctx.user)
         await self.invoke_command(ctx, cmd, users, splittedcmd[1:])
