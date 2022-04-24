@@ -1,3 +1,4 @@
+import inspect
 import sqlite3
 from typing import List
 
@@ -41,7 +42,11 @@ class IngamecommandClient:
 
     async def invoke_command(self, ctx, command, users, args, requirepermissions=True):
         for user in users:
-            await command(ctx, Sendable(user), *args)
+            print(type(command))
+            if inspect.iscoroutinefunction(command):
+                await command(ctx, Sendable(user), *args)
+            else:
+                command(ctx, Sendable(user), *args)
 
     async def _fetch_user(self, discord_id: int, requestinguser: str):
         with sqlite3.connect(r"../eventconfigurations.db") as conn:

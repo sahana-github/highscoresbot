@@ -7,7 +7,7 @@ import discord
 import nest_asyncio  # this makes the discord client useable together with pyshark.
 from discord.ext import tasks
 
-from commands.command_functionality.highscores import get_clancommands
+from commands.ingame_commands.highscores import get_clancommands
 from commands.ingame_commands.discordbinding import bind
 from ppobyter.eventdeterminer import EventDeterminer
 from ppobyter.eventmaker import EventMaker
@@ -44,8 +44,8 @@ class Main(discord.Client):
 
     def attachCommands(self):
         self.ingamecommandclient.register_command("bind", bind)
-        # for cmdname, cmd in get_clancommands().items():
-        #     self.ingamecommandclient.register_command(cmdname, cmd)
+        for cmdname, cmd in get_clancommands().items():
+            self.ingamecommandclient.register_command(cmdname, cmd)
 
     async def on_ready(self):
         await self.wait_until_ready()
@@ -80,8 +80,6 @@ class Main(discord.Client):
                     await self.ingamecommandclient.on_message(processedmessage)
             self.handleTimedEvents(message)
             await self.__scheduler.handleEvent()
-            #print(message)
-            #print(EventDeterminer(message).determineEvent())
 
 
     def handleTimedEvents(self, message):
