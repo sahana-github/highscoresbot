@@ -10,3 +10,7 @@ def get_clancommands():
             return lambda ctx, sendable, clanname: asyncio.run(cmd(sendable, clanname))
         cmddict[cmdname] = makecmd(cmd)
     return cmddict
+
+
+async def getplayer(ctx: Context, sendable: Sendable, username: str):
+    await highscores.getplayer(sendable, username)

@@ -7,7 +7,7 @@ import discord
 import nest_asyncio  # this makes the discord client useable together with pyshark.
 from discord.ext import tasks
 
-from commands.ingame_commands.highscores import get_clancommands
+from commands.ingame_commands.highscores import get_clancommands, getplayer
 from commands.ingame_commands.discordbinding import bind, unbind, unbindall
 from commands.ingame_commands.miscellaneous import helpcmd
 from ppobyter.eventdeterminer import EventDeterminer
@@ -49,6 +49,7 @@ class Main(discord.Client):
         self.ingamecommandclient.register_command("unbind", unbind, binding_not_required=True)
         self.ingamecommandclient.register_command("unbindall", unbindall)  # if user has no bindings, command will be useless anyway
         self.ingamecommandclient.register_command("help", helpcmd)
+        self.ingamecommandclient.register_command("getplayer", getplayer)
 
     async def on_ready(self):
         await self.wait_until_ready()
