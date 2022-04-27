@@ -9,7 +9,8 @@ from discord.ext import tasks
 
 from commands.ingame_commands.highscores import get_clancommands, getplayer, mapcontrol, getclan, get_top10commands
 from commands.ingame_commands.discordbinding import bind, unbind, unbindall
-from commands.ingame_commands.miscellaneous import helpcmd
+from commands.ingame_commands.ingame_events import lastonline, getclanencounters
+from commands.ingame_commands.miscellaneous import helpcmd, worldboss, clanlist
 from ppobyter.eventdeterminer import EventDeterminer
 from ppobyter.eventmaker import EventMaker
 from ppobyter.events.clanwars import Clanwars
@@ -56,6 +57,10 @@ class Main(discord.Client):
         self.ingamecommandclient.register_command("getplayer", getplayer)
         self.ingamecommandclient.register_command("mapcontrol", mapcontrol)
         self.ingamecommandclient.register_command("getclan", getclan)
+        self.ingamecommandclient.register_command("worldboss", worldboss)
+        self.ingamecommandclient.register_command("lastonline", lastonline)
+        self.ingamecommandclient.register_command("clanlist", clanlist)
+        self.ingamecommandclient.register_command("getclanencounters", getclanencounters)
     async def on_ready(self):
         await self.wait_until_ready()
         if not self.running:

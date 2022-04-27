@@ -10,11 +10,12 @@ from commands.interractions.resultmessageshower import ResultmessageShower
 from commands.sendable import Sendable
 from commands.utils.utils import tablify, getworldbosstime
 from highscores import getClanList
+from pathmanager import PathManager
 
 
 async def lastonline(sendable: Sendable, playername: str):
     if playername is None:
-        with sqlite3.connect("ingame_data.db") as conn:
+        with sqlite3.connect(PathManager().getpath("ingame_data.db")) as conn:
             cur = conn.cursor()
             cur.execute("SELECT max(timestamp) FROM activity")
             online = datetime.datetime.fromtimestamp(cur.fetchall()[0][0], datetime.timezone.utc)
@@ -23,7 +24,7 @@ async def lastonline(sendable: Sendable, playername: str):
                 f"date the player was last online.")
         return
     playername = playername.lower()
-    with sqlite3.connect("ingame_data.db") as conn:
+    with sqlite3.connect(PathManager().getpath("ingame_data.db")) as conn:
         cur = conn.cursor()
         cur.execute("SELECT timestamp FROM activity WHERE playername=?", (playername,))
         try:
@@ -66,7 +67,7 @@ async def getrolls(sendable: Sendable, parameter: str):
 
 async def getclanencounters(sendable: Sendable, clanname: str):
     clanname = clanname.lower()
-    conn = sqlite3.connect(r"ingame_data.db")
+    conn = sqlite3.connect(PathManager().getpath(r"ingame_data.db"))
     cur = conn.cursor()
 
     clanlist = getClanList(clanname.lower())

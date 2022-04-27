@@ -11,6 +11,7 @@ from commands.interractions.selectsview import SelectsView
 from commands.sendable import Sendable
 from commands.utils.utils import tablify
 from highscores import getClanList
+from pathmanager import PathManager
 from ppobyter.marketplace.item import Item
 from ppobyter.marketplace.pokemon import Pokemon
 
@@ -159,7 +160,7 @@ async def worldboss(sendable: Sendable, playername: str):
     SELECT rank() OVER (PARTITION BY  worldbossid ORDER BY damage DESC) as position, * FROM worldboss_dmg
     """
     playername = playername.lower()
-    conn = sqlite3.connect("data.db")
+    conn = sqlite3.connect(PathManager().getpath("data.db"))
     cur = conn.cursor()
     try:
         cur.execute("DROP VIEW participants")

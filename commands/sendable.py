@@ -1,18 +1,20 @@
 from typing import Union
 
-from discord import Interaction
+from discord import Interaction, User
 from discord.abc import Messageable
 
 
 class Sendable:
     def __init__(self, inputsrc: Union[Messageable, Interaction]):
         self.inputsrc = inputsrc
-        attributes = ["guild", "channel"]
+        attributes = ["guild", "channel", "user"]
         for attribute in attributes:
             try:
                 inputsrc.__getattribute__(attribute)
             except AttributeError:
                 self.__setattr__(attribute, None)
+        if type(inputsrc) == User:
+            self.__setattr__("user", inputsrc)
 
     async def send(self, *args, **kwargs):
         if type(self.inputsrc) == Interaction:
