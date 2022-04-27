@@ -4,4 +4,4 @@ from ppobyter.ingame_commands.context import Context
 
 
 async def helpcmd(ctx: Context, sendable: Sendable):
-    await ingamecmd_help(sendable, list(ctx.ingamecommandclient.commands.keys()))
+    await ingamecmd_help(sendable)

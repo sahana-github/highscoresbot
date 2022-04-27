@@ -88,7 +88,7 @@ async def unblockall(sendable: Sendable, userid: int):
         await sendable.send("You didn't block everyone from binding with your account.")
 
 
-async def ingamecmd_help(sendable: Sendable, ingamecommands: List[str]):
+async def ingamecmd_help(sendable: Sendable):
     prefix = "."
     embed = discord.Embed(title="ingame commands",
                           description=f"prefix of ingame commands: `{prefix}`")
@@ -102,6 +102,11 @@ async def ingamecmd_help(sendable: Sendable, ingamecommands: List[str]):
                           "The discord account will get notified this happened.", inline=False)
     embed.add_field(name=f"{prefix}unbindall",
                     value="all discord accounts your ppo account has been bound to will be unbound.")
+    with sqlite3.connect(PathManager().getpath("eventconfigurations.db")) as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM ingamecommands")
+        ingamecommands = [row[0] for row in cur.fetchall()]
+    print(ingamecommands)
     ingamecommands.sort()
     embed.add_field(name="all available commands:",
                     value="`" + "\n".join(ingamecommands) + "`", inline=False)

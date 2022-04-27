@@ -5,6 +5,7 @@ from typing import List, Callable, Any, Optional, Union, Coroutine, Awaitable
 from discord import Client, User
 
 from commands.sendable import Sendable
+from pathmanager import PathManager
 from ppobyter.ingame_commands.context import Context
 from ppobyter.ingame_commands.ppochat import PPOChat
 
@@ -22,9 +23,15 @@ class IngamecommandClient:
         self.discordclient = discordclient
         self.prefix = prefix
         self.scopes = scopes
+        self.__clearingamecommands()
         self.commands = {}
         self.binding_not_required_commands = []
 
+    def __clearingamecommands(self):
+        with sqlite3.connect(PathManager().getpath("eventconfigurations.db")) as conn:
+            cur = conn.cursor()
+            cur.execute("DELETE FROM ingamecommands WHERE true")
+            conn.commit()
     async def on_message(self, ctx: Context):
         """
         checks if the message context contains a command, and executes that command if it is a command.
@@ -104,6 +111,11 @@ class IngamecommandClient:
     def register_command(self, commandname, action, binding_not_required=False):
         if self.commands.get(commandname) is not None:
             raise ValueError("command already registered!")
+
+        with sqlite3.connect(PathManager().getpath("eventconfigurations.db")) as conn:
+            cur = conn.cursor()
+            cur.execute("INSERT INTO ingamecommands(command) VALUES(?)", (commandname,))
+            conn.commit()
         self.commands[commandname] = action
         if binding_not_required:
             self.binding_not_required_commands.append(commandname)

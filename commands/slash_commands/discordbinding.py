@@ -33,10 +33,7 @@ class DiscordBinding(commands.Cog):
 
     @discordbindinggroup.command(name="help")
     async def help(self, interaction: Interaction):
-        cmds = ['achievements', 'bind', 'cwplayers', 'cwwins', 'dex', 'evoboxes', 'exp', 'fishing', 'help', 'lle',
-         'mining', 'mysteryboxes', 'pokeboxes', 'pp', 'tmboxes', 'toprichest', 'unbind', 'unbindall', 'wbdmg',
-         'weeklyexp']
-        await ingamecmd_help(Sendable(interaction), cmds)
+        await ingamecmd_help(Sendable(interaction))
 
 
 async def setup(client):
