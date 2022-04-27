@@ -6,5 +6,7 @@ import asyncio
 def get_clancommands():
     cmddict = {}
     for cmdname, cmd in highscores.get_clancommands().items():
-        cmddict[cmdname] = lambda ctx, sendable, clanname: asyncio.run(cmd(sendable, clanname))
+        def makecmd(cmd):
+            return lambda ctx, sendable, clanname: asyncio.run(cmd(sendable, clanname))
+        cmddict[cmdname] = makecmd(cmd)
     return cmddict
