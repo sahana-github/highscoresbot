@@ -95,7 +95,10 @@ class Main(discord.Client):
             elif self.ingamecommandclient is not None:
                 processedmessage = self.messageprocesser.processMessage(message)
                 if processedmessage is not None:
-                    await self.ingamecommandclient.on_message(processedmessage)
+                    try:
+                        await self.ingamecommandclient.on_message(processedmessage)
+                    except Exception as e:
+                        print(e)
             self.handleTimedEvents(message)
             await self.__scheduler.handleEvent()
 
