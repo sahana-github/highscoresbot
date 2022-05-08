@@ -3,7 +3,6 @@ import datetime
 
 import discord
 from discord import Interaction
-from discord.ext.commands import Context
 
 from commands.interractions.resultmessageshower import ResultmessageShower
 from commands.utils.utils import tablify, datehandler
@@ -25,7 +24,7 @@ class GetChests(discord.ui.View):
         cur.execute("SELECT player, location, date FROM chests WHERE location=?", (self.parameter,))
         resultmessages = tablify(["playername", "location", "date"], cur.fetchall(), maxlength=1000)
         conn.close()
-        await self.showMessages(resultmessages, interaction)
+        await self.showMessages(resultmessages[::-1], interaction)
 
     @discord.ui.button(label="Date (yyyy-mm-dd)", style=discord.ButtonStyle.green)
     async def date(self, interaction: discord.Interaction, button: discord.ui.Button):
