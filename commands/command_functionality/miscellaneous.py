@@ -261,4 +261,10 @@ async def help(sendable: Sendable):
             label += f" ({row[0]})"
         labels.append(label)
     view = SelectsView(sendable, labels, lambda options: HelpCmd(sendable, options))
+    embed = discord.Embed(title="about", description="donations, source code")
+    embed.add_field(name="Donations",
+                    value="Highscores bot costs 49 usd to keep operational every month, which means highscores bot has cost 882 usd in total so far, without any compensation. Please consider [donating](https://www.patreon.com/highscores_bot) to keep highscores bot operational!")
+    embed.add_field(name="source code",
+                    value="highscores bot is open source! view the source code on [github](https://github.com/graatje/highscoresbot)")
+    await sendable.send(embed=embed)
     await sendable.send("Select the command(s) you need help with! Commands are sorted by category.", view=view)
